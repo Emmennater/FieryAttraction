@@ -1,0 +1,103 @@
+@font-face {
+  font-family: space-font;
+  src: url(Assets/space-font.ttf);
+}
+
+@font-face {
+  font-family: spaceline;
+  src: url(Assets/spaceline.otf);
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+canvas {
+  display: block;
+  position: fixed;
+  top: 0;
+  z-index: -1;
+}
+
+#rules {
+  
+}
+
+#about {
+  
+}
+
+hbox {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  
+/*   background: blue; */
+}
+
+vbox {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100%;
+  
+/*   background: red; */
+}
+
+button {
+  margin: 20px;
+  flex: 1;
+  max-width: 30vw;
+  
+  font-family: space-font;
+  font-size: 16px;
+  
+  min-height: 40px;
+  color: white;
+  border: solid 2px white;
+  background: transparent;
+  cursor: pointer;
+}
+
+p {
+  text-align: left;
+}
+
+div {
+  color: white;
+  font-family: Trebuchet MS, sans-serif;
+  margin: 0 20px;
+}
+
+h1 {
+  text-align: center;
+  margin: 10px 0px;
+}
+
+span {
+  font-weight: bold;
+}
+
+control {
+  display: inline-block;
+  width: 100px;
+  font-weight: bold;
+}
+
+button:hover {
+  font-size: 17px;
+  background: #ffffff10;
+}
+
+button:active {
+  font-size: 16px;
+  background: #ffffff05;
+}
+
+
+
+
+
+

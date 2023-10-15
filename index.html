@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/addons/p5.sound.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="style.css">
+    <meta charset="utf-8" />
+
+  </head>
+  <body>
+    <main>
+    </main>
+    
+    <!-- Sound Track -->
+    <audio id="sound-track" loop>
+      <source src="https://github.com/Emmennater/Files/raw/main/GameSong.mp3" type="audio/mp3">
+      Your browser does not support the audio element.
+    </audio>
+    
+    <!-- Title Sound Track -->
+    <audio id="title-screen-sound-track" loop>
+      <source src="https://github.com/Emmennater/Files/raw/main/GameSongTitle.mp3" type="audio/mp3">
+      Your browser does not support the audio element.
+    </audio>
+    
+    <script src="Objects/gravity-obj.js"></script>
+    <script src="Objects/asteroid.js"></script>
+    <script src="Objects/ship.js"></script>
+    <script src="Objects/bullet.js"></script>
+    <script src="Objects/sun.js"></script>
+    <script src="Objects/stars.js"></script>
+    <script src="Objects/explosion.js"></script>
+    <script src="Objects/enemy.js"></script>
+    
+    <script src="hud.js"></script>
+    <script src="scene.js"></script>
+    <script src="events.js"></script>
+    <script src="panzoom.js"></script>
+    <script src="sounds.js"></script>
+    <script src="sketch.js"></script>
+    
+    <vbox>
+      <hbox>
+        <button id="controls" style="visibility: hidden;" onclick="scenes.toggleControls()">Help + Controls</button>
+      </hbox>
+      <div id="help-controls" style="visibility: hidden;">
+        
+        <hbox>
+          <div id="rules">
+            <h1>Rules</h1>
+            <ul style="list-style-type:circle;">
+              <li>Don't crash into the sun or asteroids.</li>
+              <li>Shoot <span style="color:red;">RED</span> asteroids for more fuel.</li>
+              <li>Shoot <span style="color:orange">ORANGE</span> asteroids for more ammo.</li>
+              <li>Shoot <span style="color:lime">GREEN</span> asteroids for more health.</li>
+              <li>Survive for as long as possible.</li>
+              <li>Have Fun!</li>
+            </ul>
+          </div>
+
+          <div id="about" style="text-align: center;">
+            <h2>About</h2>
+            <p><b>Solo Creation</b><br>
+            Game Designed by Emmett J.<br>
+            Music Designed by Emmett J.
+            <br><br><br><br></p>
+          </div>
+        </hbox>
+          
+        <h1>Controls</h1>
+        <hbox>
+          <ul style="list-style-type:none;">
+            <li><control>Fire</control>Space</li>
+            <li><control>Boost</control>W or Up Arrow</li>
+            <li><control>Turn Left</control>A or Left Arrow</li>
+            <li><control>Turn Right</control>D or Right Arrow</li>
+            <li><control>Zoom</control>Scroll Wheel</li>
+          </ul>
+        </hbox>
+      </div>
+    </vbox>
+    
+    
+  </body>
+</html>

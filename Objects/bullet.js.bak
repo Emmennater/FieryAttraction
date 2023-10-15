@@ -78,9 +78,9 @@ class Bullet extends GravityObject {
     let vy = this.y - this.py;
     
     if (this.owner == "enemy") {
-      ctx.stroke(255, 80, 60, ALPHA);
-    } else {
       ctx.stroke(60, 255, 80, ALPHA);
+    } else {
+      ctx.stroke(255, 80, 60, ALPHA);
     }
     
     ctx.strokeWeight(this.r);

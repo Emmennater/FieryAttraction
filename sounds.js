@@ -2,10 +2,10 @@
 class Sounds {
   constructor() {
     this.playing = [rocketSound];
-    rocketSound.setVolume(0);
-    rocketSound.loop();
-    burningSound.setVolume(0);
-    burningSound.loop();
+    // rocketSound.setVolume(0);
+    // rocketSound.loop();
+    // burningSound.setVolume(0);
+    // burningSound.loop();
   }
   
   setSoundVolume(sound, volume, time = 0.2) {
@@ -16,7 +16,7 @@ class Sounds {
     // sound.setVolume(0.2);
     sound.stop();
     sound.play();
-    sound.amp(volume, time);
+    this.setSoundVolume(sound, volume, time);
     
     // if (!sound) return;
     // let idx = this.playing.indexOf(sound);
@@ -54,6 +54,15 @@ class HTMLSounds {
       sound, volume, time, startVolume: sound.volume, startTime: time
     })
   }
+
+  playSound(sound, volume = 0.1) {
+    sound.volume = volume;
+    sound.play();
+  }
+
+  stopSound(sound) {
+    sound.volume = 0;
+  }
   
   runSounds(dt) {
     for (let i = this.running.length - 1; i >= 0; --i) {
@@ -66,6 +75,29 @@ class HTMLSounds {
       fade.sound.volume = map(fade.time, fade.startTime, 0, fade.startVolume, fade.volume);
     }
   }
+}
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+async function initSounds() {
+  soundTrack.volume = 0;
+  titleScreenTrack.volume = 0;
+  rocketSound.volume = 0;
+  collisionSound.volume = 0;
+  burningSound.volume = 0;
+  shootSound.volume = 0;
+  hitSound.volume = 0;
+
+  titleScreenTrack.play();
+  await sleep(50);
+  soundTrack.play();
+  await sleep(50);
+  rocketSound.play();
+
+  // rocketSound.setVolume(0.2);
+  // rocketSound.playMode('restart');
 }
 
 /*

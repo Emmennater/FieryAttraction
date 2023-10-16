@@ -9,7 +9,8 @@ class Scenes {
     this.messageTime = 300;
     this.impactMessageTime = this.messageTime;
     this.introSkipped = false;
-    
+    this.highScore = false;
+
     // Elements
     this.musicSlider = document.getElementById("music-volume");
     this.helpControls = document.getElementById("help-controls");
@@ -23,7 +24,7 @@ class Scenes {
     this.updateVolume();
 
     // this.toggleControls(true);
-    // this.cutSceneTo(thioScreen);
+    // this.cutSceneTo(this.loseScreen);
     // this.cutSceneTo(this.scene2, this.initScene2);
   }
   
@@ -61,15 +62,17 @@ class Scenes {
     const BLARE = (sin(frameCount / 14) + 1) / 2;
     
     // Stop sounds
-    sounds.stopSound(rocketSound);
-    sounds.stopSound(burningSound);
+    // sounds.stopSound(rocketSound);
+    // sounds.stopSound(burningSound);
+    htmlSounds.stopSound(rocketSound);
+    htmlSounds.stopSound(burningSound);
     htmlSounds.fadeSound(soundTrack, 0.0, 1);
-    collisionSound.stop();
-    burningSound.stop();
-    shootSound.stop();
-    hitSound.stop();
+    // collisionSound.stop();
+    // burningSound.stop();
+    // shootSound.stop();
+    // hitSound.stop();
+    // rocketSound.stop();
     alarmSound.stop();
-    rocketSound.stop();
 
     // Background
     background(0);
@@ -119,11 +122,21 @@ class Scenes {
 
     // Top score
     if (hud.score > hud.topScore) {
+      this.highScore = true;
       hud.topScore = hud.score;
       storeItem("fiery-attraction-top-score", hud.topScore);
     }
+
+    if (this.highScore) {
+      let lightness = BLARE * 130 + 125;
+      fill(lightness);
+      textAlign(CENTER, CENTER);
+      textSize(MIN_SCL * 0.06);
+      textFont("Arial Black");
+      text("HIGH SCORE!", width / 2, height * 0.2);
+    }
     
-    if (keys.SPACE) {
+    if (keys.SPACE && this.sceneTime > 60) {
       this.cutSceneTo(this.scene0, this.initScene0);
     }
   }
@@ -135,7 +148,8 @@ class Scenes {
     this.ship0.s = SCL * 0.05;
     this.ship0.vx = SCL / 8;
     this.ship0.vy = 0;
-    
+    this.highScore = false;
+
     // Elements
     this.controlButton.style.visibility = "visible";
     
@@ -149,7 +163,8 @@ class Scenes {
     let collisionDist = width / 2;
     
     // Ship sound
-    sounds.startSound(rocketSound);
+    htmlSounds.fadeSound(rocketSound, 0.04, 0.2);
+    // sounds.startSound(rocketSound);
     
     // Ship
     this.ship0 = new Ship(width / 2 - collisionDist, height / 2);
@@ -178,20 +193,12 @@ class Scenes {
     enemies.length = 0;
     initAsteroids();
     initEnemies();
-    
-    // Sounds
-    soundTrack.play();
   }
   
   scene0(dt, ctx) {
     const MIN_SCL = Math.min(width - 20, height - 20);
     const MAX_SCL = Math.max(width - 20, height - 20);
     const BLARE = (sin(frameCount / 14) + 1) / 2;
-    
-    // Sounds
-    if (this.sceneTime > 10) {
-      titleScreenTrack.play();
-    }
     
     // Move ship
     let shipTheta = frameCount / 300 + 0.3;
@@ -294,7 +301,8 @@ class Scenes {
       this.ship0.vy = this.asteroid0.vy;
       this.ship0.control.steerVel = 4;
       
-      sounds.playRandomly(collisionSound);
+      // sounds.playRandomly(collisionSound);
+      htmlSounds.playSound(collisionSound, 0.3);
     } else if (this.ship0.collided) {
       this.ship0.collided++;
     }
@@ -338,7 +346,8 @@ class Scenes {
     if (this.ship0.y > height + this.ship0.vy * 1 || pressed.SPACE) {
       alarmSound.stop();
       this.impactMessageTime = this.messageTime;
-      sounds.stopSound(rocketSound);
+      htmlSounds.fadeSound(rocketSound, 0.0, 0.2);
+      // sounds.stopSound(rocketSound);
       this.introSkipped = pressed.SPACE;
       
       // Cut scene
@@ -399,7 +408,7 @@ class Scenes {
     this.nextScene = scene;
     this.nextInitScene = initScene;
     this.fadeTime = fadeTime;
-    
+    this.sceneTime = 0;
   }
   
   runCutScene(dt) {

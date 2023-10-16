@@ -23,7 +23,8 @@ class Bullet extends GravityObject {
           asteroid.y < this.y + sz) {
         this.destroy = true;
         asteroid.takeDamage(1, this.owner);
-        sounds.playRandomly(hitSound, 0.5);
+        htmlSounds.playSound(hitSound, 0.5);
+        // sounds.playRandomly(hitSound, 0.5);
         return;
       }
     }
@@ -38,7 +39,8 @@ class Bullet extends GravityObject {
         this.destroy = true;
         ship.takeDamage(5, this.owner);
         hud.addCameraShake(10, 10);
-        sounds.playRandomly(hitSound, 0.5);
+        htmlSounds.playSound(hitSound, 0.5);
+        // sounds.playRandomly(hitSound, 0.5);
         return;
       }
     }
@@ -53,7 +55,8 @@ class Bullet extends GravityObject {
             enemy.y < this.y + sz) {
           this.destroy = true;
           enemy.takeDamage(5, this.owner);
-          sounds.playRandomly(hitSound, 0.5);
+          htmlSounds.playSound(hitSound, 0.5);
+          // sounds.playRandomly(hitSound, 0.5);
           return;
         }
       }

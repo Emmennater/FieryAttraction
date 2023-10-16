@@ -100,9 +100,11 @@ class Ship extends GravityObject {
     // Sounds
     if (oldBoost != this.control.boost) {
       if (this.control.boost) {
-        sounds.startSound(rocketSound);
+        htmlSounds.fadeSound(rocketSound, 0.1, 0.2);
+        // sounds.startSound(rocketSound);
       } else {
-        sounds.stopSound(rocketSound);
+        htmlSounds.fadeSound(rocketSound, 0.0, 0.2);
+        // sounds.stopSound(rocketSound);
       }
     }
     
@@ -129,7 +131,8 @@ class Ship extends GravityObject {
     
     this.ammo--;
     if (this.ammo < 0) this.ammo = 0;
-    sounds.playRandomly(shootSound, 0.02, 0.4);
+    htmlSounds.playSound(shootSound, 0.02);
+    // sounds.playRandomly(shootSound, 0.02, 0.4);
     spawnBullet(x, y, vx, vy);
   }
   
@@ -170,9 +173,11 @@ class Ship extends GravityObject {
       this.burning = damage ? true : false;
       if (this.burning) {
         let v = Math.min(damage / 50, 0.2);
-        sounds.setSoundVolume(burningSound, v, 0.2);
+        htmlSounds.fadeSound(burningSound, v, 0.2);
+        // sounds.startSound(burningSound, v, 0.2);
       } else {
-        sounds.setSoundVolume(burningSound, 0, 0.2);
+        htmlSounds.stopSound(burningSound, 0.2);
+        // sounds.stopSound(burningSound, 0.2);
       }
     }
     
@@ -257,7 +262,8 @@ class Ship extends GravityObject {
           let v = Math.min(damage / 10, 0.5);
           
           // Sound
-          sounds.playRandomly(collisionSound, damage / 10 * 0.2);
+          htmlSounds.playSound(collisionSound, damage / 10 * 0.2);
+          // sounds.playRandomly(collisionSound, damage / 10 * 0.2);
         }
       }
     }

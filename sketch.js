@@ -43,6 +43,9 @@ function setup() {
   CANVAS = createCanvas(windowWidth, windowHeight);
   CTX = createGraphics(width, height);
   
+  // Globals
+  documentClicked = false;
+
   // Namespaces
   panzoom = new PanZoom();
   sun = new Sun();

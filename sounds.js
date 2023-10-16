@@ -81,20 +81,27 @@ function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-async function initSounds() {
-  soundTrack.volume = 0;
-  titleScreenTrack.volume = 0;
-  rocketSound.volume = 0;
-  collisionSound.volume = 0;
-  burningSound.volume = 0;
-  shootSound.volume = 0;
-  hitSound.volume = 0;
+function initSounds() {
+  document.addEventListener('click', async function(event) {
+    if (documentClicked) return;
+    documentClicked = true;
 
-  titleScreenTrack.play();
-  await sleep(50);
-  soundTrack.play();
-  await sleep(50);
-  rocketSound.play();
+    // This function will be called whenever the document is clicked.
+    // You can put your code here.
+    soundTrack.volume = 0;
+    titleScreenTrack.volume = 0;
+    rocketSound.volume = 0;
+    collisionSound.volume = 0;
+    burningSound.volume = 0;
+    shootSound.volume = 0;
+    hitSound.volume = 0;
+
+    titleScreenTrack.play();
+    await sleep(50);
+    soundTrack.play();
+    await sleep(50);
+    rocketSound.play();
+  });
 
   // rocketSound.setVolume(0.2);
   // rocketSound.playMode('restart');

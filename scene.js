@@ -256,7 +256,7 @@ class Scenes {
       textSize(MIN_SCL * 0.04);
       textFont("monospace");
       textAlign(LEFT, CENTER);
-      text("TOP SCORE " + hud.topScore, 20, topScoreY);
+      text("HIGH SCORE " + hud.topScore, 20, topScoreY);
 
       // Title
       textFont(futureFont);

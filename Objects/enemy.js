@@ -29,10 +29,15 @@ class Enemy extends Ship {
     }
   }
   
-  fireAtPlayer(dirOffset) {
+  fireAtPlayer(dirOffset, dt) {
+
+    // Accelerate towards player
+    this.control.boost = true;
+    this.vx += cos(this.a + this.control.steeringAngle) * this.speed * dt;
+    this.vy += sin(this.a + this.control.steeringAngle) * this.speed * dt;
+
     if (this.bTime-- > 0) return;
     this.bTime = this.bDelay;
-    
     
     let shipSpeed = Math.sqrt(ship.vx ** 2 + ship.vy ** 2);
     let dvx = ship.vx / shipSpeed;
@@ -52,7 +57,7 @@ class Enemy extends Ship {
     let bvx = cos(this.a + A) * this.bSpeed + this.vx;
     let bvy = sin(this.a + A) * this.bSpeed + this.vy;
     spawnBullet(this.x, this.y, bvx, bvy, "enemy");
-    
+
     // CTX.stroke(255, 0, 0);
     // CTX.strokeWeight(2);
     // CTX.line(
@@ -118,7 +123,7 @@ class Enemy extends Ship {
       let distToPlayer = dist(this.x, this.y, ship.x, ship.y);
       if (distToPlayer < 200) {
         let dir = diff1 < diff2 ? -1 : 1;
-        this.fireAtPlayer(dir);
+        this.fireAtPlayer(dir, dt);
       }
     }
     

@@ -13,11 +13,18 @@ html, body {
   padding: 0;
   height: 100%;
 }
+
 canvas {
   display: block;
   position: fixed;
   top: 0;
   z-index: -1;
+}
+
+.slider {
+  padding: 0;
+  margin: 0;
+  transform: translate(0, 4px);
 }
 
 #rules {

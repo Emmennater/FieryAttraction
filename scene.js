@@ -11,11 +11,17 @@ class Scenes {
     this.introSkipped = false;
     
     // Elements
+    this.musicSlider = document.getElementById("music-volume");
     this.helpControls = document.getElementById("help-controls");
     this.controlButton = document.getElementById("controls");
     this.controlsOpen = false;
     this.sceneTime = 0;
     
+    // Music volume
+    this.musicVolume = getItem("fiery-attraction-music-volume");
+    this.musicSlider.value = this.musicVolume * 100;
+    this.updateVolume();
+
     // this.toggleControls(true);
     // this.cutSceneTo(thioScreen);
     // this.cutSceneTo(this.scene2, this.initScene2);
@@ -32,6 +38,21 @@ class Scenes {
       this.controlButton.innerText = "Help + Controls";
       this.helpControls.style.visibility = "hidden";
     }
+  }
+
+  updateVolume() {
+    if (titleScreenTrack.volume > 0)
+      titleScreenTrack.volume = 0.4 * this.musicVolume;
+    if (soundTrack.volume > 0)
+      soundTrack.volume = 0.8 * this.musicVolume;
+  }
+
+  changeMusicVolume() {
+    const percent = this.musicSlider.value / 100;
+    this.musicVolume = percent;
+    storeItem("fiery-attraction-music-volume", percent);
+
+    this.updateVolume();
   }
   
   loseScreen(dt, ctx) {
@@ -120,7 +141,7 @@ class Scenes {
     
     // Start soundtrack
     titleScreenTrack.currentTime = 0;
-    htmlSounds.fadeSound(titleScreenTrack, 0.2, 1);
+    htmlSounds.fadeSound(titleScreenTrack, 0.4 * this.musicVolume, 1);
   }
   
   initScene1() {
@@ -369,7 +390,7 @@ class Scenes {
     // Start of sound track
     if ((this.sceneTime > 120 || this.introSkipped) && soundTrack.volume == 0) {
       soundTrack.currentTime = 0;
-      htmlSounds.fadeSound(soundTrack, 0.4, 1);
+      htmlSounds.fadeSound(soundTrack, 0.8 * this.musicVolume, 1);
     }
   }
   

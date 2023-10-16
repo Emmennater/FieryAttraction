@@ -141,10 +141,9 @@ class Scenes {
   
   initScene2() {
     // Settings
-    ship.reset();
-    ship.control.steerVel = 2;
     panzoom.zoom = 3.0;
     hud.score = 0;
+    ship.reset();
     asteroids.length = 0;
     bullets.length = 0;
     explosions.length = 0;

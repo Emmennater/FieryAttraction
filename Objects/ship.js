@@ -128,7 +128,7 @@ class Ship extends GravityObject {
     let vy = this.vy + sin(shipAngle) * bSpeed;
     
     this.ammo--;
-	if (this.ammo < 0) this.ammo = 0;
+    if (this.ammo < 0) this.ammo = 0;
     sounds.playRandomly(shootSound, 0.02, 0.4);
     spawnBullet(x, y, vx, vy);
   }
@@ -290,6 +290,7 @@ class Ship extends GravityObject {
     this.bulletTime = 0;
     this.damageTime = 0;
     this.control.steeringAngle = 0;
+    this.control.steerVel = 0;
   }
   
   drawBoost(ctx) {

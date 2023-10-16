@@ -19,7 +19,7 @@ class Scenes {
     this.sceneTime = 0;
     
     // Music volume
-    this.musicVolume = getItem("fiery-attraction-music-volume");
+    this.musicVolume = getItem("fiery-attraction-music-volume") || 0.5;
     this.musicSlider.value = this.musicVolume * 100;
     this.updateVolume();
 

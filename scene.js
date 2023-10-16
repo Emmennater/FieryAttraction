@@ -43,7 +43,13 @@ class Scenes {
     sounds.stopSound(rocketSound);
     sounds.stopSound(burningSound);
     htmlSounds.fadeSound(soundTrack, 0.0, 1);
-    
+    collisionSound.stop();
+    burningSound.stop();
+    shootSound.stop();
+    hitSound.stop();
+    alarmSound.stop();
+    rocketSound.stop();
+
     // Background
     background(0);
     

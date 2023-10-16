@@ -13,6 +13,8 @@ class Asteroid extends GravityObject {
     this.sprite = asteroidSprite;
     this.destroy = false;
     this.health = 3;
+    this.split = false;
+    this.isSplit = false;
   }
   
   move(dt) {
@@ -40,11 +42,44 @@ class Asteroid extends GravityObject {
   takeDamage(damage, owner) {
     this.health -= damage;
     if (this.health <= 0) {
+      if (!this.destroy && this.split) {
+        this.splitAsteroid();
+      }
       this.destroy = true;
       spawnExplosion(this.x, this.y);
       if (owner == "player") {
         hud.addScore(5);
       }
+    }
+  }
+
+  splitAsteroid() {
+    for (let i = 0; i < 3; i++) {
+      let type = randomAsteroid();
+      let asteroid = null;
+
+      let x = this.x;
+      let y = this.y;
+      let vx = this.vx + Math.random() * 20 - 10;
+      let vy = this.vy + Math.random() * 20 - 10;
+      let r = Math.random() * 10 + 10;
+
+      switch (type) {
+        case "fuel":
+          asteroid = new FuelAsteroid(x, y, r, vx, vy);
+          break;
+        case "ammo":
+          asteroid = new AmmoAsteroid(x, y, r, vx, vy);
+          break;
+        case "health":
+          asteroid = new HealthAsteroid(x, y, r, vx, vy);
+          break;
+        default:
+          asteroid = new Asteroid(x, y, r, vx, vy);
+      }
+
+      asteroid.isSplit = true;
+      asteroids.push(asteroid);
     }
   }
   
@@ -134,6 +169,16 @@ function spawnAsteroid(type, playerCheck) {
   
   let d = sun.r + 20 + Math.random() * 400;
   let r = Math.random() * 10 + 10;
+  let health = 3;
+  let split = false;
+
+  // Random massive asteroid
+  if (Math.random() < 0.05) {
+    r += 20;
+    health = 6;
+    split = true;
+  }
+
   let x = Math.cos(t) * d;
   let y = Math.sin(t) * d;
   let s = Math.random() * 20 + 20;
@@ -156,6 +201,10 @@ function spawnAsteroid(type, playerCheck) {
       asteroid = new Asteroid(x, y, r, vx, vy);
   }
   
+  // Set health
+  asteroid.health = health;
+  asteroid.split = split;
+
   asteroids.push(asteroid);
 }
 
@@ -177,9 +226,11 @@ function moveAsteroids(dt) {
       asteroids.splice(i, 1);
       
       // For every asteroid destroyed, 2 more spawn
-      spawnAsteroid(asteroid.type, true);
-      let type = randomAsteroid();
-      spawnAsteroid(type, true);
+      if (!asteroid.isSplit) {
+        spawnAsteroid(asteroid.type, true);
+        let type = randomAsteroid();
+        spawnAsteroid(type, true);
+      }
       
       continue;
     }

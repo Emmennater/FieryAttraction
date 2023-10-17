@@ -48,7 +48,15 @@ class HTMLSounds {
   constructor() {
     this.running = [];
   }
-  
+
+  removeSoundFromQueue(sound) {
+    for (let i = this.running.length - 1; i >= 0; --i) {
+      if (this.running[i].sound == sound) {
+        this.running.splice(i, 1);
+      }
+    }
+  }
+
   fadeSound(sound, volume, time) {
     this.running.push({
       sound, volume, time, startVolume: sound.volume, startTime: time
@@ -66,6 +74,7 @@ class HTMLSounds {
 
   stopSound(sound) {
     sound.volume = 0;
+    this.removeSoundFromQueue(sound);
   }
   
   runSounds(dt) {

@@ -64,6 +64,8 @@ class Ship extends GravityObject {
     this.damageTime = this.damageDelay;
     this.bulletTime = 0;
     this.sprite = rocketSprite;
+    this.alpha = 255;
+    this.angle = 0;
   }
   
   controls(dt) {
@@ -100,9 +102,11 @@ class Ship extends GravityObject {
     // Sounds
     if (oldBoost != this.control.boost) {
       if (this.control.boost) {
-        sounds.startSound(rocketSound);
+        htmlSounds.fadeSound(rocketSound, 0.1, 0.2);
+        // sounds.startSound(rocketSound);
       } else {
-        sounds.stopSound(rocketSound);
+        htmlSounds.fadeSound(rocketSound, 0.0, 0.2);
+        // sounds.stopSound(rocketSound);
       }
     }
     
@@ -113,7 +117,7 @@ class Ship extends GravityObject {
   
   fireBullet() {
     const bulletDelay = 20;
-    if (--this.bulletTime > 0) return;
+    if (this.bulletTime > 0) return;
     if (this.ammo <= 0) {
       this.bulletTime += bulletDelay * 2;
       this.ammo = 0;
@@ -128,8 +132,9 @@ class Ship extends GravityObject {
     let vy = this.vy + sin(shipAngle) * bSpeed;
     
     this.ammo--;
-	if (this.ammo < 0) this.ammo = 0;
-    sounds.playRandomly(shootSound, 0.02, 0.4);
+    if (this.ammo < 0) this.ammo = 0;
+    htmlSounds.playSound(shootSound, 0.02, true);
+    // sounds.playRandomly(shootSound, 0.02, 0.4);
     spawnBullet(x, y, vx, vy);
   }
   
@@ -170,9 +175,9 @@ class Ship extends GravityObject {
       this.burning = damage ? true : false;
       if (this.burning) {
         let v = Math.min(damage / 50, 0.2);
-        sounds.setSoundVolume(burningSound, v, 0.2);
+        htmlSounds.fadeSound(burningSound, v, 0.2);
       } else {
-        sounds.setSoundVolume(burningSound, 0, 0.2);
+        htmlSounds.fadeSound(burningSound, 0.0, 0.2);
       }
     }
     
@@ -209,6 +214,11 @@ class Ship extends GravityObject {
     this.vx = lerp(this.vx, this.vx * ns, 0.025);
     this.vy = lerp(this.vy, this.vy * ns, 0.025);
     this.stats.distToSun = d;
+
+    // Reduce bullet time
+    this.bulletTime -= dt * 60;
+    if (this.bulletTime < 0)
+      this.bulletTime = 0;
   }
   
   takeDamage(damage) {
@@ -254,10 +264,11 @@ class Ship extends GravityObject {
           this.takeDamage(damage);
           
           // Speed of impact;
-          let v = Math.min(damage / 10, 0.5);
+          let v = Math.min(damage / 10, 0.5);  
           
           // Sound
-          sounds.playRandomly(collisionSound, damage / 10 * 0.2);
+          htmlSounds.playSound(collisionSound, damage / 10 * 0.2, true);
+          // sounds.playRandomly(collisionSound, damage / 10 * 0.2);
         }
       }
     }
@@ -290,6 +301,7 @@ class Ship extends GravityObject {
     this.bulletTime = 0;
     this.damageTime = 0;
     this.control.steeringAngle = 0;
+    this.control.steerVel = 0;
   }
   
   drawBoost(ctx) {
@@ -301,7 +313,8 @@ class Ship extends GravityObject {
     let vy = dy / d;
     let speed = Math.sqrt(this.vx ** 2 + this.vy ** 2);
     
-    this.a = atan2(this.vy, this.vx);
+    let shipTurnRate = (this.control.boost) ? 0.02 : 0.002;
+    this.a = lerp(this.a, atan2(this.vy, this.vx), shipTurnRate);
     let shipAngle = this.a + this.control.steeringAngle - PI;
     let exaustDist = this.s * 0.6;
     let exaustVx = 0, exaustVy = 0;
@@ -344,12 +357,22 @@ class Ship extends GravityObject {
     const SIZE = 1.4;
     const aspect = rocketSprite.height / rocketSprite.width;
     
+    if (this.health <= 0)
+      this.alpha = Math.max(this.alpha - 8, 0);
+    else
+      this.alpha = 255;
+
     ctx.push();
     ctx.translate(this.x, this.y);
     ctx.rotate(HALF_PI + this.a + this.control.steeringAngle);
     ctx.translate(0, -this.s / 4);
     ctx.imageMode(CENTER);
+    
+    if (this.alpha != 255)
+      ctx.tint(255, this.alpha);
     ctx.image(this.sprite, 0, 0, this.s * SIZE, this.s * aspect * SIZE);
+    if (this.alpha != 255)
+      ctx.noTint();
     
     ctx.pop();
     

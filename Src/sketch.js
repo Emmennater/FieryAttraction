@@ -66,7 +66,7 @@ function setup() {
   initAsteroids();
   
   // Scenes
-  scenes.initScene0();
+  scenes.setup();
 }
 
 function draw() {

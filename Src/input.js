@@ -6,6 +6,11 @@ function keyPressed() {
   const c = key == " " ? "SPACE" : key.toUpperCase();
   keys[c] = true;
   pressed[c] = true;
+
+  if (c == "F") {
+    let fs = fullscreen();
+    fullscreen(!fs);
+  }
 }
 
 function keyReleased() {

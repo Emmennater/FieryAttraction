@@ -8,6 +8,7 @@ function preload() {
   enemySprite = loadImage("Assets/enemyjet.png");
   sunSprite = loadImage("Assets/hotsun.jpg");
   asteroidSprite = loadImage("Assets/asteroid-sprite.png");
+  speedAsteroidSprite = loadImage("Assets/speed-asteroid.png");
   fuelAsteroidSprite = loadImage("Assets/fuel-asteroid-sprite.png");
   healthAsteroidSprite = loadImage("Assets/health-asteroid-sprite.png");
   ammoAsteroidSprite = loadImage("Assets/ammo-asteroid-sprite.png");

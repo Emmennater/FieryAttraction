@@ -171,6 +171,23 @@ class AmmoAsteroid extends Asteroid {
   }
 }
 
+class SpeedAsteroid extends Asteroid {
+  constructor(x, y, r, vx, vy) {
+    super(x, y, r, vx, vy);
+    this.type = "speed";
+    this.sprite = speedAsteroidSprite;
+  }
+  
+  takeDamage(damage, owner) {
+    super.takeDamage(damage, owner);
+    if (this.destroy && owner == "player") {
+      ship.addAmmo(40);
+      hud.addScore(5);
+      ship.goCrazy();
+    }
+  }
+}
+
 function destroyAllAsteroids() {
   for (let asteroid of asteroids)
     asteroid.takeDamage(100);
@@ -215,6 +232,9 @@ function spawnAsteroid(type, playerCheck) {
       break;
     case "health":
       asteroid = new HealthAsteroid(x, y, r, vx, vy);
+      break;
+    case "speed":
+      asteroid = new SpeedAsteroid(x, y, r, vx, vy);
       break;
     default:
       asteroid = new Asteroid(x, y, r, vx, vy);
@@ -276,7 +296,9 @@ function drawAsteroids(CTX) {
 
 function randomAsteroid() {
   let rand = Math.random();
-  if (rand < 0.025) {
+  if (rand < 0.01) {
+    return "speed";
+  } else if (rand < 0.025) {
     return "health";
   } else if (rand < 0.1) {
     return "fuel";

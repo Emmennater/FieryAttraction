@@ -66,6 +66,9 @@ class Ship extends GravityObject {
     this.sprite = rocketSprite;
     this.alpha = 255;
     this.angle = 0;
+    this.oldAngle = 0;
+    this.speedMult = 1;
+    this.speedMultTime = 0;
   }
   
   controls(dt) {
@@ -154,6 +157,13 @@ class Ship extends GravityObject {
   }
   
   move(dt, ctx) {
+    // Speed
+    if (this.speedMultTime > 0) {
+      this.speedMultTime -= dt;
+    } else {
+      this.speedMult = 1;
+    }
+
     // Distance to sun
     let dx = sun.x - this.x;
     let dy = sun.y - this.y;
@@ -192,8 +202,8 @@ class Ship extends GravityObject {
     
     // Boost
     if (this.control.boost) {
-      ForceX -= cos(shipAngle) * this.speed;
-      ForceY -= sin(shipAngle) * this.speed;
+      ForceX -= cos(shipAngle) * this.speed * this.speedMult;
+      ForceY -= sin(shipAngle) * this.speed * this.speedMult;
       // this.x += ForceX * dt * 2;
       // this.y += ForceY * dt * 2;
       hud.addCameraShake(5, 10);
@@ -277,6 +287,11 @@ class Ship extends GravityObject {
   updateStats() {
     this.stats.temp = (100 ** 6) / (this.stats.distToSun ** 5 + 1);
   }
+
+  goCrazy() {
+    this.speedMult = 20;
+    this.speedMultTime = 10;
+  }
   
   alignCamera() {
     let x = this.x * 0.9;
@@ -314,7 +329,14 @@ class Ship extends GravityObject {
     let speed = Math.sqrt(this.vx ** 2 + this.vy ** 2);
     
     let shipTurnRate = (this.control.boost) ? 0.0025 : 0.05;
-    this.a = lerp(this.a, atan2(this.vy, this.vx), shipTurnRate);
+    let oldAngle = this.a;
+    let newAngle = atan2(this.vy, this.vx);
+    this.oldAngle = newAngle;
+    oldAngle = ((oldAngle % TWO_PI) + TWO_PI) % TWO_PI;
+    newAngle = ((newAngle % TWO_PI) + TWO_PI) % TWO_PI;
+    this.a += (newAngle - oldAngle) * shipTurnRate;
+    this.a = ((this.a % TWO_PI) + TWO_PI) % TWO_PI    
+
     let shipAngle = this.a + this.control.steeringAngle - PI;
     let exaustDist = this.s * 0.6;
     let exaustVx = 0, exaustVy = 0;
@@ -379,3 +401,14 @@ class Ship extends GravityObject {
   }
 }
 
+function smallestAngleDifference(a1, a2) {
+  let diff = a2 - a1;
+  diff = ((diff + Math.PI) % (2 * Math.PI)) - Math.PI;
+  
+  // Additional check for angles around 0
+  if (diff < -Math.PI) {
+    diff += TWO_PI;
+  }
+  
+  return diff;
+}

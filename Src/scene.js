@@ -157,7 +157,7 @@ class TitleScene extends Scene {
     const BLARE = (sin(frameCount / 14) + 1) / 2;
     
     // Move ship
-    let shipTheta = frameCount / 300 + 0.3;
+    let shipTheta = frameCount / 300 + 0.0;
     shipTheta = shipTheta % (PI - 0.2);
     let shipX = width / 2 + cos(-shipTheta) * height * 0.65;
     let shipY = height + sin(-shipTheta) * height * 0.5 + height * 0.1;

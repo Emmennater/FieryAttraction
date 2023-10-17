@@ -313,7 +313,7 @@ class Ship extends GravityObject {
     let vy = dy / d;
     let speed = Math.sqrt(this.vx ** 2 + this.vy ** 2);
     
-    let shipTurnRate = (this.control.boost) ? 0.02 : 0.002;
+    let shipTurnRate = (this.control.boost) ? 0.0025 : 0.05;
     this.a = lerp(this.a, atan2(this.vy, this.vx), shipTurnRate);
     let shipAngle = this.a + this.control.steeringAngle - PI;
     let exaustDist = this.s * 0.6;

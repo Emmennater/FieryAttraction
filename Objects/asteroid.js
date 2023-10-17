@@ -46,7 +46,7 @@ class Asteroid extends GravityObject {
         this.splitAsteroid();
       }
       this.destroy = true;
-      spawnExplosion(this.x, this.y);
+      spawnExplosion(this.x, this.y, null, this.r / 40 * 0.2);
       if (owner == "player") {
         hud.addScore(5);
       }

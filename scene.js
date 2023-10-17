@@ -10,6 +10,7 @@ class Scenes {
     this.impactMessageTime = this.messageTime;
     this.introSkipped = false;
     this.highScore = false;
+    this.gameOver = false;
 
     // Elements
     this.musicSlider = document.getElementById("music-volume");
@@ -19,7 +20,13 @@ class Scenes {
     this.sceneTime = 0;
     
     // Music volume
+    this.musicVolume = 0.5;
     this.musicVolume = getItem("fiery-attraction-music-volume") || 0.5;
+    
+    // Bad data test
+    if (isNaN(1 + this.musicVolume))
+      this.musicVolume = 0.5;
+
     this.musicSlider.value = this.musicVolume * 100;
     this.updateVolume();
 
@@ -149,6 +156,7 @@ class Scenes {
     this.ship0.vx = SCL / 8;
     this.ship0.vy = 0;
     this.highScore = false;
+    this.gameOver = false;
 
     // Elements
     this.controlButton.style.visibility = "visible";
@@ -385,15 +393,19 @@ class Scenes {
 
     drawAsteroids(ctx);
     
-    panzoom.begin();
+    panzoom.begin(ctx);
     drawExplosions(ctx);
-    panzoom.end();
+    panzoom.end(ctx);
     
     hud.draw(ctx);
     
     // Ship health
-    if (ship.health <= 0) {
-      this.cutSceneTo(this.loseScreen, null, 1);
+    if (ship.health <= 0 && !this.gameOver) {
+      this.gameOver = true;
+      spawnExplosion(ship.x, ship.y, ship, 0.3);
+      setTimeout(() => {
+        this.cutSceneTo(this.loseScreen, null, 1)
+      }, 500);
     }
     
     // Start of sound track

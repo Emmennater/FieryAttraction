@@ -55,9 +55,13 @@ class HTMLSounds {
     })
   }
 
-  playSound(sound, volume = 0.1) {
+  playSound(sound, volume = 0.1, stack = false) {
     sound.volume = volume;
-    sound.play();
+    if (!stack || sound.paused) {
+      sound.play();
+    } else {
+      sound.currentTime = 0;
+    }
   }
 
   stopSound(sound) {
@@ -81,13 +85,11 @@ function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-function initSounds() {
-  document.addEventListener('click', async function(event) {
+async function initSounds() {
+  // document.addEventListener('click', async function(event) {
     if (documentClicked) return;
     documentClicked = true;
 
-    // This function will be called whenever the document is clicked.
-    // You can put your code here.
     soundTrack.volume = 0;
     titleScreenTrack.volume = 0;
     rocketSound.volume = 0;
@@ -95,13 +97,16 @@ function initSounds() {
     burningSound.volume = 0;
     shootSound.volume = 0;
     hitSound.volume = 0;
+    explodeSound.volume = 0;
 
     titleScreenTrack.play();
     await sleep(50);
     soundTrack.play();
     await sleep(50);
     rocketSound.play();
-  });
+    await sleep(50);
+    burningSound.play();
+  // });
 
   // rocketSound.setVolume(0.2);
   // rocketSound.playMode('restart');

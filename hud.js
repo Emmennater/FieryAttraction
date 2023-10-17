@@ -5,6 +5,11 @@ class HUD {
     this.temp = 0;
     this.score = 0;
     this.topScore = getItem("fiery-attraction-top-score") || 0;
+    
+    // Check bad values
+    if (isNaN(1 + this.topScore))
+      this.topScore = 0;
+
     this.cameraShake = { amount: 0, speed: 0 };
   }
   

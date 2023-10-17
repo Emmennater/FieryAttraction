@@ -64,6 +64,7 @@ class Ship extends GravityObject {
     this.damageTime = this.damageDelay;
     this.bulletTime = 0;
     this.sprite = rocketSprite;
+    this.alpha = 255;
   }
   
   controls(dt) {
@@ -131,7 +132,7 @@ class Ship extends GravityObject {
     
     this.ammo--;
     if (this.ammo < 0) this.ammo = 0;
-    htmlSounds.playSound(shootSound, 0.02);
+    htmlSounds.playSound(shootSound, 0.02, true);
     // sounds.playRandomly(shootSound, 0.02, 0.4);
     spawnBullet(x, y, vx, vy);
   }
@@ -259,10 +260,10 @@ class Ship extends GravityObject {
           this.takeDamage(damage);
           
           // Speed of impact;
-          let v = Math.min(damage / 10, 0.5);
+          let v = Math.min(damage / 10, 0.5);  
           
           // Sound
-          htmlSounds.playSound(collisionSound, damage / 10 * 0.2);
+          htmlSounds.playSound(collisionSound, damage / 10 * 0.2, true);
           // sounds.playRandomly(collisionSound, damage / 10 * 0.2);
         }
       }
@@ -351,12 +352,22 @@ class Ship extends GravityObject {
     const SIZE = 1.4;
     const aspect = rocketSprite.height / rocketSprite.width;
     
+    if (this.health <= 0)
+      this.alpha = Math.max(this.alpha - 8, 0);
+    else
+      this.alpha = 255;
+
     ctx.push();
     ctx.translate(this.x, this.y);
     ctx.rotate(HALF_PI + this.a + this.control.steeringAngle);
     ctx.translate(0, -this.s / 4);
     ctx.imageMode(CENTER);
+    
+    if (this.alpha != 255)
+      ctx.tint(255, this.alpha);
     ctx.image(this.sprite, 0, 0, this.s * SIZE, this.s * aspect * SIZE);
+    if (this.alpha != 255)
+      ctx.noTint();
     
     ctx.pop();
     

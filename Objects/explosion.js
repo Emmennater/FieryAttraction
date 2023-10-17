@@ -2,33 +2,44 @@
 explosions = [];
 
 class Explosion {
-  constructor(x, y) {
+  constructor(x, y, tracking = null) {
     this.x = x;
     this.y = y;
     this.r = 20;
+    this.tracking = tracking;
     this.frame = 0;
     this.destroy = false;
     this.gif = explosionSprite;
-    this.totalFrames = explosionSprite.numFrames();
-    explosionSprite.setFrame(0);
+    this.totalFrames = this.gif.numFrames();
+    this.gif.setFrame(0);
   }
   
   move(dt) {
-    this.frame += dt * 30;
-    if (this.frame >= this.totalFrames)
+    // this.frame += dt * 30;
+    // if (this.frame >= this.totalFrames)
+    //   this.destroy = true;
+    if (this.frame >= this.gif.numFrames() / 3)
       this.destroy = true;
+    if (this.tracking != null) {
+      this.x = this.tracking.x;
+      this.y = this.tracking.y;
+    }
   }
   
-  draw() {
+  draw(ctx) {
     const aspect = explosionSprite.height / explosionSprite.width;
-    imageMode(CENTER);
-    image(this.gif, this.x, this.y, this.r, this.r * aspect);
+    if (this.frame < this.gif.numFrames() / 3)
+      this.gif.setFrame(floor(this.frame));
+    this.frame += 0.1;
+    ctx.imageMode(CENTER);
+    ctx.image(this.gif, this.x, this.y, this.r, this.r * aspect);
   }
 }
 
-function spawnExplosion(x, y) {
-  const explosion = new Explosion(x, y);
+function spawnExplosion(x, y, tracking = null, volume = 0.2) {
+  const explosion = new Explosion(x, y, tracking);
   explosions.push(explosion);
+  htmlSounds.playSound(explodeSound, volume, true);
 }
 
 function moveExplosions(dt) {

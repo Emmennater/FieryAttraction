@@ -22,7 +22,7 @@ class Enemy extends Ship {
     this.health -= damage;
     if (this.health <= 0) {
       this.destroy = true;
-      spawnExplosion(this.x, this.y);
+      spawnExplosion(this.x, this.y, this);
       if (owner == "player") {
         hud.addScore(25);
       }

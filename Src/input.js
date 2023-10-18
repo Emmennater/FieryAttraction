@@ -21,6 +21,7 @@ function keyReleased() {
 function windowResized() {
   resizeCanvas(windowWidth, windowHeight);
   CTX.resizeCanvas(width, height);
+  CTX2.resizeCanvas(width, height);
 }
 
 function mouseWheel(e) {

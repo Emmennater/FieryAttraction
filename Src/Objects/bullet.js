@@ -2,12 +2,12 @@
 bullets = [];
 
 class Bullet extends GravityObject {
-  constructor(x, y, vx, vy, owner = "player") {
+  constructor(x, y, vx, vy, owner) {
     super(x, y, 2000);
     this.r = 0.5;
     this.vx = vx;
     this.vy = vy;
-    this.time = 60 * 4;
+    this.time = 4;
     this.destroy = false;
     this.px = x;
     this.py = y;
@@ -22,14 +22,14 @@ class Bullet extends GravityObject {
           asteroid.y > this.y - sz &&
           asteroid.y < this.y + sz) {
         this.destroy = true;
-        asteroid.takeDamage(1, this.owner);
+        asteroid.takeDamage(1, this);
         htmlSounds.playSound(hitSound, 0.5);
         // sounds.playRandomly(hitSound, 0.5);
         return;
       }
     }
     
-    if (this.owner == "enemy") {
+    if (this.owner.name == "enemy") {
       // Ship
       const sz = ship.s / 2;
       if (ship.x > this.x - sz &&
@@ -37,7 +37,7 @@ class Bullet extends GravityObject {
           ship.y > this.y - sz &&
           ship.y < this.y + sz) {
         this.destroy = true;
-        ship.takeDamage(5, this.owner);
+        ship.takeDamage(5, this);
         hud.addCameraShake(10, 10);
         htmlSounds.playSound(hitSound, 0.5);
         // sounds.playRandomly(hitSound, 0.5);
@@ -45,7 +45,7 @@ class Bullet extends GravityObject {
       }
     }
     
-    if (this.owner == "player") {
+    if (this.owner.name == "ship") {
       // Enemies
       for (let enemy of enemies) {
         const sz = enemy.s / 2;
@@ -54,7 +54,7 @@ class Bullet extends GravityObject {
             enemy.y > this.y - sz &&
             enemy.y < this.y + sz) {
           this.destroy = true;
-          enemy.takeDamage(5, this.owner);
+          enemy.takeDamage(5, this);
           htmlSounds.playSound(hitSound, 0.5);
           // sounds.playRandomly(hitSound, 0.5);
           return;
@@ -64,7 +64,8 @@ class Bullet extends GravityObject {
   }
   
   move(dt) {
-    if (this.time-- < 0) {
+    this.time -= dt;
+    if (this.time < 0) {
       this.destroy = true;
     }
     
@@ -76,7 +77,7 @@ class Bullet extends GravityObject {
   }
   
   draw(ctx) {
-    const ALPHA = Math.min(this.time * 2, 255);
+    const ALPHA = Math.min(this.time * 120, 255);
     let vx = this.x - this.px;
     let vy = this.y - this.py;
     
@@ -94,7 +95,7 @@ class Bullet extends GravityObject {
   }
 }
 
-function spawnBullet(x, y, vx, vy, owner = "player") {
+function spawnBullet(x, y, vx, vy, owner) {
   const bullet = new Bullet(x, y, vx, vy, owner);
   bullets.push(bullet);
 }

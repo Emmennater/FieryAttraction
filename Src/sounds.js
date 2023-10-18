@@ -58,12 +58,14 @@ class HTMLSounds {
   }
 
   fadeSound(sound, volume, time) {
+    volume = constrain(volume, 0, 1);
     this.running.push({
       sound, volume, time, startVolume: sound.volume, startTime: time
     })
   }
 
   playSound(sound, volume = 0.1, stack = false) {
+    volume = constrain(volume, 0, 1);
     sound.volume = volume;
     if (!stack || sound.paused) {
       sound.play();

@@ -4,6 +4,7 @@ enemies = [];
 class Enemy extends Ship {
   constructor(x, y, vx, vy) {
     super(x, y);
+    this.name = "enemy";
     this.x = x;
     this.y = y;
     this.vx = vx;
@@ -56,7 +57,7 @@ class Enemy extends Ship {
     let A = this.control.steeringAngle + Math.random() * 0.2 - 0.1;
     let bvx = cos(this.a + A) * this.bSpeed + this.vx;
     let bvy = sin(this.a + A) * this.bSpeed + this.vy;
-    spawnBullet(this.x, this.y, bvx, bvy, "enemy");
+    spawnBullet(this.x, this.y, bvx, bvy, this);
 
     // CTX.stroke(255, 0, 0);
     // CTX.strokeWeight(2);

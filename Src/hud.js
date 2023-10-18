@@ -5,7 +5,7 @@ class HUD {
     this.temp = 0;
     this.score = 0;
     this.topScore = getItem("fiery-attraction-top-score") || 0;
-    
+
     // Check bad values
     if (isNaN(1 + this.topScore))
       this.topScore = 0;
@@ -44,7 +44,7 @@ class HUD {
     text(label, x, y);
   }
   
-  draw(ctx) {
+  draw(dt, ctx) {
     
     const SCALE = max(width, height);
     const MIN_SCALE = min(width, height);
@@ -58,15 +58,19 @@ class HUD {
     this.cameraShake.speed = lerp(this.cameraShake.speed, 0, 0.04);
     
     // Game window
-    push();
-    translate(width/2, height/2);
-    scale(1 + shakeMult * (1.5 / SCALE));
-    translate(-width/2 + xoff, -height/2 + yoff);
-    tint(255, ALPHA);
-    imageMode(CORNER);
-    image(ctx, 0, 0, width, height);
-    pop();
+    CTX2.push();
+    CTX2.translate(width/2, height/2);
+    CTX2.scale(1 + shakeMult * (1.5 / SCALE));
+    CTX2.translate(-width/2 + xoff, -height/2 + yoff);
+    CTX2.tint(255, ALPHA);
+    CTX2.imageMode(CORNER);
+    CTX2.image(ctx, 0, 0, width, height);
+    CTX2.pop();
+    image(CTX2, 0, 0, width, height);
     
+    // Events
+    scenes.runEvents(dt, ctx);
+
     // Health Meter
     let healthTxt = "Health " + round(ship.health*10)/10;
     let healthPercent = ship.health / 100;

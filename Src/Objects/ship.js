@@ -47,6 +47,7 @@ class Trail {
 class Ship extends GravityObject {
   constructor(x, y) {
     super(x, y, 100);
+    this.name = "ship";
     this.trail = new Trail();
     this.vx = 0;
     this.vy = -35;
@@ -74,32 +75,34 @@ class Ship extends GravityObject {
   controls(dt) {
     let oldBoost = this.control.boost;
     this.control.boost = false;
-    
+
     let steerDelta = 0;
     let turnSpeed = this.fuel > 0 ? 1.2 : 0.2;
     
-    if (keys.ARROWLEFT || keys.A) {
-      if (this.control.steeringAngle > 0)
-        steerDelta -= turnSpeed * 2;
-      else
-        steerDelta -= turnSpeed;
-      this.fuel -= 0.0005;
-    }
-    if (keys.ARROWRIGHT || keys.D) {
-      if (this.control.steeringAngle < 0)
-        steerDelta += turnSpeed * 2;
-      else
-        steerDelta += turnSpeed;
-      this.fuel -= 0.0005;
-    }
-    if (keys.ARROWUP || keys.W) {
-      if (this.fuel > 0) {
-        this.control.boost = true;
-        this.fuel -= 0.01;
+    if (!scenes.paused) {
+      if (keys.ARROWLEFT || keys.A) {
+        if (this.control.steerVel > 0)
+          steerDelta -= turnSpeed * 2;
+        else
+          steerDelta -= turnSpeed;
+        this.fuel -= 0.0005;
       }
-    }
-    if (keys.SPACE) {
-      this.fireBullet();
+      if (keys.ARROWRIGHT || keys.D) {
+        if (this.control.steerVel < 0)
+          steerDelta += turnSpeed * 2;
+        else
+          steerDelta += turnSpeed;
+        this.fuel -= 0.0005;
+      }
+      if (keys.ARROWUP || keys.W) {
+        if (this.fuel > 0) {
+          this.control.boost = true;
+          this.fuel -= 0.01;
+        }
+      }
+      if (keys.SPACE) {
+        this.fireBullet();
+      }
     }
     
     // Sounds
@@ -138,7 +141,7 @@ class Ship extends GravityObject {
     if (this.ammo < 0) this.ammo = 0;
     htmlSounds.playSound(shootSound, 0.02, true);
     // sounds.playRandomly(shootSound, 0.02, 0.4);
-    spawnBullet(x, y, vx, vy);
+    spawnBullet(x, y, vx, vy, this);
   }
   
   addFuel(amount) {
@@ -328,13 +331,15 @@ class Ship extends GravityObject {
     let vy = dy / d;
     let speed = Math.sqrt(this.vx ** 2 + this.vy ** 2);
     
-    let shipTurnRate = (this.control.boost) ? 0.0025 : 0.05;
+    let shipTurnRate = (this.control.boost) ? 0.01 : 0.02;
     let oldAngle = this.a;
     let newAngle = atan2(this.vy, this.vx);
     this.oldAngle = newAngle;
     oldAngle = ((oldAngle % TWO_PI) + TWO_PI) % TWO_PI;
     newAngle = ((newAngle % TWO_PI) + TWO_PI) % TWO_PI;
-    this.a += (newAngle - oldAngle) * shipTurnRate;
+    let diff = smallestAngleDifference(oldAngle, newAngle);
+    // this.a += (newAngle - oldAngle) * shipTurnRate;
+    this.a += diff * shipTurnRate;
     this.a = ((this.a % TWO_PI) + TWO_PI) % TWO_PI    
 
     let shipAngle = this.a + this.control.steeringAngle - PI;

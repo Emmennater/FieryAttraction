@@ -10,6 +10,10 @@ class Scenes {
     this.introSkipped = false;
     this.highScore = false;
     this.gameOver = false;
+    this.paused = false;
+
+    // Events
+    this.eventManager = new EventManager();
 
     // Scenes
     this.titleScene = new TitleScene();
@@ -116,6 +120,10 @@ class Scenes {
     this.currentScene.run(dt, ctx);
     this.runCutScene(dt);
   }
+
+  runEvents(dt, ctx) {
+    this.eventManager.updateEvents(dt, ctx);
+  }
 }
 
 class Scene {
@@ -157,7 +165,7 @@ class TitleScene extends Scene {
     const BLARE = (sin(frameCount / 14) + 1) / 2;
     
     // Move ship
-    let shipTheta = frameCount / 300 + 0.0;
+    let shipTheta = frameCount / 300 + 0.3;
     shipTheta = shipTheta % (PI - 0.2);
     let shipX = width / 2 + cos(-shipTheta) * height * 0.65;
     let shipY = height + sin(-shipTheta) * height * 0.5 + height * 0.1;
@@ -165,6 +173,7 @@ class TitleScene extends Scene {
     this.ship.vy = (shipY - this.ship.y) * 50;
     this.ship.x = shipX;
     this.ship.y = shipY;
+    this.ship.a = atan2(this.ship.vy, this.ship.vx);
     
     // Rotating sun
     let sunRotation = frameCount / 2000;
@@ -328,6 +337,10 @@ class IntroScene extends Scene {
 }
 
 class GameScene extends Scene {
+  constructor() {
+    super();
+  }
+  
   init() {
     // Settings
     ship.reset();
@@ -340,9 +353,18 @@ class GameScene extends Scene {
     clearAsteroids();
     initAsteroids();
     initEnemies();
+
+    // Set ship angle at start
+    ship.a = atan2(ship.vy, ship.vx);
   }
 
   run(dt, ctx) {
+    // Pausing
+    if (pressed.P || pressed.ESCAPE)
+      scenes.paused = !scenes.paused;
+    if (scenes.paused)
+      dt = 0;
+
     ctx.background(0);
     
     ship.controls(dt);
@@ -351,6 +373,7 @@ class GameScene extends Scene {
     panzoom.begin(ctx);
 
     panzoom.end(ctx);
+    sun.update(dt);
     sun.draw(ctx);
     stars.draw(ctx);
     panzoom.begin(ctx);
@@ -376,7 +399,7 @@ class GameScene extends Scene {
     drawExplosions(ctx);
     panzoom.end(ctx);
     
-    hud.draw(ctx);
+    hud.draw(dt, ctx);
     
     // Ship health
     if (ship.health <= 0 && !scenes.gameOver) {
@@ -392,6 +415,17 @@ class GameScene extends Scene {
       soundTrack.currentTime = 0;
       htmlSounds.fadeSound(soundTrack, 0.8 * scenes.musicVolume, 1);
     }
+
+    if (scenes.paused) {
+      let MIN_SCL = min(width, height);
+      background(0, 60);
+      fill(255);
+      noStroke();
+      textFont(futureFont);
+      textSize(MIN_SCL * 0.1);
+      textAlign(CENTER, CENTER);
+      text("PAUSED", width / 2, height / 2);
+    }
   }
 }
 
@@ -401,6 +435,7 @@ class GameOverScene extends Scene {
     htmlSounds.removeSoundFromQueue(burningSound);
     htmlSounds.fadeSound(burningSound, 0, 0.2);
     htmlSounds.fadeSound(soundTrack, 0, 1);
+    scenes.eventManager.reset();
     alarmSound.stop();
   }
 
@@ -471,7 +506,7 @@ class GameOverScene extends Scene {
       text("HIGH SCORE!", width / 2, height * 0.2);
     }
     
-    if (keys.SPACE && scenes.sceneTime > 1) {
+    if (keys.SPACE && scenes.sceneTime > 0.25) {
       scenes.cutSceneTo(scenes.titleScene);
     }
   }

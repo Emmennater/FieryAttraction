@@ -18,7 +18,7 @@ class Asteroid extends GravityObject {
     super(x, y, 100);
     this.r = r;
     this.rot = Math.random() * TWO_PI;
-    this.rotVel = Math.random() * 0.1 - 0.05;
+    this.rotVel = Math.random() * 5 - 2.5;
     this.vx = vx;
     this.vy = vy;
     this.depth = 1;
@@ -36,6 +36,7 @@ class Asteroid extends GravityObject {
     this.attract(dt);
     this.x += this.vx * dt;
     this.y += this.vy * dt;
+    this.rot += this.rotVel * dt;
   }
   
   drawRock(ctx) {
@@ -54,17 +55,15 @@ class Asteroid extends GravityObject {
     ctx.pop();
   }
   
-  takeDamage(damage, owner) {
+  takeDamage(damage, bullet) {
     this.health -= damage;
     if (this.health <= 0) {
-      if (!this.destroy && this.split) {
+      if (!this.destroy && this.split)
         this.splitAsteroid();
-      }
       this.destroy = true;
       spawnExplosion(this.x, this.y, null, this.r / 40 * 0.2);
-      if (owner == "player") {
+      if (bullet.owner.name == "ship")
         hud.addScore(5);
-      }
     }
   }
 
@@ -99,8 +98,6 @@ class Asteroid extends GravityObject {
   }
   
   draw(ctx) {
-    this.rot += this.rotVel;
-    
     let r = this.r / this.depth;
     let x = (this.x + panzoom.xoff) / this.depth;
     let y = (this.y + panzoom.yoff) / this.depth;
@@ -130,11 +127,12 @@ class FuelAsteroid extends Asteroid {
     this.sprite = fuelAsteroidSprite;
   }
   
-  takeDamage(damage, owner) {
-    super.takeDamage(damage, owner);
-    if (this.destroy && owner == "player") {
-      ship.addFuel(5);
-      hud.addScore(5);
+  takeDamage(damage, bullet) {
+    super.takeDamage(damage, bullet);
+    if (this.destroy) {
+      bullet.owner.addFuel(5);
+      if (bullet.owner.name == "ship")
+        hud.addScore(5);
     }
   }
 }
@@ -146,11 +144,12 @@ class HealthAsteroid extends Asteroid {
     this.sprite = healthAsteroidSprite;
   }
   
-  takeDamage(damage, owner) {
-    super.takeDamage(damage, owner);
-    if (this.destroy && owner == "player") {
-      ship.addHealth(20);
-      hud.addScore(5);
+  takeDamage(damage, bullet) {
+    super.takeDamage(damage, bullet);
+    if (this.destroy) {
+      bullet.owner.addHealth(20);
+      if (bullet.owner.name == "ship")
+        hud.addScore(5);
     }
   }
 }
@@ -162,11 +161,12 @@ class AmmoAsteroid extends Asteroid {
     this.sprite = ammoAsteroidSprite;
   }
   
-  takeDamage(damage, owner) {
-    super.takeDamage(damage, owner);
-    if (this.destroy && owner == "player") {
-      ship.addAmmo(40);
-      hud.addScore(5);
+  takeDamage(damage, bullet) {
+    super.takeDamage(damage, bullet);
+    if (this.destroy) {
+      bullet.owner.addAmmo(40);
+      if (bullet.owner.name == "ship")
+        hud.addScore(5);
     }
   }
 }
@@ -178,12 +178,12 @@ class SpeedAsteroid extends Asteroid {
     this.sprite = speedAsteroidSprite;
   }
   
-  takeDamage(damage, owner) {
-    super.takeDamage(damage, owner);
-    if (this.destroy && owner == "player") {
-      ship.addAmmo(40);
-      hud.addScore(5);
-      ship.goCrazy();
+  takeDamage(damage, bullet) {
+    super.takeDamage(damage, bullet);
+    if (this.destroy) {
+      bullet.owner.goCrazy();
+      if (bullet.owner.name == "ship")
+        hud.addScore(5);
     }
   }
 }
@@ -204,7 +204,7 @@ function spawnAsteroid(type, playerCheck) {
     t = a + Math.random() * 0.5 * dir;
   }
   
-  let d = sun.r + 20 + Math.random() * 200;
+  let d = sun.r + 20 + Math.random() * 400;
   let r = Math.random() * 10 + 10;
   let health = 3;
   let split = false;
@@ -273,12 +273,12 @@ function moveAsteroids(dt) {
         const oldType = asteroid.type || "normal";
         const expectedRatio = ASTEROID_RATIOS[oldType];
         const currentRatio = ASTEROID_COUNTS[oldType] / asteroids.length;
-        let newType = (currentRatio <= expectedRatio) ? asteroid.type : randomAsteroid();
+        // let newType = (currentRatio <= expectedRatio) ? asteroid.type : randomAsteroid();
 
         // Replacement asteroids
-        spawnAsteroid(newType, true);
+        spawnAsteroid(oldType, true);
         if (Math.random() < 0.5) {
-          spawnAsteroid(newType, true)
+          spawnAsteroid(randomAsteroid(), true)
         }
       }
       
@@ -296,16 +296,16 @@ function drawAsteroids(CTX) {
 
 function randomAsteroid() {
   let rand = Math.random();
-  if (rand < 0.01) {
+  if (rand < 0.05) {
     return "speed";
-  } else if (rand < 0.025) {
-    return "health";
   } else if (rand < 0.1) {
-    return "fuel";
+    return "health";
   } else if (rand < 0.2) {
+    return "fuel";
+  } else if (rand < 0.3) {
     return "ammo";
   } else {
-    return null;
+    return "normal";
   }
 }
 

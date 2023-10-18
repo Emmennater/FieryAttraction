@@ -17,6 +17,8 @@ class Asteroid extends GravityObject {
   constructor(x, y, r, vx, vy) {
     super(x, y, 100);
     this.r = r;
+    this.density = 10;
+    this.m = Math.round(PI * this.r ** 2) * this.density;
     this.rot = Math.random() * TWO_PI;
     this.rotVel = Math.random() * 5 - 2.5;
     this.vx = vx;
@@ -40,7 +42,6 @@ class Asteroid extends GravityObject {
   }
   
   drawRock(ctx) {
-    this.rot += this.rotVel;
     ctx.push();
     ctx.translate(width/2, height/2);
     ctx.translate(-width/2, -height/2);

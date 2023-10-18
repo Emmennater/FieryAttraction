@@ -6,6 +6,7 @@ function preload() {
   // Sprites
   rocketSprite = loadImage("Assets/fighterjet2.png");
   enemySprite = loadImage("Assets/enemyjet.png");
+  homingEnemySprite = loadImage("Assets/homing-enemy-jet.png");
   sunSprite = loadImage("Assets/hotsun.jpg");
   asteroidSprite = loadImage("Assets/asteroid-sprite.png");
   speedAsteroidSprite = loadImage("Assets/speed-asteroid.png");

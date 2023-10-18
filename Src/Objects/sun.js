@@ -3,12 +3,12 @@ class Sun {
   constructor() {
     this.x = 0;
     this.y = 0;
+    this.density = 1.4;
     this.r = 400;
-    this.m = 4500;
+    this.m = PI * this.r ** 2 * this.density; // 4500;
     this.depth = 1.5;
     this.graphicx = 0;
     this.graphicy = 0;
-    this.density = 0.00895246554;
     this.tint = { r: 255, g: 255, b: 255, a: 255 };
     this.oldTint = { r: 255, g: 255, b: 255, a: 255 };
     this.targetTint = { r: 255, g: 255, b: 255, a: 255 };
@@ -43,6 +43,10 @@ class Sun {
 
   tintReset(t = 0) {
     this.tintFade(255, 255, 255, 255, t);
+    if (this.t == 0) {
+      this.tintTime = 0;
+      this.tintTimeEnd = 0;
+    }
   }
 
   update(dt) {

@@ -5,6 +5,7 @@ class Enemy extends Ship {
   constructor(x, y, vx, vy) {
     super(x, y);
     this.name = "enemy";
+    this.type = "normal";
     this.x = x;
     this.y = y;
     this.vx = vx;
@@ -17,14 +18,16 @@ class Enemy extends Ship {
     this.health = 20;
     this.speed = 10;
     this.sprite = enemySprite;
+    this.bulletType = "normal";
+    this.damage = 1;
   }
   
-  takeDamage(damage, owner) {
+  takeDamage(damage, bullet) {
     this.health -= damage;
     if (this.health <= 0) {
       this.destroy = true;
       spawnExplosion(this.x, this.y, this);
-      if (owner == "player") {
+      if (bullet.owner.name == "ship") {
         hud.addScore(25);
       }
     }
@@ -57,7 +60,7 @@ class Enemy extends Ship {
     let A = this.control.steeringAngle + Math.random() * 0.2 - 0.1;
     let bvx = cos(this.a + A) * this.bSpeed + this.vx;
     let bvy = sin(this.a + A) * this.bSpeed + this.vy;
-    spawnBullet(this.x, this.y, bvx, bvy, this);
+    spawnBullet(this.x, this.y, bvx, bvy, this, this.bulletType, this.damage);
 
     // CTX.stroke(255, 0, 0);
     // CTX.strokeWeight(2);
@@ -89,8 +92,8 @@ class Enemy extends Ship {
     
     let ForceX = vx * grav;
     let ForceY = vy * grav;
-    this.vx += ForceX * dt;
-    this.vy += ForceY * dt;
+    this.vx += ForceX * dt / this.m;
+    this.vy += ForceY * dt / this.m;
     
     // Steer away from sun
     let A = this.a;
@@ -140,12 +143,30 @@ class Enemy extends Ship {
   }
 }
 
-function initEnemies() {
-  for (let i = 0; i < 3; i++)
-    spawnEnemy();
+class HomingEnemy extends Enemy {
+  constructor(x, y, vx, vy) {
+    super(x, y, vx, vy);
+    this.type = "homing";
+    this.bulletType = "homing";
+    this.sprite = homingEnemySprite;
+    this.revive = false;
+    this.damage = 0.5;
+  }
+
+  takeDamage(damage, bullet) {
+    super.takeDamage(damage, bullet);
+    if (this.destroy) {
+      this.revive = !bullet || bullet.owner.name != "ship";
+    }
+  }
 }
 
-function spawnEnemy(playerCheck = true) {
+function initEnemies() {
+  for (let i = 0; i < 3; i++)
+    spawnEnemy(true);
+}
+
+function spawnEnemy(playerCheck = true, type = "normal") {
   let t = Math.random() * TWO_PI;
   
   // Player check
@@ -164,8 +185,13 @@ function spawnEnemy(playerCheck = true) {
   let dir = Math.random() < 0.5 ? 1 : -1;
   let vx = Math.cos(t + HALF_PI) * s * dir;
   let vy = Math.sin(t + HALF_PI) * s * dir;
-  let enemy = new Enemy(x, y, vx, vy);
+  let enemy = null;
   
+  switch (type) {
+    case "homing": enemy = new HomingEnemy(x, y, vx, vy); break;
+    default: enemy = new Enemy(x, y, vx, vy); break;
+  }
+
   enemies.push(enemy);
 }
 
@@ -174,9 +200,19 @@ function moveEnemies(dt) {
     const enemy = enemies[i];
     if (enemy.destroy) {
       enemies.splice(i, 1);
-      spawnEnemy();
-      if (Math.random() < 0.5)
-        spawnEnemy();
+
+      // Respawn
+      let type = "normal";
+      if (enemy.revive)
+        type = enemy.type;
+      spawnEnemy(true, type);
+
+      // Chance for more
+      if (Math.random() < 0.5) {
+        let type = Math.random() < 0.5 ? "normal" : "homing";
+        spawnEnemy(true, type);
+      }
+
       continue;
     }
     enemy.move(dt);

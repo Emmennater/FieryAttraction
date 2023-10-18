@@ -1,9 +1,11 @@
 
 class EventManager {
     constructor() {
-        this.threshold = 100;
+        this.threshold = 200;
+        this.threshold2 = 100;
         this.activeEvents = [];
         this.lastBigScore = 0;
+        this.lastMidScore = 0;
     }
 
     reset() {
@@ -30,6 +32,11 @@ class EventManager {
             this.startRandomEvent();
         }
 
+        if (hud.score - this.lastMidScore >= this.threshold2) {
+            this.lastMidScore = Math.floor(hud.score / this.threshold2) * this.threshold2;
+            spawnEnemy(true, "homing");
+        }
+
         for (let i = this.activeEvents.length - 1; i >= 0; --i) {
             const event = this.activeEvents[i];
             event.run(dt, ctx);
@@ -45,8 +52,10 @@ class WorldEvent {
     constructor() {
         this.timeElapsed = 0;
         this.stage = 0;
+        this.lastStage = -1;
         this.ended = false;
         this.title = "EVENT";
+        this.justTransitioned = false;
         htmlSounds.playSound(sirenSound, 1);
     }
 
@@ -88,6 +97,9 @@ class WorldEvent {
     }
 
     run(dt, ctx) {
+        this.justTransitioned = this.lastStage != this.stage;
+        this.lastStage = this.stage;
+
         switch (this.stage) {
             case 0: if (this.start(dt, ctx)) ++this.stage; break;
             case 1: if (this.middle(dt, ctx)) ++this.stage; break;
@@ -108,26 +120,20 @@ class GravityStorm extends WorldEvent {
         this.originalSunRadius = sun.r;
         this.originalSunMass = sun.m;
         this.bigSunRadius = this.originalSunRadius * 2;
-        this.bigSunMass = this.originalSunMass * 8;
+        this.bigSunMass = this.originalSunMass * 4;
         this.target = { r: 0, m: 0 };
         this.original = { r: 0, m: 0 };
-        this.lastStage = -1;
         this.time = 0;
         this.title = "GRAVITY STORM";
         this.bigTint = { r: 20, g: 20, b: 20 };
-    }
-
-    justTransitioned() {
-        return (this.lastStage != this.stage);
+        this.started = false;
     }
 
     goToTarget(dt) {
-        if (this.justTransitioned()) {
-            this.lastStage = this.stage;
+        if (this.justTransitioned)
             this.time = 0;
-        }
 
-        this.time += dt * 0.1;
+        this.time += dt * 0.05;
 
         sun.r = lerp(this.original.r, this.target.r, this.time);
         sun.m = lerp(this.original.m, this.target.m, this.time);
@@ -140,8 +146,11 @@ class GravityStorm extends WorldEvent {
         if (this.timeElapsed < 5)
             return;
 
-        if (this.justTransitioned())
-            sun.tintFade(0, 0, 0, 255, 5);
+        if (!this.started) {
+            this.started = true;
+            sun.tintFade(0, 0, 0, 255, 8);
+        }
+
         this.target.r = this.bigSunRadius;
         this.target.m = this.bigSunMass;
         this.original.r = this.originalSunRadius;
@@ -150,17 +159,15 @@ class GravityStorm extends WorldEvent {
     }
 
     middle(dt) {
-        if (this.lastStage != this.stage) {
-            this.lastStage = this.stage;
+        if (this.justTransitioned)
             this.time = 0;
-        }
 
-        this.time += dt * 0.05;
+        this.time += dt * 0.1;
         return this.time >= 1;
     }
 
     end(dt) {
-        if (this.justTransitioned())
+        if (this.justTransitioned)
             sun.tintReset(10);
         this.target.r = this.originalSunRadius;
         this.target.m = this.originalSunMass;

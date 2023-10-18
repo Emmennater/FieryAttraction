@@ -261,6 +261,7 @@ class IntroScene extends Scene {
     
     // Asteroid
     this.asteroid = new Asteroid(width / 2, height / 2 - collisionDist * 4, SCL / 5, 0, SCL / 2);
+    this.asteroid.rotVel = PI / 2;
   }
 
   run(dt, ctx) {
@@ -274,7 +275,8 @@ class IntroScene extends Scene {
     this.ship.control.steeringAngle += this.ship.control.steerVel * dt;
     this.asteroid.x += this.asteroid.vx * dt;
     this.asteroid.y += this.asteroid.vy * dt;
-    
+    this.asteroid.rot += this.asteroid.rotVel * dt;
+
     // Check for collision
     if (!this.ship.collided && this.asteroid.y >= height / 2 - this.ship.s) {
       this.ship.collided++;

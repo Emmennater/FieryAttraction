@@ -46,7 +46,7 @@ class Trail {
 
 class Ship extends GravityObject {
   constructor(x, y) {
-    super(x, y, 100);
+    super(x, y, 1000);
     this.name = "ship";
     this.trail = new Trail();
     this.vx = 0;
@@ -193,24 +193,25 @@ class Ship extends GravityObject {
         htmlSounds.fadeSound(burningSound, 0.0, 0.2);
       }
     }
-    
-    // For dramatic effect when the fuel is low
-    // make gravity stronger
-    g *= Math.max((-this.fuel + 2) * 1.1, 1)
-    g = Math.min(g, 40);
-    
+
     let shipAngle = this.a + this.control.steeringAngle - PI;
-    let ForceX = vx * (g + max(d - sun.r * 1.5, 0) * 0.05);
-    let ForceY = vy * (g + max(d - sun.r * 1.5, 0) * 0.05);
-    
+
     // Boost
     if (this.control.boost) {
-      ForceX -= cos(shipAngle) * this.speed * this.speedMult;
-      ForceY -= sin(shipAngle) * this.speed * this.speedMult;
+      this.vx -= cos(shipAngle) * this.speed * this.speedMult * dt;
+      this.vy -= sin(shipAngle) * this.speed * this.speedMult * dt;
       // this.x += ForceX * dt * 2;
       // this.y += ForceY * dt * 2;
       hud.addCameraShake(5, 10);
     }
+    
+    // For dramatic effect when the fuel is low
+    // make gravity stronger
+    // g *= Math.max((-this.fuel + 2) * 1.025, 1)
+    // g = Math.min(g / this.m, 40);
+    g = g / this.m;
+    let ForceX = vx * (g + max(d - sun.r * 1.5, 0) * 0.05);
+    let ForceY = vy * (g + max(d - sun.r * 1.5, 0) * 0.05);
     
     this.vx += ForceX * dt;
     this.vy += ForceY * dt;

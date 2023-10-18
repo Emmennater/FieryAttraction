@@ -1,6 +1,7 @@
 // Add random events
 // - gravity storm (sucking in)
 // - meteor shower
+// - spin storm
 
 function preload() {
   // Sprites
@@ -37,6 +38,7 @@ function setup() {
   explodeSound = document.getElementById("explode-sound");
   sirenSound = document.getElementById("siren-sound");
   explosionSprite.pause();
+  initSounds();
 
   CANVAS = createCanvas(windowWidth, windowHeight);
   CTX = createGraphics(width, height);

@@ -173,7 +173,7 @@ class Ship extends GravityObject {
     let d = Math.sqrt(dx ** 2 + dy ** 2);
     let vx = dx / d;
     let vy = dy / d;
-    let g = this.m * sun.m / (d ** 2);
+    let g = this.m * sun.m / (d ** 2) / this.m;
     
     let damage = Math.max(sun.r - d, 0) / 4;
     damage = round(damage * 10) / 10;
@@ -209,7 +209,6 @@ class Ship extends GravityObject {
     // make gravity stronger
     // g *= Math.max((-this.fuel + 2) * 1.025, 1)
     // g = Math.min(g / this.m, 40);
-    g = g / this.m;
     let ForceX = vx * (g + max(d - sun.r * 1.5, 0) * 0.05);
     let ForceY = vy * (g + max(d - sun.r * 1.5, 0) * 0.05);
     

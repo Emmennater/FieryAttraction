@@ -107,11 +107,19 @@
 
           <div id="about" style="text-align: center;">
             <h2>About</h2>
-            <p><b>Solo Creation</b><br>
-            Game Designed by Emmett J.<br>
-            Music Designed by Emmett J.<br>
-            Music <input type="range" min="1" max="100" value="50" class="slider" id="music-volume" oninput="scenes.changeMusicVolume()">
-            <br><br><br><br></p>
+            <p>
+              <b>Solo Creation</b>
+              Game Designed by Emmett J.<br>
+              Music Designed by Emmett J.<br>
+              <volume>
+                Master
+                <input type="range" min="1" max="100" value="100" class="slider" id="master-volume" oninput="htmlSounds.updateMaster()">
+              </volume>
+              <volume>
+                Music
+                <input type="range" min="1" max="100" value="50" class="slider" id="music-volume" oninput="scenes.changeMusicVolume()">
+              </volume>
+            </p>
           </div>
         </hbox>
           

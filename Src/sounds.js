@@ -47,6 +47,14 @@ class Sounds {
 class HTMLSounds {
   constructor() {
     this.running = [];
+    this.volumeSlider = document.getElementById("master-volume");
+    this.master = getItem("fiery-attraction-sfx-volume") || 1.0;
+    this.volumeSlider.value = 100 * this.master;
+  }
+
+  updateMaster() {
+    this.master = this.volumeSlider.value / 100;
+    storeItem("fiery-attraction-sfx-volume", this.master);
   }
 
   removeSoundFromQueue(sound) {
@@ -58,14 +66,14 @@ class HTMLSounds {
   }
 
   fadeSound(sound, volume, time) {
-    volume = constrain(volume, 0, 1);
+    volume = constrain(volume * this.master, 0, 1);
     this.running.push({
       sound, volume, time, startVolume: sound.volume, startTime: time
     })
   }
 
   playSound(sound, volume = 0.1, stack = false) {
-    volume = constrain(volume, 0, 1);
+    volume = constrain(volume * this.master, 0, 1);
     sound.volume = volume;
     if (!stack || sound.paused) {
       sound.play();
@@ -97,7 +105,7 @@ function sleep(ms) {
 }
 
 async function initSounds() {
-  // document.addEventListener('click', async function(event) {
+  document.addEventListener('click', async function(event) {
     if (documentClicked) return;
     documentClicked = true;
 
@@ -117,10 +125,7 @@ async function initSounds() {
     rocketSound.play();
     await sleep(50);
     burningSound.play();
-  // });
-
-  // rocketSound.setVolume(0.2);
-  // rocketSound.playMode('restart');
+  });
 }
 
 /*

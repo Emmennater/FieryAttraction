@@ -27,7 +27,7 @@ class Enemy extends Ship {
     if (this.health <= 0) {
       this.destroy = true;
       spawnExplosion(this.x, this.y, this);
-      if (bullet.owner.name == "ship") {
+      if (bullet && bullet.owner.name == "ship") {
         hud.addScore(25);
       }
     }
@@ -79,7 +79,7 @@ class Enemy extends Ship {
     let d = sqrt(dx ** 2 + dy ** 2);
     let vx = dx / d;
     let vy = dy / d;
-    let g = this.m * sun.m / (d ** 2);
+    let g = this.m * sun.m / (d ** 2) / this.m;
     let grav = (g + Math.max(d - sun.r * 1.5, 0) * 0.05);
     
     let damage = Math.max(sun.r - d, 0) / 4;
@@ -92,8 +92,8 @@ class Enemy extends Ship {
     
     let ForceX = vx * grav;
     let ForceY = vy * grav;
-    this.vx += ForceX * dt / this.m;
-    this.vy += ForceY * dt / this.m;
+    this.vx += ForceX * dt;
+    this.vy += ForceY * dt;
     
     // Steer away from sun
     let A = this.a;
@@ -132,11 +132,11 @@ class Enemy extends Ship {
     }
     
     // Constrain velocity
-    let maxSpeed = 40;
+    let maxSpeed = this.control.boost ? 100 : 40;
     let sp = Math.sqrt(this.vx ** 2 + this.vy ** 2);
     let ns = Math.min(sp, maxSpeed) / sp;
-    this.vx = this.vx * ns;
-    this.vy = this.vy * ns;
+    this.vx = lerp(this.vx, this.vx * ns, 0.025);
+    this.vy = lerp(this.vy, this.vy * ns, 0.025);
     
     this.x += this.vx * dt;
     this.y += this.vy * dt;

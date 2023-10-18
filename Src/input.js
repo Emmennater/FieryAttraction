@@ -38,7 +38,3 @@ function clearPressed() {
     pressed[k] = false;
   }
 }
-
-function mousePressed() {
-  initSounds();
-}

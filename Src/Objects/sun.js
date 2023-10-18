@@ -43,7 +43,7 @@ class Sun {
 
   tintReset(t = 0) {
     this.tintFade(255, 255, 255, 255, t);
-    if (this.t == 0) {
+    if (t == 0) {
       this.tintTime = 0;
       this.tintTimeEnd = 0;
     }

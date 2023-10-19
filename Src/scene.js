@@ -362,8 +362,10 @@ class GameScene extends Scene {
 
   run(dt, ctx) {
     // Pausing
-    if (pressed.P || pressed.ESCAPE)
+    if (pressed.P || pressed.ESCAPE) {
       scenes.paused = !scenes.paused;
+      scenes.toggleControls();
+    }
     if (scenes.paused)
       dt = 0;
 
@@ -380,6 +382,7 @@ class GameScene extends Scene {
     stars.draw(ctx);
     panzoom.begin(ctx);
 
+    updateAllEffects(dt);
     moveAsteroids(dt);
     moveEnemies(dt);
     moveBullets(dt);
@@ -402,7 +405,7 @@ class GameScene extends Scene {
     panzoom.end(ctx);
     
     hud.draw(dt, ctx);
-    
+
     // Ship health
     if (ship.health <= 0 && !scenes.gameOver) {
       scenes.gameOver = true;
@@ -420,13 +423,13 @@ class GameScene extends Scene {
 
     if (scenes.paused) {
       let MIN_SCL = min(width, height);
-      background(0, 60);
+      background(0, 100);
       fill(255);
       noStroke();
       textFont(futureFont);
       textSize(MIN_SCL * 0.1);
       textAlign(CENTER, CENTER);
-      text("PAUSED", width / 2, height / 2);
+      text("PAUSED", width / 2, height * 0.7);
     }
   }
 }
@@ -438,6 +441,7 @@ class GameOverScene extends Scene {
     htmlSounds.fadeSound(burningSound, 0, 0.2);
     htmlSounds.fadeSound(soundTrack, 0, 1);
     scenes.eventManager.reset();
+    clearAllEffects();
     alarmSound.stop();
   }
 

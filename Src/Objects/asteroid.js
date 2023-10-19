@@ -36,6 +36,9 @@ class Asteroid extends GravityObject {
   
   move(dt) {
     this.attract(dt);
+
+
+
     this.x += this.vx * dt;
     this.y += this.vy * dt;
     this.rot += this.rotVel * dt;
@@ -176,16 +179,28 @@ class SpeedAsteroid extends Asteroid {
   constructor(x, y, r, vx, vy) {
     super(x, y, r, vx, vy);
     this.type = "speed";
-    this.sprite = speedAsteroidSprite;
+    this.sprite = blueAsteroidSprite; // speedAsteroidSprite;
   }
   
   takeDamage(damage, bullet) {
     super.takeDamage(damage, bullet);
     if (this.destroy) {
-      bullet.owner.goCrazy();
+      if (bullet)
+        bullet.owner.applyEffect(SuperSpeed, {
+          duration: 10
+        });
+      // bullet.owner.goCrazy();
       if (bullet.owner.name == "ship")
         hud.addScore(5);
     }
+  }
+
+  draw(ctx) {
+    const frames = blueAsteroidSprite.numFrames();
+    // const currentFrame = blueAsteroidSprite.getCurrentFrame();
+    const frame = Math.floor(frameCount / 8) % frames;
+    this.sprite.setFrame(frame);
+    super.draw(ctx);
   }
 }
 
@@ -219,7 +234,7 @@ function spawnAsteroid(type, playerCheck) {
 
   let x = Math.cos(t) * d;
   let y = Math.sin(t) * d;
-  let s = Math.random() * 20 + 20;
+  let s = Math.random() * 20 + 15;
   let vx = Math.cos(t + HALF_PI) * s * dir;
   let vy = Math.sin(t + HALF_PI) * s * dir;
   let asteroid = null;
@@ -250,13 +265,13 @@ function spawnAsteroid(type, playerCheck) {
 }
 
 function initAsteroids() {
-  for (let i = 0; i < 28; ++i)
+  for (let i = 0; i < 20; ++i)
     spawnAsteroid();
-  for (let i = 0; i < 12; ++i)
+  for (let i = 0; i < 8; ++i)
     spawnAsteroid("fuel");
-  for (let i = 0; i < 5; ++i)
+  for (let i = 0; i < 3; ++i)
     spawnAsteroid("health");
-  for (let i = 0; i < 10; ++i)
+  for (let i = 0; i < 6; ++i)
     spawnAsteroid("ammo");
 }
 

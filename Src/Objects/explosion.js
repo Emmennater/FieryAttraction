@@ -1,8 +1,9 @@
 
 explosions = [];
 
-class Explosion {
+class Explosion extends GameObject {
   constructor(x, y, tracking = null) {
+    super();
     this.x = x;
     this.y = y;
     this.r = 20;

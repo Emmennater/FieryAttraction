@@ -67,9 +67,10 @@ class HUD {
     CTX2.image(ctx, 0, 0, width, height);
     CTX2.pop();
     image(CTX2, 0, 0, width, height);
-    
+
     // Events
-    scenes.runEvents(dt, ctx);
+    if (!scenes.paused)
+      scenes.runEvents(dt, ctx);
 
     // Health Meter
     let healthTxt = "Health " + round(ship.health*10)/10;
@@ -94,6 +95,40 @@ class HUD {
     textAlign(LEFT, CENTER);
     text("SCORE " + this.score, 20, 27);
     
+    // Effects
+    textAlign(CENTER, CENTER);
+    textFont("monospace");
+    textSize(16);
+    const effectOffX = 10;
+    const effectOffY = 46;
+    const effectW = width * 0.1;
+    const effectH = 20;
+    const effectGap = 6;
+    for (let i = 0; i < ship.effects.length; ++i) {
+      const effect = ship.effects[i];
+      const t = effect.timeRemaining / effect.duration;
+      const yOff = effectOffY + (effectH + effectGap) * i;
+      fill(colorAlpha(effect.color, 200));
+      rect(
+        effectOffX,
+        yOff,
+        effectW * t,
+        effectH
+      );
+      noFill();
+      stroke(255);
+      strokeWeight(1);
+      rect(
+        effectOffX,
+        yOff,
+        effectW,
+        effectH
+      );
+      fill(255);
+      noStroke();
+      text(effect.name, effectOffX + effectW / 2, yOff + effectH / 2);
+    }
+
     // Low fuel
     if (ship.fuel < 5) {
       let DELAY = 15;
@@ -106,6 +141,7 @@ class HUD {
       }
       const BLARE1 = (sin(frameCount / DELAY) + 1) * AMT;
       const BLARE2 = (sin(frameCount / DELAY + PI) + 1) * AMT;
+      noStroke();
       fill(255, BLARE2 * 8, BLARE2 * 8);
       textAlign(CENTER, CENTER);
       textSize(20);
@@ -122,6 +158,7 @@ class HUD {
       const DELAY = 10;
       const AMT = 80;
       const BLARE = (sin(frameCount / DELAY) + 1) * AMT;
+      noStroke();
       fill(255, BLARE, BLARE, OPACITY);
       textAlign(CENTER, CENTER);
       textSize(MIN_SCALE * 0.1);
@@ -134,6 +171,7 @@ class HUD {
     
     // Ship temperature
     fill(255, 0, 0, min(ship.stats.temp * 255, 50));
+    noStroke();
     rect(0, 0, width, height);
     
   }

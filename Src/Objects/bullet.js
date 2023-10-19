@@ -2,22 +2,26 @@
 bullets = [];
 
 class Bullet extends GravityObject {
-  constructor(x, y, vx, vy, owner, damage = 1) {
-    super(x, y, 2000);
+  constructor(dat) {
+    super(dat.x, dat.y, 2000);
+    this.dat = dat;
     this.r = 0.5;
-    this.vx = vx;
-    this.vy = vy;
-    this.time = 4;
+    this.vx = dat.vx;
+    this.vy = dat.vy;
+    this.time = 4 / (this.dat.decay || 1);
     this.destroy = false;
-    this.px = x;
-    this.py = y;
-    this.owner = owner;
-    this.damage = damage;
+    this.px = dat.x;
+    this.py = dat.y;
+    this.owner = dat.owner;
+    this.damage = dat.damage || 1;
+    this.col = dat.bCol || { r: 255, g: 255, b: 255 };
+    this.delay = 2 / 5;
+    this.speed = 1;
   }
   
   transferMomentumTo(object) {
-    object.vx += this.vx / object.m * 10;
-    object.vy += this.vy / object.m * 10;
+    object.vx += this.vx / object.m * 400;
+    object.vy += this.vy / object.m * 400;
   }
 
   checkForHit() {
@@ -78,7 +82,7 @@ class Bullet extends GravityObject {
       this.destroy = true;
     }
     
-    const strength = 10;
+    const strength = 10 * (this.dat.gravity ?? 1);
     this.attract(dt, strength);
     this.x += this.vx * dt;
     this.y += this.vy * dt;
@@ -91,12 +95,13 @@ class Bullet extends GravityObject {
     let vx = this.x - this.px;
     let vy = this.y - this.py;
     
-    if (this.owner == "enemy") {
-      ctx.stroke(255, 80, 60, ALPHA);
-    } else {
-      ctx.stroke(60, 255, 80, ALPHA);
-    }
+    // if (this.owner == "enemy") {
+    //   ctx.stroke(255, 80, 60, ALPHA);
+    // } else {
+    //   ctx.stroke(60, 255, 80, ALPHA);
+    // }
     
+    ctx.stroke(this.col.r, this.col.g, this.col.b, ALPHA);
     ctx.strokeWeight(this.r);
     ctx.line(this.x - vx * 3, this.y - vy * 3, this.x, this.y);
     
@@ -105,10 +110,22 @@ class Bullet extends GravityObject {
   }
 }
 
+class SpeedBullet extends Bullet {
+  constructor(dat) {
+    super(dat);
+    this.col = { r: 68, g: 223, b: 235 };
+    this.speed = 2;
+    this.delay = 0.2;
+    this.vx *= this.speed;
+    this.vy *= this.speed;
+  }
+}
+
 class HomingBullet extends Bullet {
-  constructor(x, y, vx, vy, owner) {
-    super(x, y, vx, vy, owner);
-    this.homingVelocity = Math.sqrt(vx ** 2 + vy ** 2);
+  constructor(dat) {
+    super(dat);
+    this.col = { r: 183, g: 45, b: 247 };
+    this.homingVelocity = Math.sqrt(dat.vx ** 2 + dat.vy ** 2) * 1.5;
     this.pickTarget();
   }
 
@@ -188,13 +205,15 @@ class HomingBullet extends Bullet {
   }
 }
 
-function spawnBullet(x, y, vx, vy, owner, type, damage = 1) {
+function spawnBullet(dat) {
   let bullet = null;
-  switch (type) {
-    case "homing": bullet = new HomingBullet(x, y, vx, vy, owner, damage); break;
-    default: bullet = new Bullet(x, y, vx, vy, owner, damage); break;
+  switch (dat.type) {
+    case "homing": bullet = new HomingBullet(dat); break;
+    case "speed": bullet = new SpeedBullet(dat); break;
+    default: bullet = new Bullet(dat); break;
   }
   bullets.push(bullet);
+  return bullet;
 }
 
 function moveBullets(dt) {

@@ -1,6 +1,7 @@
 
-class GravityObject {
+class GravityObject extends GameObject {
   constructor(x, y, m) {
+    super();
     this.x = x;
     this.y = y;
     this.m = m;
@@ -17,7 +18,8 @@ class GravityObject {
     let vy = dy / d;
     let g = this.m * sun.m / (d ** 2) / this.m;
     let grav = (g + Math.max(d - sun.r * 1.5, 0) * 0.05);
-    
+    grav = Math.min(grav, 200);
+
     let ForceX = vx * grav;
     let ForceY = vy * grav;
     this.vx += ForceX * dt * strength;

@@ -1,6 +1,7 @@
 
-class Trail {
+class Trail extends GameObject {
   constructor() {
+    super();
     this.pts = [];
     this.time = 0;
     this.delay = 5;
@@ -46,9 +47,14 @@ class Trail {
 
 class Ship extends GravityObject {
   constructor(x, y) {
-    super(x, y, 1000);
+    super(x, y, 50000);
     this.name = "ship";
     this.trail = new Trail();
+    this.oldExaustCol = {
+      min: { r: 255, g: 100, b: 0, a: 100 },
+      add: { r: 0, g: 100, b: 0, a: 0 }
+    };
+    this.exaustCol = this.oldExaustCol;
     this.vx = 0;
     this.vy = -35;
     this.a = 0;
@@ -57,24 +63,33 @@ class Ship extends GravityObject {
     this.speed = 8;
     this.fuel = 10;
     this.health = 100;
-    this.control = { steeringAngle: 0, steerVel: 4, boost: false };
+    this.control = { steeringAngle: 0, steerVel: 4, boost: false, fire:false };
     this.stats = { distToSun: 0, temp: 0 };
     this.colliding = false;
     this.burning = false;
-    this.damageDelay = 20;
-    this.damageTime = this.damageDelay;
-    this.bulletTime = 0;
+    this.damageDelay = 20 / 60;
+    this.damageTime = 0;
     this.sprite = rocketSprite;
     this.alpha = 255;
     this.angle = 0;
     this.oldAngle = 0;
     this.speedMult = 1;
     this.speedMultTime = 0;
+    this.damage = 1;
+
+    // Bullet attributes
+    this.bTime = 0;
+    this.bDelay = 20 / 60;
+    this.bCol = { r: 60, g: 255, b: 80 };
+    this.bSpeed = 120;
+    this.bulletType = "normal";
   }
   
   controls(dt) {
     let oldBoost = this.control.boost;
     this.control.boost = false;
+    this.control.fire = false;
+    this.bTime -= dt;
 
     let steerDelta = 0;
     let turnSpeed = this.fuel > 0 ? 1.2 : 0.2;
@@ -101,7 +116,7 @@ class Ship extends GravityObject {
         }
       }
       if (keys.SPACE) {
-        this.fireBullet();
+        this.fireBullet(dt);
       }
     }
     
@@ -121,27 +136,33 @@ class Ship extends GravityObject {
     this.control.steeringAngle += this.control.steerVel * dt;
   }
   
-  fireBullet() {
-    const bulletDelay = 20;
-    if (this.bulletTime > 0) return;
+  fireBullet(dt) {
+    // Cooldown
+    if (this.bTime > 0) return;
+    this.bTime = 0;
+    this.control.fire = true;
+    htmlSounds.playSound(shootSound, 0.02, true);
+    
+    // Out of ammo
     if (this.ammo <= 0) {
-      this.bulletTime += bulletDelay * 2;
-      this.ammo = 0;
-    } else this.bulletTime += bulletDelay;
+      this.bTime += this.bDelay * 2;
+    } else this.ammo--;
     
-    const bSpeed = 120;
     const shipAngle = this.a + this.control.steeringAngle;
-    
     let x = this.x + cos(shipAngle) * this.s;
     let y = this.y + sin(shipAngle) * this.s;
-    let vx = this.vx + cos(shipAngle) * bSpeed;
-    let vy = this.vy + sin(shipAngle) * bSpeed;
+    let vx = this.vx + cos(shipAngle) * this.bSpeed;
+    let vy = this.vy + sin(shipAngle) * this.bSpeed;
     
-    this.ammo--;
-    if (this.ammo < 0) this.ammo = 0;
-    htmlSounds.playSound(shootSound, 0.02, true);
-    // sounds.playRandomly(shootSound, 0.02, 0.4);
-    spawnBullet(x, y, vx, vy, this);
+    const bullet = spawnBullet({
+      x, y, vx, vy,
+      owner:this,
+      type:this.bulletType,
+      damage:this.damage,
+      bCol:this.bCol
+    });
+
+    this.bTime += bullet.delay;
   }
   
   addFuel(amount) {
@@ -160,12 +181,7 @@ class Ship extends GravityObject {
   }
   
   move(dt, ctx) {
-    // Speed
-    if (this.speedMultTime > 0) {
-      this.speedMultTime -= dt;
-    } else {
-      this.speedMult = 1;
-    }
+    let startOfGame = scenes.sceneTime < 5;
 
     // Distance to sun
     let dx = sun.x - this.x;
@@ -174,12 +190,13 @@ class Ship extends GravityObject {
     let vx = dx / d;
     let vy = dy / d;
     let g = this.m * sun.m / (d ** 2) / this.m;
-    
+
     let damage = Math.max(sun.r - d, 0) / 4;
     damage = round(damage * 10) / 10;
     
-    if (damage > 0 && this.damageTime++ >= this.damageDelay) {
-      this.damageTime = 0;
+    this.damageTime -= dt;
+    if (damage > 0 && this.damageTime <= 0) {
+      this.damageTime = this.damageDelay;
       ship.takeDamage(damage);
       hud.addCameraShake(damage * 2, 0.1);
     }
@@ -209,8 +226,10 @@ class Ship extends GravityObject {
     // make gravity stronger
     // g *= Math.max((-this.fuel + 2) * 1.025, 1)
     // g = Math.min(g / this.m, 40);
-    let ForceX = vx * (g + max(d - sun.r * 1.5, 0) * 0.05);
-    let ForceY = vy * (g + max(d - sun.r * 1.5, 0) * 0.05);
+    let edgeForce = Math.max(d - sun.r * 1.5, 0) * 0.05;
+    if (startOfGame) edgeForce = 0;
+    let ForceX = vx * (g + edgeForce);
+    let ForceY = vy * (g + edgeForce);
     
     this.vx += ForceX * dt;
     this.vy += ForceY * dt;
@@ -221,11 +240,14 @@ class Ship extends GravityObject {
     this.vy *= this.drag;
     
     // Constrain velocity
-    let maxSpeed = this.control.boost ? 100 : 40;
-    let sp = Math.sqrt(this.vx ** 2 + this.vy ** 2);
-    let ns = Math.min(sp, maxSpeed) / sp;
-    this.vx = lerp(this.vx, this.vx * ns, 0.025);
-    this.vy = lerp(this.vy, this.vy * ns, 0.025);
+    if (!startOfGame) {
+      let maxSpeed = this.control.boost ? 100 : 40;
+      let sp = Math.sqrt(this.vx ** 2 + this.vy ** 2);
+      let ns = Math.min(sp, maxSpeed) / sp;
+      this.vx = lerp(this.vx, this.vx * ns, 0.025);
+      this.vy = lerp(this.vy, this.vy * ns, 0.025);
+    }
+
     this.stats.distToSun = d;
 
     // Reduce bullet time
@@ -290,11 +312,6 @@ class Ship extends GravityObject {
   updateStats() {
     this.stats.temp = (100 ** 6) / (this.stats.distToSun ** 5 + 1);
   }
-
-  goCrazy() {
-    this.speedMult = 20;
-    this.speedMultTime = 10;
-  }
   
   alignCamera() {
     let x = this.x * 0.9;
@@ -310,9 +327,9 @@ class Ship extends GravityObject {
   }
   
   reset() {
-    this.setPosition(600, 600);
+    this.setPosition(sun.r + 200, 300);
     this.vx = 0;
-    this.vy = -35;
+    this.vy = -40;
     this.fuel = 10;
     this.ammo = 100;
     this.health = 60;
@@ -364,7 +381,12 @@ class Ship extends GravityObject {
     if (this.control.boost) {
       ctx.strokeWeight(this.s * 0.1);
       for (let i = 0; i < 10; ++i) {
-        ctx.stroke(255, Math.random() * 100 + 100, 0, 100);
+        ctx.stroke(
+          this.exaustCol.min.r + this.exaustCol.add.r * Math.random(),
+          this.exaustCol.min.g + this.exaustCol.add.g * Math.random(),
+          this.exaustCol.min.b + this.exaustCol.add.b * Math.random(),
+          this.exaustCol.min.a + this.exaustCol.add.a * Math.random()
+        );
         let aoff = noise(i + frameCount) * 0.4 - 0.2;
         let len = this.s * (Math.random() * 1 + 1);
         ctx.line(

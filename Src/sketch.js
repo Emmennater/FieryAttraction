@@ -8,9 +8,11 @@ function preload() {
   rocketSprite = loadImage("Assets/fighterjet2.png");
   enemySprite = loadImage("Assets/enemyjet.png");
   homingEnemySprite = loadImage("Assets/homing-enemy-jet.png");
+  speedEnemySprite = loadImage("Assets/speed-enemy-jet.png");
   sunSprite = loadImage("Assets/hotsun.jpg");
   asteroidSprite = loadImage("Assets/asteroid-sprite.png");
   speedAsteroidSprite = loadImage("Assets/speed-asteroid.png");
+  blueAsteroidSprite = loadImage("Assets/blue-asteroid-2.gif");
   fuelAsteroidSprite = loadImage("Assets/fuel-asteroid-sprite.png");
   healthAsteroidSprite = loadImage("Assets/health-asteroid-sprite.png");
   ammoAsteroidSprite = loadImage("Assets/ammo-asteroid-sprite.png");

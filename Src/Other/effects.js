@@ -34,16 +34,16 @@ class SuperSpeed extends Effect {
     constructor(target, dat) {
         super(target, dat);
         this.name = "speed";
+        this.color = color(30, 180, 200);
+    }
+
+    update(dt) {
+        this.target.speedMult = 5;
         this.target.speedMult = 5;
         this.target.exaustCol = {
             min: { r: 30, g: 180, b: 200, a: 100 },
             add: { r: 40, g: 30, b: 50, a: 0 }
         };
-        this.color = color(30, 180, 200);
-    }
-
-    update(dt) {
-        
     }
 
     stop() {

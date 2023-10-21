@@ -4,7 +4,7 @@ class GameObject {
         this.effects = [];
     }
 
-    applyEffect(Effect, dat = {}) {
+    applyEffect(Effect, dat = {}, sender = null) {
         const effect = new Effect(this, dat);
         this.effects.push(effect);
     }

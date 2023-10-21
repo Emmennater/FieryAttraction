@@ -5,11 +5,13 @@
 
 function preload() {
   // Sprites
+  futureFont = loadFont("Assets/future-font.ttf");
   rocketSprite = loadImage("Assets/fighterjet2.png");
   enemySprite = loadImage("Assets/enemyjet.png");
   homingEnemySprite = loadImage("Assets/homing-enemy-jet.png");
   speedEnemySprite = loadImage("Assets/speed-enemy-jet.png");
-  sunSprite = loadImage("Assets/hotsun.jpg");
+  megaEnemySprite = loadImage("Assets/mega-enemy-jet.png");
+  sunSprite = loadImage("Assets/hotsun.png");
   asteroidSprite = loadImage("Assets/asteroid-sprite.png");
   speedAsteroidSprite = loadImage("Assets/speed-asteroid.png");
   blueAsteroidSprite = loadImage("Assets/blue-asteroid-2.gif");
@@ -17,7 +19,7 @@ function preload() {
   healthAsteroidSprite = loadImage("Assets/health-asteroid-sprite.png");
   ammoAsteroidSprite = loadImage("Assets/ammo-asteroid-sprite.png");
   explosionSprite = loadImage("Assets/explosion.gif");
-  futureFont = loadFont("Assets/future-font.ttf");
+  // spacebg = loadImage("Assets/redsky.jpg");
   
   // Sounds
   alarmSound = loadSound("Assets/alarm-loop.wav");

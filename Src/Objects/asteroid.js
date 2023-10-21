@@ -28,7 +28,7 @@ class Asteroid extends GravityObject {
     this.graphicy = 0;
     this.sprite = asteroidSprite;
     this.destroy = false;
-    this.health = 3;
+    this.health = 15;
     this.split = false;
     this.isSplit = false;
     this.type = "normal";
@@ -100,7 +100,20 @@ class Asteroid extends GravityObject {
       asteroids.push(asteroid);
     }
   }
-  
+
+  scaleReward(amount) {
+    // Min and Max radius
+    const MIN = 10;
+    const MAX = 20;
+    const LOW = 0.5;
+    const HIGH = 1.5;
+
+    // Map r, min, max, low, high
+    let percent = ((this.r - MIN) / (MAX - MIN)) * (HIGH - LOW) + LOW;
+
+    return Math.round(amount * percent + 0.5);
+  }
+
   draw(ctx) {
     let r = this.r / this.depth;
     let x = (this.x + panzoom.xoff) / this.depth;
@@ -134,7 +147,7 @@ class FuelAsteroid extends Asteroid {
   takeDamage(damage, bullet) {
     super.takeDamage(damage, bullet);
     if (this.destroy) {
-      bullet.owner.addFuel(5);
+      bullet.owner.addFuel(this.scaleReward(4), this);
       if (bullet.owner.name == "ship")
         hud.addScore(5);
     }
@@ -151,7 +164,7 @@ class HealthAsteroid extends Asteroid {
   takeDamage(damage, bullet) {
     super.takeDamage(damage, bullet);
     if (this.destroy) {
-      bullet.owner.addHealth(20);
+      bullet.owner.addHealth(this.scaleReward(20), this);
       if (bullet.owner.name == "ship")
         hud.addScore(5);
     }
@@ -168,7 +181,7 @@ class AmmoAsteroid extends Asteroid {
   takeDamage(damage, bullet) {
     super.takeDamage(damage, bullet);
     if (this.destroy) {
-      bullet.owner.addAmmo(40);
+      bullet.owner.addAmmo(this.scaleReward(20), this);
       if (bullet.owner.name == "ship")
         hud.addScore(5);
     }
@@ -187,8 +200,8 @@ class SpeedAsteroid extends Asteroid {
     if (this.destroy) {
       if (bullet)
         bullet.owner.applyEffect(SuperSpeed, {
-          duration: 10
-        });
+          duration: this.scaleReward(10)
+        }, this);
       // bullet.owner.goCrazy();
       if (bullet.owner.name == "ship")
         hud.addScore(5);
@@ -220,21 +233,19 @@ function spawnAsteroid(type, playerCheck) {
     t = a + Math.random() * 0.5 * dir;
   }
   
-  let d = sun.r + 20 + Math.random() * 400;
-  let r = Math.random() * 10 + 10;
-  let health = 3;
+  let d = sun.r + 40 + Math.random() * 400;
+  let r = Math.floor(Math.random() * 10 + 10);
   let split = false;
 
   // Random massive asteroid
   if (Math.random() < 0.05) {
     r += 20;
-    health = 6;
     split = true;
   }
 
   let x = Math.cos(t) * d;
   let y = Math.sin(t) * d;
-  let s = Math.random() * 20 + 15;
+  let s = Math.random() * 10 + 25;
   let vx = Math.cos(t + HALF_PI) * s * dir;
   let vy = Math.sin(t + HALF_PI) * s * dir;
   let asteroid = null;
@@ -257,7 +268,7 @@ function spawnAsteroid(type, playerCheck) {
   }
   
   // Set health
-  asteroid.health = health;
+  asteroid.health = Math.max(r - 5, 5);
   asteroid.split = split;
 
   ASTEROID_COUNTS[asteroid.type]++;
@@ -265,7 +276,7 @@ function spawnAsteroid(type, playerCheck) {
 }
 
 function initAsteroids() {
-  for (let i = 0; i < 20; ++i)
+  for (let i = 0; i < 28; ++i)
     spawnAsteroid();
   for (let i = 0; i < 8; ++i)
     spawnAsteroid("fuel");
@@ -293,7 +304,7 @@ function moveAsteroids(dt) {
 
         // Replacement asteroids
         spawnAsteroid(oldType, true);
-        if (Math.random() < 0.5) {
+        if (Math.random() < 2 / 3) {
           spawnAsteroid(randomAsteroid(), true)
         }
       }

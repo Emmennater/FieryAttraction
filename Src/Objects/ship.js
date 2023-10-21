@@ -75,7 +75,7 @@ class Ship extends GravityObject {
     this.oldAngle = 0;
     this.speedMult = 1;
     this.speedMultTime = 0;
-    this.damage = 1;
+    this.damage = 5;
 
     // Bullet attributes
     this.bTime = 0;
@@ -123,7 +123,7 @@ class Ship extends GravityObject {
     // Sounds
     if (oldBoost != this.control.boost) {
       if (this.control.boost) {
-        htmlSounds.fadeSound(rocketSound, 0.1, 0.2);
+        htmlSounds.fadeSound(rocketSound, 0.075, 0.2);
         // sounds.startSound(rocketSound);
       } else {
         htmlSounds.fadeSound(rocketSound, 0.0, 0.2);
@@ -165,19 +165,22 @@ class Ship extends GravityObject {
     this.bTime += bullet.delay;
   }
   
-  addFuel(amount) {
+  addFuel(amount, sender) {
     this.fuel += amount;
     this.fuel = Math.min(this.fuel, 100);
+    spawnBonusEffect(`+${amount} fuel`, ship.x, ship.y, color(255, 0, 0), 2);
   }
   
-  addAmmo(amount) {
+  addAmmo(amount, sender) {
     this.ammo += amount;
     this.ammo = Math.min(this.ammo, 200);
+    spawnBonusEffect(`+${amount} ammo`, ship.x, ship.y, color(255, 120, 0), 2);
   }
   
-  addHealth(amount) {
+  addHealth(amount, sender) {
     this.health += amount;
     this.health = Math.min(this.health, 100);
+    spawnBonusEffect(`+${amount} health`, ship.x, ship.y, color(0, 255, 0), 2);
   }
   
   move(dt, ctx) {
@@ -227,7 +230,7 @@ class Ship extends GravityObject {
     // g *= Math.max((-this.fuel + 2) * 1.025, 1)
     // g = Math.min(g / this.m, 40);
     let edgeForce = Math.max(d - sun.r * 1.5, 0) * 0.05;
-    if (startOfGame) edgeForce = 0;
+    if (startOfGame && scenes.introSkipped) edgeForce = 0;
     let ForceX = vx * (g + edgeForce);
     let ForceY = vy * (g + edgeForce);
     

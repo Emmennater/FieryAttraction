@@ -18,11 +18,12 @@ class Enemy extends Ship {
     this.damage = 1;
     this.range = 200;
     this.topSpeed = 100;
+    this.revive = false;
 
     // Bullet attributes
+    // this.bDelay = 20 / 60;
     this.bSpeed = 100;
     this.bTime = 0;
-    this.bDelay = 20 / 60;
     this.bImpactForce = 1;
     this.bGravity = 1;
     this.bDecay = 1;
@@ -31,6 +32,10 @@ class Enemy extends Ship {
     this.lastBullet = null;
   }
   
+  grantEffect(object) {
+
+  }
+
   takeDamage(damage, bullet) {
     this.health -= damage;
     if (this.health <= 0) {
@@ -38,6 +43,7 @@ class Enemy extends Ship {
       spawnExplosion(this.x, this.y, this);
       if (bullet && bullet.owner.name == "ship") {
         hud.addScore(25);
+        this.grantEffect(bullet.owner);
       }
     }
   }
@@ -203,14 +209,14 @@ class SpeedEnemy extends Enemy {
     this.bulletType = "speed";
     this.sprite = speedEnemySprite;
     this.revive = false;
-    this.damage = 0.5;
+    this.damage = 1;
     this.range = 200;
     this.speed = 80;
     this.topSpeed = 300;
     this.health = 15;
     
     // Bullet attributes
-    this.bDelay = 0.2;
+    // this.bDelay = 0.2;
     this.bImpactForce = 0.25;
     this.bGravity = 0.0;
     this.bDecay = 1;
@@ -222,15 +228,10 @@ class SpeedEnemy extends Enemy {
     };
   }
 
-  takeDamage(damage, bullet) {
-    super.takeDamage(damage, bullet);
-    if (this.destroy) {
-      this.revive = !bullet || bullet.owner.name != "ship";
-      if (bullet && bullet.owner.name == "ship")
-        bullet.owner.applyEffect(SpeedRounds, {
-          duration: 40
-        });
-    }
+  grantEffect(object) {
+    object.applyEffect(SpeedRounds, {
+      duration: 40
+    });
   }
 }
 
@@ -240,25 +241,51 @@ class HomingEnemy extends Enemy {
     this.type = "homing";
     this.bulletType = "homing";
     this.sprite = homingEnemySprite;
-    this.revive = false;
     this.health = 25;
-    this.damage = 0.25;
-    this.bDelay = 0.2;
-    this.bSpeed = 300;
+    this.damage = 1;
+    // this.bDelay = 0.2;
+    this.bSpeed = 400;
     this.bGravity = 0.5;
     this.bDecay = 0.5;
     this.range = 300;
   }
 
-  takeDamage(damage, bullet) {
-    super.takeDamage(damage, bullet);
-    if (this.destroy) {
-      this.revive = !bullet || bullet.owner.name != "ship";
-      if (bullet && bullet.owner.name == "ship")
-        bullet.owner.applyEffect(HomingRounds, {
-          duration: 40
-        });
-    }
+  grantEffect(object) {
+    object.applyEffect(HomingRounds, {
+      duration: 40
+    });
+  }
+}
+
+class MegaEnemy extends HomingEnemy {
+  constructor(x, y, vx, vy) {
+    super(x, y, vx, vy);
+    this.type = "mega";
+    this.bulletType = "mega";
+    this.health = 15;
+    this.damage = 1;
+    this.range = 250;
+    this.speed = 80;
+
+    // Bullet attributes
+    // this.bDelay = 0.2;
+    this.bImpactForce = 0.25;
+    this.bGravity = 0.0;
+    this.bDecay = 0.75;
+    this.bStray = 0.5;
+    this.sprite = megaEnemySprite;
+
+    // Speed exaust
+    this.exaustCol = this.oldExaustCol = {
+      min: { r: 30, g: 180, b: 200, a: 100 },
+      add: { r: 40, g: 30, b: 50, a: 0 }
+    };
+  }
+
+  grantEffect(object) {
+    object.applyEffect(MegaRounds, {
+      duration: 40
+    });
   }
 }
 
@@ -291,6 +318,7 @@ function spawnEnemy(playerCheck = true, type = "normal") {
   switch (type) {
     case "homing": enemy = new HomingEnemy(x, y, vx, vy); break;
     case "speed": enemy = new SpeedEnemy(x, y, vx, vy); break;
+    case "mega": enemy = new MegaEnemy(x, y, vx, vy); break;
     default: enemy = new Enemy(x, y, vx, vy); break;
   }
 
@@ -329,7 +357,8 @@ function drawEnemies(ctx) {
 
 function randomEnemyType() {
   let rand = Math.random();
-  if (rand < 0.25) return "homing";
+  if (rand < 0.1) return "mega";
+  else if (rand < 0.3) return "homing";
   else if (rand < 0.5) return "speed";
   else return "normal";
 }

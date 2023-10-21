@@ -50,6 +50,15 @@ volume {
   flex: 1;
 }
 
+version {
+  position: fixed;
+  right: 14px;
+  top: 4px;
+  color: #ffffff40;
+  font-size: 24px;
+  font-family: "Trebuchet MS";
+}
+
 button {
   margin: 20px;
   flex: 1;

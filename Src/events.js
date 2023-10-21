@@ -3,14 +3,17 @@ class EventManager {
     constructor() {
         this.threshold = 200;
         this.threshold2 = 150;
+        this.threshold3 = 250;
         this.activeEvents = [];
         this.lastBigScore = 0;
         this.lastMidScore = 0;
+        this.lastFarScore = 0;
     }
 
     reset() {
         this.lastBigScore = 0;
         this.lastMidScore = 0;
+        this.lastFarScore = 0;
 
         // Stop events
         for (let evt of this.activeEvents)
@@ -36,6 +39,11 @@ class EventManager {
         if (hud.score - this.lastMidScore >= this.threshold2) {
             this.lastMidScore = Math.floor(hud.score / this.threshold2) * this.threshold2;
             spawnEnemy(true, Math.random() < 0.5 ? "homing" : "speed");
+        }
+
+        if (hud.score - this.lastFarScore >= this.threshold3) {
+            this.lastFarScore = Math.floor(hud.score / this.threshold3) * this.threshold3;
+            spawnEnemy(true, "mega");
         }
 
         for (let i = this.activeEvents.length - 1; i >= 0; --i) {

@@ -25,6 +25,7 @@ class Scenes {
     this.musicSlider = document.getElementById("music-volume");
     this.helpControls = document.getElementById("help-controls");
     this.controlButton = document.getElementById("controls");
+    this.versionTag = document.getElementById("version");
     this.controlsOpen = false;
     this.sceneTime = 0;
     
@@ -152,6 +153,7 @@ class TitleScene extends Scene {
 
     // Elements
     scenes.controlButton.style.visibility = "visible";
+    scenes.versionTag.style.visibility = "visible";
 
     // Start soundtrack
     titleScreenTrack.currentTime = 0;
@@ -230,7 +232,8 @@ class TitleScene extends Scene {
 
       if (pressed.SPACE) {
         scenes.controlButton.style.visibility = "hidden";
-        
+        scenes.versionTag.style.visibility = "hidden";
+
         // Stop title soundtrack
         htmlSounds.fadeSound(titleScreenTrack, 0.0, 1);
         
@@ -331,7 +334,7 @@ class IntroScene extends Scene {
       scenes.impactMessageTime = scenes.messageTime;
       htmlSounds.fadeSound(rocketSound, 0.0, 0.2);
       scenes.introSkipped = pressed.SPACE;
-      
+
       // Cut scene
       scenes.cutSceneTo(scenes.gameScene);
     }
@@ -356,6 +359,15 @@ class GameScene extends Scene {
     initAsteroids();
     initEnemies();
 
+    // Put player in tough spot if they didn't skip (lol)
+    if (!scenes.introSkipped) {
+      ship.vx = 0;
+      ship.vy = -45;
+      ship.control.steerVel = 4;
+      ship.setPosition(600, 600);
+      print("Y")
+    }
+
     // Set ship angle at start
     ship.a = atan2(ship.vy, ship.vx);
   }
@@ -375,8 +387,22 @@ class GameScene extends Scene {
     ship.alignCamera();
 
     panzoom.begin(ctx);
-
     panzoom.end(ctx);
+    
+    // const aspect = spacebg.height / spacebg.width;
+    // const MIN_SCL = Math.min(width, height);
+    // const imgW = 4 * MIN_SCL;
+    // const imgH = 4 * MIN_SCL * aspect;
+    // ctx.push();
+    // ctx.translate(width/2, height/2);
+    // ctx.scale(panzoom.zoom);
+    // ctx.rotate(panzoom.rot);
+    // ctx.imageMode(CENTER);
+    // ctx.tint(10, 15, 30);
+    // ctx.image(spacebg, 0, 0, imgW, imgH);
+    // ctx.noTint();
+    // ctx.pop();
+
     sun.update(dt);
     sun.draw(ctx);
     stars.draw(ctx);
@@ -402,6 +428,7 @@ class GameScene extends Scene {
     
     panzoom.begin(ctx);
     drawExplosions(ctx);
+    runBonusEffects(dt, ctx);
     panzoom.end(ctx);
     
     hud.draw(dt, ctx);
@@ -423,13 +450,14 @@ class GameScene extends Scene {
 
     if (scenes.paused) {
       let MIN_SCL = min(width, height);
+      let bounds = scenes.helpControls.getBoundingClientRect();
       background(0, 100);
       fill(255);
       noStroke();
       textFont(futureFont);
       textSize(MIN_SCL * 0.1);
       textAlign(CENTER, CENTER);
-      text("PAUSED", width / 2, height * 0.7);
+      text("PAUSED", width / 2, (bounds.y + bounds.height + height) / 2);
     }
   }
 }

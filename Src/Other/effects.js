@@ -64,15 +64,16 @@ class SuperSpeed extends Effect {
     }
 }
 
-class HomingRounds extends Effect {
+class CustomRounds extends Effect {
     constructor(target, dat) {
         super(target, dat);
-        this.name = "homing";
-        this.color = color(190, 59, 217);
+        this.name = "custom";
+        this.bulletType = "custom";
+        this.color = color(30, 180, 200);
     }
 
     update(dt) {
-        this.target.bulletType = "homing";
+        this.target.bulletType = this.bulletType;
     }
 
     stop() {
@@ -92,31 +93,30 @@ class HomingRounds extends Effect {
     }
 }
 
-class SpeedRounds extends Effect {
+class HomingRounds extends CustomRounds {
     constructor(target, dat) {
         super(target, dat);
-        this.name = "speedrounds";
+        this.name = "homing rounds";
+        this.bulletType = "homing";
         this.color = color(190, 59, 217);
     }
+}
 
-    update(dt) {
-        this.target.bulletType = "speed";
+class SpeedRounds extends CustomRounds {
+    constructor(target, dat) {
+        super(target, dat);
+        this.name = "speed rounds";
+        this.bulletType = "speed";
+        this.color = color(30, 180, 200);
     }
+}
 
-    stop() {
-        this.target.bulletType = "normal";
-    }
-
-    run(dt) {
-        this.update(dt);
-
-        // Time remaining
-        if (!this.target.control.fire) return;
-        this.timeRemaining -= 1;
-        if (this.timeRemaining <= 0) {
-            this.done = true;
-            this.stop();
-        }
+class MegaRounds extends CustomRounds {
+    constructor(target, dat) {
+        super(target, dat);
+        this.name = "mega rounds";
+        this.bulletType = "mega";
+        this.color = color(114, 66, 245);
     }
 }
 

@@ -25,6 +25,19 @@ class PanZoom {
       y: ((y - height / 2) / this.zoom + height / 2) - this.yoff
     };
   }
+
+  unScaleCoordinate(x, y) {
+    // const cX = (x + this.xoff - width / 2) * this.zoom;
+    // const cY = (y + this.yoff - height / 2) * this.zoom;
+
+    // Rotate points
+    // let x2 = (x + width/2)
+
+    // return {
+    //   x: (x + this.xoff - width / 2) * this.zoom + width / 2,
+    //   y: (y + this.yoff - height / 2) * this.zoom + height / 2,
+    // }
+  }
   
   updateMouse() {
     const pos = this.scaleCoordinate(mouseX, mouseY);

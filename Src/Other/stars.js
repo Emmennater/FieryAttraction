@@ -17,9 +17,9 @@ class Stars {
       let r = Math.random() * 55 + 200;
       let g = Math.random() * 55 + 200;
       let b = Math.random() * 55 + 200;
-      let depth = Math.random() * 2;
-      depth **= 3;
-      depth += 0.5
+      let depth = Math.random() * 5;
+      depth **= 2;
+      depth += 1
       this.stars.push({ x, y, depth, r, g, b });
     }
   }

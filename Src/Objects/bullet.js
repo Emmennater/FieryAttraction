@@ -17,6 +17,7 @@ class Bullet extends GravityObject {
     this.col = dat.bCol || { r: 255, g: 255, b: 255 };
     this.delay = 2 / 5;
     this.speed = 1;
+    this.damageMult = 1;
   }
   
   transferMomentumTo(object) {
@@ -32,7 +33,7 @@ class Bullet extends GravityObject {
           asteroid.y > this.y - sz &&
           asteroid.y < this.y + sz) {
         this.destroy = true;
-        asteroid.takeDamage(this.damage, this);
+        asteroid.takeDamage(this.damage * this.damageMult, this);
         this.transferMomentumTo(asteroid);
         htmlSounds.playSound(hitSound, 0.5);
         // sounds.playRandomly(hitSound, 0.5);
@@ -48,7 +49,7 @@ class Bullet extends GravityObject {
           ship.y > this.y - sz &&
           ship.y < this.y + sz) {
         this.destroy = true;
-        ship.takeDamage(this.damage * 5, this);
+        ship.takeDamage(this.damage * this.damageMult, this);
         this.transferMomentumTo(ship);
         hud.addCameraShake(10, 10);
         htmlSounds.playSound(hitSound, 0.5);
@@ -66,7 +67,7 @@ class Bullet extends GravityObject {
             enemy.y > this.y - sz &&
             enemy.y < this.y + sz) {
           this.destroy = true;
-          enemy.takeDamage(this.damage * 5, this);
+          enemy.takeDamage(this.damage * this.damageMult, this);
           this.transferMomentumTo(enemy);
           htmlSounds.playSound(hitSound, 0.5);
           // sounds.playRandomly(hitSound, 0.5);
@@ -118,6 +119,7 @@ class SpeedBullet extends Bullet {
     this.delay = 0.2;
     this.vx *= this.speed;
     this.vy *= this.speed;
+    this.damageMult = 0.5;
   }
 }
 
@@ -145,19 +147,21 @@ class HomingBullet extends Bullet {
   selectTarget(targets) {
     if (!targets) return;
     if (targets.length == 0) return;
-    let angle = atan2(this.vy, this.vx) + PI;
-    let shortestDist = Infinity;
-    let selectedTarget = null;
-    for (let target of targets) {
-      let angleTo = atan2(target.y - this.y, target.x - this.x) + PI;
-      let angleDiff = smallestAngleDifference(angle, angleTo);
-      if (Math.abs(angleDiff) > PI * 0.4) continue;
-      let d = dist(this.x, this.y, target.x, target.y);
-      if (d < shortestDist) {
-        shortestDist = d;
-        selectedTarget = target;
-      }
-    }
+    let bulletAngle = atan2(this.vy, this.vx);
+    let aimFov = PI * 0.4;
+    let selectedTarget = selectTarget(this, targets, aimFov, bulletAngle);
+
+    // let shortestDist = Infinity;
+    // for (let target of targets) {
+    //   let angleTo = atan2(target.y - this.y, target.x - this.x) + PI;
+    //   let angleDiff = smallestAngleDifference(angle, angleTo);
+    //   if (Math.abs(angleDiff) > PI * 0.4) continue;
+    //   let d = dist(this.x, this.y, target.x, target.y);
+    //   if (d < shortestDist) {
+    //     shortestDist = d;
+    //     selectedTarget = target;
+    //   }
+    // }
     return selectedTarget;
   }
 
@@ -205,11 +209,25 @@ class HomingBullet extends Bullet {
   }
 }
 
+class MegaBullet extends HomingBullet {
+  constructor(dat) {
+    super(dat);
+    this.col = { r: 74, g: 66, b: 227 };
+    this.homingVelocity = Math.sqrt(dat.vx ** 2 + dat.vy ** 2) * 4;
+    this.speed = 2;
+    this.delay = 0.2;
+    this.vx *= this.speed;
+    this.vy *= this.speed;
+    this.damageMult = 2;
+  }
+}
+
 function spawnBullet(dat) {
   let bullet = null;
   switch (dat.type) {
     case "homing": bullet = new HomingBullet(dat); break;
     case "speed": bullet = new SpeedBullet(dat); break;
+    case "mega": bullet = new MegaBullet(dat); break;
     default: bullet = new Bullet(dat); break;
   }
   bullets.push(bullet);
@@ -231,6 +249,32 @@ function drawBullets(ctx) {
   for (let bullet of bullets) {
     bullet.draw(ctx);
   }
+}
+
+// Bullet functions
+function selectTarget(bullet, targets, fov, firingAngle) {
+  if (targets.length == 0) return;
+  const T = bullet;
+  let target = null;
+  let best = -Infinity;
+  
+  for (let t of targets) {
+    // The algorithm
+    let dx = t.x - T.x;
+    let dy = t.y - T.y;
+    let d = Math.sqrt(dx ** 2 + dy ** 2);
+    let angleToTarget = atan2(dy, dx);
+    let angleDiff = smallestAngleDifference(angleToTarget, firingAngle);
+    let score = map(Math.abs(angleDiff), 0, fov, 1, 0) / d;
+    
+    t.score = score;
+    if (score > best) {
+      best = score;
+      target = t;
+    }
+  }
+  
+  return target;
 }
 
 /*

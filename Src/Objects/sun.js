@@ -9,8 +9,8 @@ class Sun {
     this.depth = 1.5;
     this.graphicx = 0;
     this.graphicy = 0;
-    this.tint = { r: 255, g: 255, b: 255, a: 255 };
     this.oldTint = { r: 255, g: 255, b: 255, a: 255 };
+    this.tint = { ...this.oldTint };
     this.targetTint = { r: 255, g: 255, b: 255, a: 255 };
     this.tintTime = 0;
     this.tintTimeEnd = 0;

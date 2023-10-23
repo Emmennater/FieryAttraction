@@ -18,9 +18,10 @@ class Stars {
       let g = Math.random() * 55 + 200;
       let b = Math.random() * 55 + 200;
       let depth = Math.random() * 5;
+      let rot = Math.random() * 2 - 1;
       depth **= 2;
       depth += 1
-      this.stars.push({ x, y, depth, r, g, b });
+      this.stars.push({ x, y, depth, r, g, b, rot });
     }
   }
   
@@ -38,16 +39,26 @@ class Stars {
     }
     
     ctx.noStroke();
-    const sunr = (sun.r / sun.depth) ** 2;
+    ctx.imageMode(CENTER);
+    // const sunr = (sun.r / sun.depth) ** 2;
+    const sz = 16;
     for (let s of this.stars) {
       let x = (s.x + panzoom.xoff) / s.depth;
       let y = (s.y + panzoom.yoff) / s.depth;
       // s.depth > sun.depth
       // if ((sun.graphicx - x) ** 2 + (sun.graphicy - y) ** 2 < sunr2) continue;
-      if (s.depth > sun.depth && (sun.graphicx - x) ** 2 + (sun.graphicy - y) ** 2 < sunr) continue;
-      ctx.fill(s.r, s.g, s.b);
-      ctx.ellipse(x, y, 2 / s.depth);
+      // if (s.depth > sun.depth && (sun.graphicx - x) ** 2 + (sun.graphicy - y) ** 2 < sunr) continue;
       
+      if (starSprite) {
+        ctx.push();
+        ctx.translate(x, y);
+        ctx.rotate(frameCount / 60 * s.rot);
+        ctx.image(starSprite, 0, 0, sz / s.depth, sz / s.depth);
+        ctx.pop();
+      } else {
+        ctx.fill(s.r, s.g, s.b);
+        ctx.ellipse(x, y, 2 / s.depth);
+      }
     }
     
     if (transform)

@@ -11,7 +11,6 @@ function preload() {
   homingEnemySprite = loadImage("Assets/homing-enemy-jet.png");
   speedEnemySprite = loadImage("Assets/speed-enemy-jet.png");
   megaEnemySprite = loadImage("Assets/mega-enemy-jet.png");
-  sunSprite = loadImage("Assets/hotsun.png");
   asteroidSprite = loadImage("Assets/asteroid-sprite.png");
   speedAsteroidSprite = loadImage("Assets/speed-asteroid.png");
   blueAsteroidSprite = loadImage("Assets/blue-asteroid-2.gif");
@@ -19,8 +18,17 @@ function preload() {
   healthAsteroidSprite = loadImage("Assets/health-asteroid-sprite.png");
   ammoAsteroidSprite = loadImage("Assets/ammo-asteroid-sprite.png");
   explosionSprite = loadImage("Assets/explosion.gif");
+  aimArcSprite = loadImage("Assets/aim-arc.png");
   // spacebg = loadImage("Assets/redsky.jpg");
   
+  // Festive
+  festive = getItem("fiery-attraction-festive-state") ?? true;
+  if (festive) {
+    festive = !festive;
+    document.getElementById("festive-button").click();
+  } else loadTheme("default");
+  
+
   // Sounds
   alarmSound = loadSound("Assets/alarm-loop.wav");
   // rocketSound = loadSound("Assets/rocket-sound-2.wav");
@@ -53,6 +61,7 @@ function setup() {
 
   // Globals
   documentClicked = false;
+  noSpawns = false;
 
   // Namespaces
   panzoom = new PanZoom();
@@ -78,6 +87,29 @@ function draw() {
   scenes.runCurrentScene(dt, CTX);
   htmlSounds.runSounds(dt);
   clearPressed();
+}
+
+function loadTheme(name) {
+  switch (name) {
+    case "festive":
+      // sunSprite = loadImage("Assets/Festive/coldsun-v2.png");
+      sunSprite = loadImage("Assets/hotsun.png");
+      starSprite = loadImage("Assets/Festive/snowflake.webp");
+      // bgCol = color(50, 110, 205);
+      bgCol = color(0);
+      break;
+    case "default":
+      sunSprite = loadImage("Assets/hotsun.png");
+      starSprite = null;
+      bgCol = color(0);
+      break;
+  }
+}
+
+function toggleTheme() {
+  festive = !festive;
+  loadTheme(festive ? "festive" : "default");
+  storeItem("fiery-attraction-festive-state", festive);
 }
 
 /*

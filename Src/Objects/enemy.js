@@ -11,21 +11,21 @@ class Enemy extends Ship {
     this.vx = vx;
     this.vy = vy;
     this.steerAngle = 0;
-    this.health = 20;
+    this.health = 15;
     this.speed = 10;
     this.sprite = enemySprite;
     this.bulletType = "normal";
-    this.damage = 1;
+    this.damage = 2 / 5;
     this.range = 200;
     this.topSpeed = 100;
     this.revive = false;
 
     // Bullet attributes
-    // this.bDelay = 20 / 60;
+    this.bDelay = 2;
     this.bSpeed = 100;
     this.bTime = 0;
     this.bImpactForce = 1;
-    this.bGravity = 1;
+    this.bGravity = 0;
     this.bDecay = 1;
     this.bCol = { r:255, g:80, b:60 };
     this.bStray = 0.2;
@@ -33,7 +33,13 @@ class Enemy extends Ship {
   }
   
   grantEffect(object) {
-
+    if (!object) return;
+    let health = Math.random() * 5 + 5;
+    let ammo = Math.random() * 10 + 10;
+    let fuel = Math.random() * 5 + 5;
+    object.addHealth(Math.floor(health) + 1);
+    object.addAmmo(Math.floor(ammo) + 1);
+    object.addFuel(Math.floor(fuel) + 1);
   }
 
   takeDamage(damage, bullet) {
@@ -65,76 +71,59 @@ class Enemy extends Ship {
     this.bTime -= dt;
     if (this.bTime > 0) return;
     
-    let shipSpeed = Math.sqrt(ship.vx ** 2 + ship.vy ** 2);
-    let dvx = ship.vx / shipSpeed;
-    let dvy = ship.vy / shipSpeed;
-    
-    let distToSun = dist(this.x, this.y, sun.x, sun.y);
-    let targetY = ship.y + dvy * distToPlayer / 20;
-    let targetX = ship.x + dvx * distToPlayer / 20;
-    let angleOffset = dirOffset * 0.1;
-    
     // Variables
-    let bulletSpeed = this.lastBullet ? this.lastBullet.speed : 1;
+    let bSpeedMult = this.lastBullet ? this.lastBullet.speed : 1;
+    let bSpeed = this.bSpeed;
 
-    // Finding aim angle
-    let angleToPlayer = atan2(targetY - this.y, targetX - this.x);
-    // let playerAngle = atan2(ship.vy, ship.vx);
-    // let B = playerAngle - angleToPlayer;
-    // let tv = Math.sqrt(ship.vx ** 2 + ship.vy ** 2);
-    // let bv = this.bSpeed + Math.sqrt(this.vx ** 2 + this.vy ** 2);
-    // bv *= bulletSpeed;
-    // let leadAngle = asin(sin(B) * tv / bv);
-    let finalTargetAngle = angleToPlayer;
-    // finalTargetAngle += leadAngle;
+    // Calculating projectile info
+    let angleToTarget = atan2(ship.y - this.y, ship.x - this.x);
+    let angleOfTarget = atan2(ship.vy, ship.vx);
+    angleToTarget = ((angleToTarget % TWO_PI) + TWO_PI) % TWO_PI;
+    angleOfTarget = ((angleOfTarget % TWO_PI) + TWO_PI) % TWO_PI;
+    let targetSpeed = Math.sqrt(ship.vx ** 2 + ship.vy ** 2);
+    let bulletSpeed = bSpeed; // + Math.sqrt(this.vx ** 2 + this.vy ** 2);
 
+    // Calculating target angle
+    let B = angleOfTarget - angleToTarget;
+    let A = asin(sin(B) * (targetSpeed) / (bulletSpeed * bSpeedMult));
+    let finalTargetAngle = angleToTarget + A;
 
-    // Using final angle to get bullet velocity
-    let angleDelta = finalTargetAngle - this.a + angleOffset;
-    this.control.steeringAngle = angleDelta;
-    let A = this.control.steeringAngle + Math.random() * this.bStray - this.bStray / 2;
-    // let A = this.control.steeringAngle;
-    let bvx = cos(this.a + A) * this.bSpeed + this.vx;
-    let bvy = sin(this.a + A) * this.bSpeed + this.vy;
-    
-    // let ang = this.a + this.control.steeringAngle;
-    // CTX.stroke(255);
-    // CTX.strokeWeight(1);
-    // CTX.line(
-    //   this.x,
-    //   this.y,
-    //   this.x + cos(ang) * 100,
-    //   this.y + sin(ang) * 100
-    // );
+    // Adding bullet stray
+    let stray = Math.random() * this.bStray - this.bStray / 2;
+    let distanceToTarget = dist(this.x, this.y, ship.x, ship.y);
+    stray *= 100 / (distanceToTarget / 2 + 100);
+    finalTargetAngle += stray;
 
-    // this.bTime -= dt;
-    // if (this.bTime > 0) return;
+    // Setting target angle
+    this.control.steeringAngle = finalTargetAngle - this.a;
+    let bvx = cos(finalTargetAngle) * bulletSpeed;
+    let bvy = sin(finalTargetAngle) * bulletSpeed;
 
     // Shoot bullet
     const bullet = spawnBullet({
       x:this.x, y:this.y, vx:bvx, vy:bvy,
       owner:this,
       type:this.bulletType,
-      damage:this.damage,
+      damageMult:this.damage,
       bCol:this.bCol,
       gravity:this.bGravity,
       decay:this.bDecay,
       impactForce:this.bImpactForce
     });
 
-    this.bTime = bullet.delay;
+    this.bTime = bullet.delay * this.bDelay;
   }
   
   move(dt) {
+    // Gravity
+    this.attract(dt, 1);
+
     // Distance to sun
     let dx = sun.x - this.x;
     let dy = sun.y - this.y;
     let d = sqrt(dx ** 2 + dy ** 2);
-    let vx = dx / d;
-    let vy = dy / d;
-    let g = this.m * sun.m / (d ** 2) / this.m;
-    let grav = (g + Math.max(d - sun.r * 1.5, 0) * 0.05);
-    
+
+    // Damage from sun
     let damage = Math.max(sun.r - d, 0) / 4;
     damage = round(damage * 10) / 10;
     
@@ -142,11 +131,6 @@ class Enemy extends Ship {
       this.damageTime = 0;
       this.takeDamage(damage);
     }
-    
-    let ForceX = vx * grav;
-    let ForceY = vy * grav;
-    this.vx += ForceX * dt;
-    this.vy += ForceY * dt;
     
     // Steer away from sun
     let A = this.a;
@@ -209,18 +193,17 @@ class SpeedEnemy extends Enemy {
     this.bulletType = "speed";
     this.sprite = speedEnemySprite;
     this.revive = false;
-    this.damage = 1;
     this.range = 200;
     this.speed = 80;
     this.topSpeed = 300;
-    this.health = 15;
+    this.health = 20;
     
     // Bullet attributes
-    // this.bDelay = 0.2;
+    this.bDelay = 1;
     this.bImpactForce = 0.25;
     this.bGravity = 0.0;
     this.bDecay = 1;
-    this.bStray = 0.1;
+    this.bStray = 0.4;
 
     this.exaustCol = this.oldExaustCol = {
       min: { r: 30, g: 180, b: 200, a: 100 },
@@ -241,11 +224,12 @@ class HomingEnemy extends Enemy {
     this.type = "homing";
     this.bulletType = "homing";
     this.sprite = homingEnemySprite;
-    this.health = 25;
-    this.damage = 1;
-    // this.bDelay = 0.2;
-    this.bSpeed = 400;
-    this.bGravity = 0.5;
+    this.health = 20;
+
+    // Bullet attributes
+    this.bDelay = 1;
+    this.bSpeed = 200;
+    this.bGravity = 0.0;
     this.bDecay = 0.5;
     this.range = 300;
   }
@@ -262,13 +246,12 @@ class MegaEnemy extends HomingEnemy {
     super(x, y, vx, vy);
     this.type = "mega";
     this.bulletType = "mega";
-    this.health = 15;
-    this.damage = 1;
+    this.health = 25;
     this.range = 250;
     this.speed = 80;
 
     // Bullet attributes
-    // this.bDelay = 0.2;
+    this.bDelay = 1;
     this.bImpactForce = 0.25;
     this.bGravity = 0.0;
     this.bDecay = 0.75;
@@ -290,7 +273,9 @@ class MegaEnemy extends HomingEnemy {
 }
 
 function initEnemies() {
-  for (let i = 0; i < 3; i++)
+  if (noSpawns) return;
+  // enemies.push(new Enemy(ship.x, ship.y, 0, 0));
+  for (let i = 0; i < 2; i++)
     spawnEnemy(true);
 }
 

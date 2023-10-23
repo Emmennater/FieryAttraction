@@ -276,6 +276,7 @@ function spawnAsteroid(type, playerCheck) {
 }
 
 function initAsteroids() {
+  if (noSpawns) return;
   for (let i = 0; i < 28; ++i)
     spawnAsteroid();
   for (let i = 0; i < 8; ++i)

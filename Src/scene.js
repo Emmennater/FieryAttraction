@@ -11,7 +11,7 @@ class Scenes {
     this.highScore = false;
     this.gameOver = false;
     this.paused = false;
-
+    
     // Events
     this.eventManager = new EventManager();
 
@@ -179,27 +179,27 @@ class TitleScene extends Scene {
     
     // Rotating sun
     let sunRotation = frameCount / 2000;
-    
-    // Display context
-    ctx.background(0);
-    ctx.push();
-    ctx.translate(width / 2, height * 1.3);
-    ctx.rotate(sunRotation);
-    ctx.imageMode(CENTER);
-    ctx.image(sunSprite, 0, 0, height * 1.5, height * 1.5);
-    ctx.pop();
-    
     let viewX = 0;
     let viewY = 0;
     viewX += cos(-sunRotation - HALF_PI) * height / 2;
     viewY += sin(-sunRotation - HALF_PI) * height / 2;
     
+    ctx.background(bgCol);
+
     panzoom.zoom = 1;
     stars.setViewPosition(viewX, viewY);
     panzoom.setInView(viewX, viewY);
     panzoom.setRotation(sunRotation);
     stars.draw(ctx);
     
+    // Display context
+    ctx.push();
+    ctx.translate(width / 2, height * 1.3);
+    ctx.rotate(sunRotation);
+    ctx.imageMode(CENTER);
+    ctx.image(sunSprite, 0, 0, height * 1.5, height * 1.5);
+    ctx.pop();
+
     this.ship.draw(ctx);
     
     imageMode(CORNER);
@@ -294,7 +294,7 @@ class IntroScene extends Scene {
     }
     
     // Background
-    ctx.background(0);
+    ctx.background(bgCol);
     panzoom.zoom = 0.5;
     stars.draw(ctx, false);
     
@@ -381,7 +381,7 @@ class GameScene extends Scene {
     if (scenes.paused)
       dt = 0;
 
-    ctx.background(0);
+    ctx.background(bgCol);
     
     ship.controls(dt);
     ship.alignCamera();
@@ -403,9 +403,9 @@ class GameScene extends Scene {
     // ctx.noTint();
     // ctx.pop();
 
+    stars.draw(ctx);
     sun.update(dt);
     sun.draw(ctx);
-    stars.draw(ctx);
     panzoom.begin(ctx);
 
     updateAllEffects(dt);
@@ -429,6 +429,7 @@ class GameScene extends Scene {
     panzoom.begin(ctx);
     drawExplosions(ctx);
     runBonusEffects(dt, ctx);
+    hud.updateGuides(dt, ctx);
     panzoom.end(ctx);
     
     hud.draw(dt, ctx);
@@ -479,18 +480,11 @@ class GameOverScene extends Scene {
     const BLARE = (sin(frameCount / 14) + 1) / 2;
 
     // Background
-    background(0);
+    background(bgCol);
+    ctx.background(bgCol);
     
     // Rotating sun
     let sunRotation = frameCount / 2000;
-    ctx.background(0);
-    ctx.imageMode(CENTER);
-    ctx.push();
-    ctx.translate(width / 2, height * 1.3);
-    ctx.rotate(sunRotation);
-    ctx.image(sunSprite, 0, 0, height * 1.5, height * 1.5);
-    ctx.pop();
-    
     let viewX = cos(-sunRotation - HALF_PI) * height / 2;
     let viewY = sin(-sunRotation - HALF_PI) * height / 2;
     
@@ -500,6 +494,13 @@ class GameOverScene extends Scene {
     panzoom.setRotation(sunRotation);
     stars.draw(ctx);
     
+    ctx.imageMode(CENTER);
+    ctx.push();
+    ctx.translate(width / 2, height * 1.3);
+    ctx.rotate(sunRotation);
+    ctx.image(sunSprite, 0, 0, height * 1.5, height * 1.5);
+    ctx.pop();
+
     // Ship
     // this.ship0.draw(ctx);
     
@@ -540,7 +541,7 @@ class GameOverScene extends Scene {
       text("HIGH SCORE!", width / 2, height * 0.2);
     }
     
-    if (keys.SPACE && scenes.sceneTime > 0.25) {
+    if (keys.SPACE && scenes.sceneTime > 0.5) {
       scenes.cutSceneTo(scenes.titleScene);
     }
   }

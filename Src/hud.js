@@ -5,6 +5,7 @@ class HUD {
     this.temp = 0;
     this.score = 0;
     this.topScore = getItem("fiery-attraction-top-score") || 0;
+    this.guide = new Guide();
 
     // Check bad values
     if (isNaN(1 + this.topScore))
@@ -44,8 +45,14 @@ class HUD {
     text(label, x, y);
   }
   
+  updateGuides(dt, ctx) {
+    this.guide.update(dt);
+    this.guide.draw(ctx);
+  }
+
   draw(dt, ctx) {
-    
+
+    // Camera transformations
     const SCALE = max(width, height);
     const MIN_SCALE = min(width, height);
     const ALPHA = max((1 - ship.stats.temp * 5) * 100, 5) + 10;

@@ -5,19 +5,21 @@ class Bullet extends GravityObject {
   constructor(dat) {
     super(dat.x, dat.y, 2000);
     this.dat = dat;
+    this.damage = 5;
+    this.consumes = 1;
+    this.speed = 1;
+    this.delay = 2 / 5;
     this.r = 0.5;
     this.vx = dat.vx;
     this.vy = dat.vy;
-    this.time = 4 / (this.dat.decay || 1);
-    this.destroy = false;
     this.px = dat.x;
     this.py = dat.y;
+    
     this.owner = dat.owner;
-    this.damage = dat.damage || 1;
     this.col = dat.bCol || { r: 255, g: 255, b: 255 };
-    this.delay = 2 / 5;
-    this.speed = 1;
-    this.damageMult = 1;
+    this.damageMult = dat.damageMult || 1;
+    this.time = 4 / (this.dat.decay || 1);
+    this.destroy = false;
   }
   
   transferMomentumTo(object) {
@@ -120,6 +122,7 @@ class SpeedBullet extends Bullet {
     this.vx *= this.speed;
     this.vy *= this.speed;
     this.damageMult = 0.5;
+    this.consumes = 0.5;
   }
 }
 
@@ -212,13 +215,14 @@ class HomingBullet extends Bullet {
 class MegaBullet extends HomingBullet {
   constructor(dat) {
     super(dat);
+    this.consumes = 0.5;
     this.col = { r: 74, g: 66, b: 227 };
     this.homingVelocity = Math.sqrt(dat.vx ** 2 + dat.vy ** 2) * 4;
     this.speed = 2;
     this.delay = 0.2;
     this.vx *= this.speed;
     this.vy *= this.speed;
-    this.damageMult = 2;
+    this.damageMult = 0.5;
   }
 }
 

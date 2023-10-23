@@ -1,0 +1,42 @@
+
+Bullet calculations
+// let shipSpeed = Math.sqrt(ship.vx ** 2 + ship.vy ** 2);
+// let dvx = ship.vx / shipSpeed;
+// let dvy = ship.vy / shipSpeed;
+
+// let distToSun = dist(this.x, this.y, sun.x, sun.y);
+// let targetY = ship.y + dvy * distToPlayer / 20;
+// let targetX = ship.x + dvx * distToPlayer / 20;
+// let angleOffset = dirOffset * 0.1;
+
+// CTX.stroke(255);
+// CTX.strokeWeight(1);
+// CTX.line(
+//   this.x,
+//   this.y,
+//   this.x + cos(finalTargetAngle) * bulletSpeed,
+//   this.y + sin(finalTargetAngle) * bulletSpeed
+// );
+// CTX.line(
+//   this.x,
+//   this.y,
+//   this.x + cos(angleToTarget) * 200,
+//   this.y + sin(angleToTarget) * 200
+// );
+// CTX.line(
+//   ship.x,
+//   ship.y,
+//   ship.x + cos(angleOfTarget) * targetSpeed,
+//   ship.y + sin(angleOfTarget) * targetSpeed
+// );
+
+// this.bTime -= dt;
+// if (this.bTime > 0) return;
+
+// let bvx = cos(finalTargetAngle) * this.bSpeed + this.vx;
+// let bvy = sin(finalTargetAngle) * this.bSpeed + this.vy;
+
+// For dramatic effect when the fuel is low
+// make gravity stronger
+// g *= Math.max((-this.fuel + 2) * 1.025, 1)
+// g = Math.min(g / this.m, 40);

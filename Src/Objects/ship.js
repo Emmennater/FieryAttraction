@@ -75,7 +75,7 @@ class Ship extends GravityObject {
     this.oldAngle = 0;
     this.speedMult = 1;
     this.speedMultTime = 0;
-    this.damage = 5;
+    this.damage = 1;
 
     // Bullet attributes
     this.bTime = 0;
@@ -93,18 +93,20 @@ class Ship extends GravityObject {
 
     let steerDelta = 0;
     let turnSpeed = this.fuel > 0 ? 1.2 : 0.2;
-    
+    let reverseMultiplier = 2;
+    if (keys.SHIFT) turnSpeed *= 0.5;
+
     if (!scenes.paused) {
       if (keys.ARROWLEFT || keys.A) {
         if (this.control.steerVel > 0)
-          steerDelta -= turnSpeed * 2;
+          steerDelta -= turnSpeed * reverseMultiplier;
         else
           steerDelta -= turnSpeed;
         this.fuel -= 0.0005;
       }
       if (keys.ARROWRIGHT || keys.D) {
         if (this.control.steerVel < 0)
-          steerDelta += turnSpeed * 2;
+          steerDelta += turnSpeed * reverseMultiplier;
         else
           steerDelta += turnSpeed;
         this.fuel -= 0.0005;
@@ -146,7 +148,7 @@ class Ship extends GravityObject {
     // Out of ammo
     if (this.ammo <= 0) {
       this.bTime += this.bDelay * 2;
-    } else this.ammo--;
+    }
     
     const shipAngle = this.a + this.control.steeringAngle;
     let x = this.x + cos(shipAngle) * this.s;
@@ -158,11 +160,12 @@ class Ship extends GravityObject {
       x, y, vx, vy,
       owner:this,
       type:this.bulletType,
-      damage:this.damage,
+      damageMult:this.damage,
       bCol:this.bCol
     });
 
     this.bTime += bullet.delay;
+    this.ammo = Math.max(this.ammo - bullet.consumes, 0);
   }
   
   addFuel(amount, sender) {
@@ -190,10 +193,9 @@ class Ship extends GravityObject {
     let dx = sun.x - this.x;
     let dy = sun.y - this.y;
     let d = Math.sqrt(dx ** 2 + dy ** 2);
-    let vx = dx / d;
-    let vy = dy / d;
-    let g = this.m * sun.m / (d ** 2) / this.m;
-
+    this.stats.distToSun = d;
+    
+    // Damage from sun
     let damage = Math.max(sun.r - d, 0) / 4;
     damage = round(damage * 10) / 10;
     
@@ -204,6 +206,7 @@ class Ship extends GravityObject {
       hud.addCameraShake(damage * 2, 0.1);
     }
     
+    // Burning sound
     if (damage != this.burning) {
       this.burning = damage ? true : false;
       if (this.burning) {
@@ -214,31 +217,23 @@ class Ship extends GravityObject {
       }
     }
 
-    let shipAngle = this.a + this.control.steeringAngle - PI;
-
+    
     // Boost
     if (this.control.boost) {
+      let shipAngle = this.a + this.control.steeringAngle - PI;
       this.vx -= cos(shipAngle) * this.speed * this.speedMult * dt;
       this.vy -= sin(shipAngle) * this.speed * this.speedMult * dt;
-      // this.x += ForceX * dt * 2;
-      // this.y += ForceY * dt * 2;
       hud.addCameraShake(5, 10);
     }
     
-    // For dramatic effect when the fuel is low
-    // make gravity stronger
-    // g *= Math.max((-this.fuel + 2) * 1.025, 1)
-    // g = Math.min(g / this.m, 40);
-    let edgeForce = Math.max(d - sun.r * 1.5, 0) * 0.05;
-    if (startOfGame && scenes.introSkipped) edgeForce = 0;
-    let ForceX = vx * (g + edgeForce);
-    let ForceY = vy * (g + edgeForce);
+    // Edge force
+    let edgeStrength = 1;
+    if (startOfGame && scenes.introSkipped) edgeStrength = 0;
+    this.attract(dt, 1, edgeStrength);
     
-    this.vx += ForceX * dt;
-    this.vy += ForceY * dt;
+    // Movement
     this.x += this.vx * dt;
     this.y += this.vy * dt;
-    
     this.vx *= this.drag;
     this.vy *= this.drag;
     
@@ -250,8 +245,6 @@ class Ship extends GravityObject {
       this.vx = lerp(this.vx, this.vx * ns, 0.025);
       this.vy = lerp(this.vy, this.vy * ns, 0.025);
     }
-
-    this.stats.distToSun = d;
 
     // Reduce bullet time
     this.bulletTime -= dt * 60;

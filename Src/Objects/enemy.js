@@ -18,7 +18,7 @@ class Enemy extends Ship {
     this.damage = 2 / 5;
     this.range = 200;
     this.topSpeed = 100;
-    this.revive = false;
+    this.slainByPlayer = false;
 
     // Bullet attributes
     this.bDelay = 2;
@@ -48,17 +48,18 @@ class Enemy extends Ship {
       this.destroy = true;
       spawnExplosion(this.x, this.y, this);
       if (bullet && bullet.owner.name == "ship") {
+        this.slainByPlayer = true;
         hud.addScore(25);
         this.grantEffect(bullet.owner);
       }
     }
   }
   
-  fireAtPlayer(dirOffset, dt) {
+  fireAtPlayer(dirOffset, dt, closeToSun) {
 
     // Accelerate towards player
     const distToPlayer = dist(this.x, this.y, ship.x, ship.y);
-    if (distToPlayer > 100) {
+    if (distToPlayer > 80 || closeToSun) {
       this.control.boost = true;
       this.vx += cos(this.a + this.control.steeringAngle) * this.speed * dt;
       this.vy += sin(this.a + this.control.steeringAngle) * this.speed * dt;
@@ -171,7 +172,7 @@ class Enemy extends Ship {
     } else if (closeToPlayer) {
       // Aiming at player
       let dir = diff1 < diff2 ? -1 : 1;
-      this.fireAtPlayer(dir, dt);
+      this.fireAtPlayer(dir, dt, closeToSun);
     }
     
     // Constrain velocity
@@ -213,7 +214,7 @@ class SpeedEnemy extends Enemy {
 
   grantEffect(object) {
     object.applyEffect(SpeedRounds, {
-      duration: 40
+      duration: 80
     });
   }
 }
@@ -310,26 +311,30 @@ function spawnEnemy(playerCheck = true, type = "normal") {
   enemies.push(enemy);
 }
 
+function destroyEnemy(enemy, i = enemies.indexOf(enemy)) {
+  if (i == -1) return;
+  enemies.splice(i, 1);
+
+  // Respawn (same type if not killed by player)
+  let type = (!enemy.slainByPlayer) ? enemy.type : "normal";
+  spawnEnemy(true, type);
+
+  // Chance for more
+  if (Math.random() < 0.5 && enemy.slainByPlayer) {
+    let type = randomEnemyType();
+    spawnEnemy(true, type);
+  }
+}
+
 function moveEnemies(dt) {
   for (let i = enemies.length - 1; i >= 0; --i) {
     const enemy = enemies[i];
+
     if (enemy.destroy) {
-      enemies.splice(i, 1);
-
-      // Respawn
-      let type = "normal";
-      if (enemy.revive)
-        type = enemy.type;
-      spawnEnemy(true, type);
-
-      // Chance for more
-      if (Math.random() < 0.5) {
-        let type = randomEnemyType();
-        spawnEnemy(true, type);
-      }
-
+      destroyEnemy(enemy, i);
       continue;
     }
+
     enemy.move(dt);
   }
 }

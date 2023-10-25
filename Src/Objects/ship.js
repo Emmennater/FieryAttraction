@@ -61,10 +61,12 @@ class Ship extends GravityObject {
     this.s = 10;
     this.drag = 0.9998;
     this.speed = 8;
+    this.turnSpeed = 2.4;
     this.fuel = 10;
     this.health = 100;
     this.control = { steeringAngle: 0, steerVel: 4, boost: false, fire:false };
     this.stats = { distToSun: 0, temp: 0 };
+    this.inputs = {};
     this.colliding = false;
     this.burning = false;
     this.damageDelay = 20 / 60;
@@ -85,41 +87,47 @@ class Ship extends GravityObject {
     this.bulletType = "normal";
   }
   
+  steer(dt, delta) {
+    if (Math.sign(this.control.steerVel) != Math.sign(delta))
+      delta *= 2;
+    this.control.steerVel += delta * dt;
+    this.fuel -= 0.0005;
+  }
+
+  boost() {
+    if (this.fuel > 0) {
+      this.control.boost = true;
+      this.fuel -= 0.01;
+    }
+  }
+
+  getSteeringAccel() {
+    let turnSpeed = this.fuel > 0 ? this.turnSpeed : this.turnSpeed /  6;
+    if (keys.SHIFT) turnSpeed *= 0.5;
+    return turnSpeed;
+  }
+
   controls(dt) {
     let oldBoost = this.control.boost;
     this.control.boost = false;
     this.control.fire = false;
     this.bTime -= dt;
 
-    let steerDelta = 0;
-    let turnSpeed = this.fuel > 0 ? 1.2 : 0.2;
-    let reverseMultiplier = 2;
-    if (keys.SHIFT) turnSpeed *= 0.5;
-
+    let turnSpeed = this.getSteeringAccel();
     if (!scenes.paused) {
-      if (keys.ARROWLEFT || keys.A) {
-        if (this.control.steerVel > 0)
-          steerDelta -= turnSpeed * reverseMultiplier;
-        else
-          steerDelta -= turnSpeed;
-        this.fuel -= 0.0005;
-      }
-      if (keys.ARROWRIGHT || keys.D) {
-        if (this.control.steerVel < 0)
-          steerDelta += turnSpeed * reverseMultiplier;
-        else
-          steerDelta += turnSpeed;
-        this.fuel -= 0.0005;
-      }
-      if (keys.ARROWUP || keys.W) {
-        if (this.fuel > 0) {
-          this.control.boost = true;
-          this.fuel -= 0.01;
-        }
-      }
-      if (keys.SPACE) {
+      // Steering
+      if (keys.ARROWLEFT || keys.A)
+        this.steer(dt, -turnSpeed);
+      if (keys.ARROWRIGHT || keys.D)
+        this.steer(dt, turnSpeed);
+      
+      // Boosting
+      if (keys.ARROWUP || keys.W)
+        this.boost();
+
+      // Shooting
+      if (keys.SPACE)
         this.fireBullet(dt);
-      }
     }
     
     // Sounds
@@ -134,7 +142,7 @@ class Ship extends GravityObject {
     }
     
     this.fuel = Math.max(this.fuel, 0);
-    this.control.steerVel += steerDelta * 2 * dt;
+    // this.control.steerVel += steerDelta * 2 * dt;
     this.control.steeringAngle += this.control.steerVel * dt;
   }
   

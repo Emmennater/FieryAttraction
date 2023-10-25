@@ -12,6 +12,9 @@ html, body {
   margin: 0;
   padding: 0;
   height: 100%;
+
+  /* Disable scrolling */
+  overflow: hidden;
 }
 
 canvas {
@@ -111,8 +114,22 @@ button:active {
   background: #ffffff05;
 }
 
+.pause {
+  position: fixed;
+  top: 30px;
+  left: 16px;
+  font-size: 20px;
+  padding: 2px 8px;
+  min-height: auto;
+  border: solid 2px #ffffff20;
+  background: #ffffff20;
+  letter-spacing: 2px;
+  font-family: "Trebuchet MS";
+}
 
-
+.pause:hover {
+  font-size: 20px;
+}
 
 
 

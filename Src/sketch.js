@@ -64,6 +64,7 @@ function setup() {
   noSpawns = false;
 
   // Namespaces
+  mobile = new MobileControls();
   panzoom = new PanZoom();
   sun = new Sun();
   ship = new Ship(600, 600);

@@ -40,7 +40,7 @@ class HUD {
     textAlign(CENTER, CENTER);
     fill(255);
     noStroke();
-    textSize(20);
+    textSize(h * 0.7);
     textFont("Arial Black");
     text(label, x, y);
   }
@@ -80,19 +80,21 @@ class HUD {
       scenes.runEvents(dt, ctx);
 
     // Health Meter
-    let healthTxt = "Health " + round(ship.health*10)/10;
+    let meterH = 30;
+    let meterY = meterH / 2 + 10;
+    let healthTxt = "Health " + ceil(ship.health*10)/10;
     let healthPercent = ship.health / 100;
-    this.drawMeter(healthTxt, healthPercent, width * 0.35, 27, width * 0.2, 30, color(40, 200, 40, 200));
+    this.drawMeter(healthTxt, healthPercent, width * 0.35, meterY, width * 0.2, meterH, color(40, 200, 40, 200));
     
     // Ammo meter
     let ammoTxt = "Ammo " + round(ship.ammo*10)/10;
     let ammoPercent = min(ship.ammo / 200, 1);
-    this.drawMeter(ammoTxt, ammoPercent, width * 0.6, 27, width * 0.2, 30, color(220, 70, 20, 200));
+    this.drawMeter(ammoTxt, ammoPercent, width * 0.6, meterY, width * 0.2, meterH, color(220, 70, 20, 200));
     
     // Fuel mater
     let fuelTxt = "Fuel " + round(ship.fuel*10)/10;
     let fuelPercent = min(ship.fuel, 100) / 100;
-    this.drawMeter(fuelTxt, fuelPercent, width * 0.85, 27, width * 0.2, 30, color(200, 40, 40, 200));
+    this.drawMeter(fuelTxt, fuelPercent, width * 0.85, meterY, width * 0.2, meterH, color(200, 40, 40, 200));
     
     // Score
     fill(255);
@@ -100,7 +102,7 @@ class HUD {
     textSize(30);
     textFont("monospace");
     textAlign(LEFT, CENTER);
-    text("SCORE " + this.score, 20, 27);
+    text("SCORE " + this.score, meterY, meterH);
     
     // Effects
     textAlign(CENTER, CENTER);

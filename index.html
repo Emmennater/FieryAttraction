@@ -6,7 +6,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/addons/p5.sound.min.js"></script>
     <link rel="stylesheet" type="text/css" href="style.css">
-    <meta charset="utf-8" />
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
 
   </head>
   <body>
@@ -79,6 +80,7 @@
     <script src="Src/Objects/enemy.js"></script>
     
     <!-- Other Sources -->
+    <script src="Src/Other/mobile.js"></script>
     <script src="Src/Other/helper.js"></script>
     <script src="Src/Other/effects.js"></script>
     <script src="Src/Other/stars.js"></script>
@@ -92,8 +94,12 @@
     <script src="Src/sketch.js"></script>
     
     <!-- Version -->
-    <version id="version">Beta 1.6</version>
+    <version id="version">Beta 1.7</version>
 
+    <!-- Pause Button -->
+    <button id="pause" class="pause" style="visibility: hidden;" onclick="scenes.togglePause()">Pause</button>
+
+    <!-- Controls -->
     <vbox>
       <hbox>
         <button id="controls" style="visibility: hidden;" onclick="scenes.toggleControls()">Help + Controls</button>

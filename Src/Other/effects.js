@@ -105,7 +105,7 @@ class HomingRounds extends CustomRounds {
 class SpeedRounds extends CustomRounds {
     constructor(target, dat) {
         super(target, dat);
-        this.name = "speed rounds";
+        this.name = "sonic rounds";
         this.bulletType = "speed";
         this.color = color(30, 180, 200);
     }

@@ -1,6 +1,8 @@
 
 keys = {};
 pressed = {};
+touch = {};
+mobile = null;
 
 function keyPressed() {
   const c = key == " " ? "SPACE" : key.toUpperCase();
@@ -34,7 +36,22 @@ function mouseWheel(e) {
 }
 
 function clearPressed() {
+  touch.pressed = false;
   for (let k in pressed) {
     pressed[k] = false;
   }
+}
+
+function touchStarted() {
+  if (!mobile) return;
+  touch.pressed = true;
+  const TOUCH = touches[touches.length - 1];
+  TouchList.updateTouches();
+  mobile.touched(TouchList.addedTouches);
+}
+
+function touchEnded(touch) {
+  if (!mobile) return;
+  TouchList.updateTouches();
+  mobile.unTouched(TouchList.removedTouches);
 }

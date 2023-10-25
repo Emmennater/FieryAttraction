@@ -17,3 +17,11 @@ Array.prototype.remove = function(element) {
       this.splice(index, 1);
     }
 };
+
+function transformValue(x, y, m = 1, k = 1) {
+  return y * (1 - Math.exp(-k * x / m));
+}
+
+function randString() {
+  return (Math.random() + 1).toString(36).substring(7);
+}

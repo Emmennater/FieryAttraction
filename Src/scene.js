@@ -25,6 +25,7 @@ class Scenes {
     this.musicSlider = document.getElementById("music-volume");
     this.helpControls = document.getElementById("help-controls");
     this.controlButton = document.getElementById("controls");
+    this.pauseButton = document.getElementById("pause");
     this.versionTag = document.getElementById("version");
     this.controlsOpen = false;
     this.sceneTime = 0;
@@ -57,6 +58,11 @@ class Scenes {
       this.controlButton.innerText = "Help + Controls";
       this.helpControls.style.visibility = "hidden";
     }
+  }
+
+  togglePause() {
+    this.paused = !this.paused;
+    this.toggleControls();
   }
 
   updateVolume() {
@@ -154,6 +160,7 @@ class TitleScene extends Scene {
     // Elements
     scenes.controlButton.style.visibility = "visible";
     scenes.versionTag.style.visibility = "visible";
+    scenes.pauseButton.style.visibility = "hidden";
 
     // Start soundtrack
     titleScreenTrack.currentTime = 0;
@@ -205,6 +212,10 @@ class TitleScene extends Scene {
     imageMode(CORNER);
     image(ctx, 0, 0, width, height);
     
+    // Testing
+    // mobile.update(dt);
+    // mobile.draw();
+
     if (!scenes.controlsOpen) {
       
       // Top score
@@ -224,13 +235,26 @@ class TitleScene extends Scene {
       text("FIERY ATTRACTION", width / 2, height * 0.25);
       
       // Space to start
+      const txtSize = MIN_SCL * 0.05
+      const startTxt = mobile.isMobile ? "Tap to Start" : "Press Space to Start";
       fill(BLARE * 130 + 125);
       textAlign(CENTER, CENTER);
-      textSize(MIN_SCL * 0.05);
+      textSize(txtSize);
       textFont("Trebuchet MS");
-      text("Press Space to Start", width / 2, height * 0.45);
+      text(startTxt, width / 2, height * 0.45);
 
-      if (pressed.SPACE) {
+      let started = false;
+      if (mobile.isMobile) {
+        if (touch.pressed) {
+          let txtW = textWidth(startTxt);
+          started = Math.abs(mouseX - width / 2) < txtW / 2 &&
+            Math.abs(mouseY - height * 0.45) < txtSize / 2;
+        }
+      } else {
+        started = pressed.SPACE;
+      }
+
+      if (started) {
         scenes.controlButton.style.visibility = "hidden";
         scenes.versionTag.style.visibility = "hidden";
 
@@ -321,19 +345,29 @@ class IntroScene extends Scene {
     pop();
     
     // Skip intro
+    let nextTxt = mobile.isMobile ? "Tap to Skip Intro" : "Press Space to Skip Intro";
     fill(100);
     noStroke();
     textSize(20);
     textAlign(CENTER, TOP);
     textFont("monospace")
-    text("Press Space to Skip Intro", width/2, 6);
+    text(nextTxt, width/2, 6);
     
+    // Skip controls
+    let nextScene = false;
+    if (mobile.isMobile) {
+      nextScene = touch.pressed;
+    } else {
+      nextScene = pressed.SPACE;
+    }
+
     // Scene over
-    if (this.ship.y > height + this.ship.vy * 1 || pressed.SPACE) {
+    let sceneOver = this.ship.y > height + this.ship.vy * 1;
+    if (nextScene || sceneOver) {
       alarmSound.stop();
       scenes.impactMessageTime = scenes.messageTime;
       htmlSounds.fadeSound(rocketSound, 0.0, 0.2);
-      scenes.introSkipped = pressed.SPACE;
+      scenes.introSkipped = nextScene;
 
       // Cut scene
       scenes.cutSceneTo(scenes.gameScene);
@@ -347,6 +381,9 @@ class GameScene extends Scene {
   }
   
   init() {
+    if (mobile.isMobile)
+      scenes.pauseButton.style.visibility = "visible";
+
     // Settings
     ship.reset();
     ship.control.steerVel = 2;
@@ -384,6 +421,7 @@ class GameScene extends Scene {
     ctx.background(bgCol);
     
     ship.controls(dt);
+    mobile.update(dt);
     ship.alignCamera();
 
     panzoom.begin(ctx);
@@ -433,13 +471,14 @@ class GameScene extends Scene {
     panzoom.end(ctx);
     
     hud.draw(dt, ctx);
+    mobile.draw();
 
     // Ship health
     if (ship.health <= 0 && !scenes.gameOver) {
       scenes.gameOver = true;
       spawnExplosion(ship.x, ship.y, ship, 0.3);
       setTimeout(() => {
-        scenes.cutSceneTo(scenes.gameOverScene, 1)
+        scenes.cutSceneTo(scenes.gameOverScene, 1);
       }, 500);
     }
     
@@ -465,6 +504,7 @@ class GameScene extends Scene {
 
 class GameOverScene extends Scene {
   init() {
+    scenes.pauseButton.style.visibility = "hidden";
     htmlSounds.stopSound(rocketSound);
     htmlSounds.removeSoundFromQueue(burningSound);
     htmlSounds.fadeSound(burningSound, 0, 0.2);
@@ -518,12 +558,6 @@ class GameOverScene extends Scene {
     textSize(MIN_SCL * 0.05);
     textFont("monospace");
     text("SCORE " + hud.score, width / 2, height * 0.45);
-    
-    // Space to continue
-    fill(BLARE * 130 + 125);
-    textAlign(CENTER, CENTER);
-    textSize(MIN_SCL * 0.03);
-    text("Press Space to Continue", width / 2, height * 0.52);
 
     // Top score
     if (hud.score > hud.topScore) {
@@ -540,8 +574,29 @@ class GameOverScene extends Scene {
       textFont("Arial Black");
       text("HIGH SCORE!", width / 2, height * 0.2);
     }
+
+    // Space to continue
+    let nextTxt = mobile.isMobile ? "Tap to Continue" : "Press Space to Continue";
+    let txtSize = MIN_SCL * 0.03;
+    fill(BLARE * 130 + 125);
+    textAlign(CENTER, CENTER);
+    textSize(txtSize);
+    text(nextTxt, width / 2, height * 0.52);
     
-    if (keys.SPACE && scenes.sceneTime > 0.5) {
+    // Next scene controls
+    let nextScene = false;
+    if (mobile.isMobile) {
+      if (touch.pressed) {
+        let txtW = textWidth(nextTxt);
+        nextScene = Math.abs(mouseX - width / 2) < txtW / 2 &&
+          Math.abs(mouseY - height * 0.52) < txtSize / 2;
+      }
+    } else {
+      nextScene = pressed.SPACE;
+    }
+
+    // Next scene
+    if (nextScene && scenes.sceneTime > 0.25) {
       scenes.cutSceneTo(scenes.titleScene);
     }
   }

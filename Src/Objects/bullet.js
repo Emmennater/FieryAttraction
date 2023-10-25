@@ -121,7 +121,7 @@ class SpeedBullet extends Bullet {
     this.delay = 0.2;
     this.vx *= this.speed;
     this.vy *= this.speed;
-    this.damageMult = 0.5;
+    this.damage = 5;
     this.consumes = 0.5;
   }
 }
@@ -222,7 +222,7 @@ class MegaBullet extends HomingBullet {
     this.delay = 0.2;
     this.vx *= this.speed;
     this.vy *= this.speed;
-    this.damageMult = 0.5;
+    this.damage = 7.5;
   }
 }
 

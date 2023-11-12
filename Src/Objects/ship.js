@@ -62,7 +62,8 @@ class Ship extends GravityObject {
     this.drag = 0.9998;
     this.speed = 8;
     this.turnSpeed = 2.4;
-    this.fuel = 10;
+    this.fuel = 50;
+    this.ammo = 200;
     this.health = 100;
     this.control = { steeringAngle: 0, steerVel: 4, boost: false, fire:false };
     this.stats = { distToSun: 0, temp: 0 };
@@ -87,6 +88,11 @@ class Ship extends GravityObject {
     this.bulletType = "normal";
   }
   
+  applyEffect(...args) {
+    const effect = super.applyEffect(...args);
+    spawnBonusEffect(`+${effect.duration} ${effect.name}`, ship.x, ship.y, effect.color, 2);
+  }
+
   steer(dt, delta) {
     if (Math.sign(this.control.steerVel) != Math.sign(delta))
       delta *= 2;
@@ -178,7 +184,7 @@ class Ship extends GravityObject {
   
   addFuel(amount, sender) {
     this.fuel += amount;
-    this.fuel = Math.min(this.fuel, 100);
+    this.fuel = Math.min(this.fuel, 50);
     spawnBonusEffect(`+${amount} fuel`, ship.x, ship.y, color(255, 0, 0), 2);
   }
   

@@ -5,7 +5,8 @@
 
 function preload() {
   // Sprites
-  futureFont = loadFont("Assets/future-font.ttf");
+  arialBlack = "Arial Black" // loadFont("Assets/Fonts/Arial Black.ttf");
+  futureFont = loadFont("Assets/Fonts/future-font.ttf");
   rocketSprite = loadImage("Assets/fighterjet2.png");
   enemySprite = loadImage("Assets/enemyjet.png");
   homingEnemySprite = loadImage("Assets/homing-enemy-jet.png");
@@ -13,7 +14,7 @@ function preload() {
   megaEnemySprite = loadImage("Assets/mega-enemy-jet.png");
   asteroidSprite = loadImage("Assets/asteroid-sprite.png");
   speedAsteroidSprite = loadImage("Assets/speed-asteroid.png");
-  blueAsteroidSprite = loadImage("Assets/blue-asteroid-2.gif");
+  blueAsteroidSprite = loadImage("Assets/speed-asteroid.png");
   fuelAsteroidSprite = loadImage("Assets/fuel-asteroid-sprite.png");
   healthAsteroidSprite = loadImage("Assets/health-asteroid-sprite.png");
   ammoAsteroidSprite = loadImage("Assets/ammo-asteroid-sprite.png");
@@ -55,6 +56,7 @@ function setup() {
   CANVAS = createCanvas(windowWidth, windowHeight);
   CTX = createGraphics(width, height);
   CTX2 = createGraphics(width, height);
+  updateCanvasSize();
 
   // Disable right click drop-down
   document.addEventListener('contextmenu', event => event.preventDefault());
@@ -84,22 +86,35 @@ function setup() {
 
 function draw() {
   background(0);
-  const dt = min(deltaTime / 1000, 1);
+  const dt = min(deltaTime / 1000, 32 / 1000);
   scenes.runCurrentScene(dt, CTX);
   htmlSounds.runSounds(dt);
   clearPressed();
 }
 
+function loadSprite(path, file) {
+  return loadImage(path + file);
+}
+
 function loadTheme(name) {
-  switch (name) {
-    case "festive":
-      // sunSprite = loadImage("Assets/Festive/coldsun-v2.png");
-      sunSprite = loadImage("Assets/hotsun.png");
-      starSprite = loadImage("Assets/Festive/snowflake.webp");
-      // bgCol = color(50, 110, 205);
+  const occasian = "halloween";
+  const theme = name == "festive" ? occasian : "default";
+  switch (theme) {
+    case "christmas":
+      sunSprite = loadImage("Assets/Festive/Christmas/hotsun.png");
+      starSprite = loadImage("Assets/Festive/Christmas/star.webp");
+      bgCol = color(50, 110, 205);
+      break;
+    case "halloween":
+      sunSprite = loadImage("Assets/Festive/Halloween/hotsun.png");
+      enemySprite = loadImage("Assets/Festive/Halloween/enemyjet.png");
+      homingEnemySprite = loadImage("Assets/Festive/Halloween/homing-enemy-jet.png");
+      speedEnemySprite = loadImage("Assets/Festive/Halloween/speed-enemy-jet.png");
+      megaEnemySprite = loadImage("Assets/Festive/Halloween/mega-enemy-jet.png");
+      starSprite = null;
       bgCol = color(0);
       break;
-    case "default":
+    default:
       sunSprite = loadImage("Assets/hotsun.png");
       starSprite = null;
       bgCol = color(0);

@@ -25,3 +25,18 @@ function transformValue(x, y, m = 1, k = 1) {
 function randString() {
   return (Math.random() + 1).toString(36).substring(7);
 }
+
+function checkIfFileExists(url, callback) {
+  var xhr = new XMLHttpRequest();
+  xhr.open('HEAD', url, true);
+  xhr.onreadystatechange = function () {
+      if (xhr.readyState === 4) {
+          if (xhr.status == 200) {
+              callback(true);
+          } else {
+              callback(false);
+          }
+      }
+  };
+  xhr.send();
+}

@@ -4,6 +4,14 @@ pressed = {};
 touch = {};
 mobile = null;
 
+function updateCanvasSize() {
+  const WIDTH = document.body.clientWidth;
+  const HEIGHT = document.body.clientHeight;
+  resizeCanvas(WIDTH, HEIGHT);
+  CTX.resizeCanvas(WIDTH, HEIGHT);
+  CTX2.resizeCanvas(WIDTH, HEIGHT);
+}
+
 function keyPressed() {
   const c = key == " " ? "SPACE" : key.toUpperCase();
   keys[c] = true;
@@ -21,9 +29,7 @@ function keyReleased() {
 }
 
 function windowResized() {
-  resizeCanvas(windowWidth, windowHeight);
-  CTX.resizeCanvas(width, height);
-  CTX2.resizeCanvas(width, height);
+  updateCanvasSize();
 }
 
 function mouseWheel(e) {

@@ -209,10 +209,10 @@ class SpeedAsteroid extends Asteroid {
   }
 
   draw(ctx) {
-    const frames = blueAsteroidSprite.numFrames();
+    // const frames = blueAsteroidSprite.numFrames();
     // const currentFrame = blueAsteroidSprite.getCurrentFrame();
-    const frame = Math.floor(frameCount / 8) % frames;
-    this.sprite.setFrame(frame);
+    // const frame = Math.floor(frameCount / 8) % frames;
+    // this.sprite.setFrame(frame);
     super.draw(ctx);
   }
 }

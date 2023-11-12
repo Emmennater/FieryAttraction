@@ -22,7 +22,14 @@ class EventManager {
     }
 
     startRandomEvent() {
-        this.startEvent(GravityStorm);
+        if (!this.checkForEvent(GravityStorm))
+            this.startEvent(GravityStorm);
+    }
+
+    checkForEvent(constructor) {
+        for (let event of this.activeEvents)
+            if (event.constructor == constructor) return true;
+        return false;
     }
 
     startEvent(Event) {
@@ -99,7 +106,7 @@ class WorldEvent {
             fill(255 * FADE);
             noStroke();
             textSize(MIN_SCL * 0.1 * FADE);
-            textFont("Arial Black");
+            textFont(arialBlack);
             textAlign(CENTER, CENTER);
             text(this.title, width/2 + xoff, height/2 + yoff);
         }

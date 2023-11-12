@@ -81,6 +81,10 @@ class MobileControls {
 
     update(dt) {
         if (!this.isMobile) return;
+        const MINSCL = Math.min(width, height);
+        this.joystick.setRadius(MINSCL * 0.1);
+        this.fireButton.setRadius(MINSCL * 0.1);
+        this.boostButton.setRadius(MINSCL * 0.1);
         this.joystick.setPosition(width * 0.15, height * 0.65);
         this.fireButton.setPosition(width * 0.78, height * 0.55);
         this.boostButton.setPosition(width * 0.85, height * 0.725);
@@ -148,12 +152,13 @@ class CircleButton {
         // Text
         fill(255, opacity2);
         noStroke();
-        textFont("Arial Black");
+        textFont(arialBlack);
         textAlign(CENTER, CENTER);
 
         textSize(10);
         let txtW = textWidth(this.txt);
-        textSize(this.r / txtW * 14);
+        const txtS = this.r / txtW * 14;
+        textSize(txtS);
         text(this.txt, this.x, this.y);
     }
 }

@@ -152,8 +152,9 @@ class TitleScene extends Scene {
     const SCL = Math.min(width, height);
     this.ship = new Ship(0, height * 0.3);
     this.ship.s = SCL * 0.05;
-    this.ship.vx = SCL / 8;
-    this.ship.vy = 0;
+    this.titleScreenShipDir = Math.random() < 0.1 ? -1 : 1;
+    // this.ship.vx = SCL / 8;
+    // this.ship.vy = 0;
     scenes.highScore = false;
     scenes.gameOver = false;
 
@@ -172,10 +173,11 @@ class TitleScene extends Scene {
     const MIN_SCL = Math.min(width - 20, height - 20);
     const MAX_SCL = Math.max(width - 20, height - 20);
     const BLARE = (sin(frameCount / 14) + 1) / 2;
+    let sunRotation = frameCount / 2000;
     
     // Move ship
-    let shipTheta = frameCount / 300 + 0.3;
-    shipTheta = shipTheta % (PI - 0.2);
+    let shipTheta = frameCount / 300 * this.titleScreenShipDir - sunRotation;
+    shipTheta = ((shipTheta % PI) + PI) % PI;
     let shipX = width / 2 + cos(-shipTheta) * height * 0.65;
     let shipY = height + sin(-shipTheta) * height * 0.5 + height * 0.1;
     this.ship.vx = (shipX - this.ship.x) * 50;
@@ -185,7 +187,6 @@ class TitleScene extends Scene {
     this.ship.a = atan2(this.ship.vy, this.ship.vx);
     
     // Rotating sun
-    let sunRotation = frameCount / 2000;
     let viewX = 0;
     let viewY = 0;
     viewX += cos(-sunRotation - HALF_PI) * height / 2;
@@ -215,6 +216,7 @@ class TitleScene extends Scene {
     // Testing
     // mobile.update(dt);
     // mobile.draw();
+    // hud.draw(dt, ctx);
 
     if (!scenes.controlsOpen) {
       
@@ -243,6 +245,7 @@ class TitleScene extends Scene {
       textFont("Trebuchet MS");
       text(startTxt, width / 2, height * 0.45);
 
+      // Start button logic
       let started = false;
       if (mobile.isMobile) {
         if (touch.pressed) {
@@ -387,7 +390,7 @@ class GameScene extends Scene {
     // Settings
     ship.reset();
     ship.control.steerVel = 2;
-    panzoom.zoom = 3.0;
+    panzoom.zoom = mobile.isMobile ? 1.5 : 3.0;
     hud.score = 0;
     bullets.length = 0;
     explosions.length = 0;
@@ -489,15 +492,17 @@ class GameScene extends Scene {
     }
 
     if (scenes.paused) {
-      let MIN_SCL = min(width, height);
-      let bounds = scenes.helpControls.getBoundingClientRect();
       background(0, 100);
-      fill(255);
-      noStroke();
-      textFont(futureFont);
-      textSize(MIN_SCL * 0.1);
-      textAlign(CENTER, CENTER);
-      text("PAUSED", width / 2, (bounds.y + bounds.height + height) / 2);
+      if (!mobile.isMobile) {
+        let MIN_SCL = min(width, height);
+        let bounds = scenes.helpControls.getBoundingClientRect();
+        fill(255);
+        noStroke();
+        textFont(futureFont);
+        textSize(MIN_SCL * 0.1);
+        textAlign(CENTER, CENTER);
+        text("PAUSED", width / 2, (bounds.y + bounds.height + height) / 2);
+      }
     }
   }
 }
@@ -571,7 +576,7 @@ class GameOverScene extends Scene {
       fill(lightness);
       textAlign(CENTER, CENTER);
       textSize(MIN_SCL * 0.06);
-      textFont("Arial Black");
+      textFont(arialBlack);
       text("HIGH SCORE!", width / 2, height * 0.2);
     }
 

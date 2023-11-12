@@ -6,6 +6,7 @@ class HUD {
     this.score = 0;
     this.topScore = getItem("fiery-attraction-top-score") || 0;
     this.guide = new Guide();
+    this.radar = new Radar();
 
     // Check bad values
     if (isNaN(1 + this.topScore))
@@ -41,7 +42,7 @@ class HUD {
     fill(255);
     noStroke();
     textSize(h * 0.7);
-    textFont("Arial Black");
+    textFont(arialBlack);
     text(label, x, y);
   }
   
@@ -79,11 +80,15 @@ class HUD {
     if (!scenes.paused)
       scenes.runEvents(dt, ctx);
 
+    // Radar
+    // this.radar.update(dt);
+    // this.radar.draw();
+
     // Health Meter
     let meterH = 30;
     let meterY = meterH / 2 + 10;
     let healthTxt = "Health " + ceil(ship.health*10)/10;
-    let healthPercent = ship.health / 100;
+    let healthPercent = min(ship.health / 100, 1);
     this.drawMeter(healthTxt, healthPercent, width * 0.35, meterY, width * 0.2, meterH, color(40, 200, 40, 200));
     
     // Ammo meter
@@ -93,7 +98,7 @@ class HUD {
     
     // Fuel mater
     let fuelTxt = "Fuel " + round(ship.fuel*10)/10;
-    let fuelPercent = min(ship.fuel, 100) / 100;
+    let fuelPercent = min(ship.fuel / 50, 1);
     this.drawMeter(fuelTxt, fuelPercent, width * 0.85, meterY, width * 0.2, meterH, color(200, 40, 40, 200));
     
     // Score
@@ -154,7 +159,7 @@ class HUD {
       fill(255, BLARE2 * 8, BLARE2 * 8);
       textAlign(CENTER, CENTER);
       textSize(20);
-      textFont("Arial Black");
+      textFont(arialBlack);
       text(message, width * 0.85, 57);
       fill(255, 0, 0, BLARE1);
       rect(0, 0, width, height);
@@ -171,7 +176,7 @@ class HUD {
       fill(255, BLARE, BLARE, OPACITY);
       textAlign(CENTER, CENTER);
       textSize(MIN_SCALE * 0.1);
-      textFont("Arial Black")
+      textFont(arialBlack)
       text("IMPACT IMMINENT!", width / 2, height / 2);
       
       if (t % 20 < 1)

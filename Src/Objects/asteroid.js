@@ -29,7 +29,7 @@ class Asteroid extends GravityObject {
     this.sprite = asteroidSprite;
     this.destroy = false;
     this.health = 15;
-    this.split = false;
+    this.split = 0;
     this.isSplit = false;
     this.type = "normal";
   }
@@ -59,6 +59,11 @@ class Asteroid extends GravityObject {
     ctx.pop();
   }
   
+  getScore() {
+    // Based on health
+    return Math.ceil(this.health / 2.5);
+  }
+
   takeDamage(damage, bullet) {
     this.health -= damage;
     if (this.health <= 0) {
@@ -67,7 +72,7 @@ class Asteroid extends GravityObject {
       this.destroy = true;
       spawnExplosion(this.x, this.y, null, this.r / 40 * 0.2);
       if (bullet.owner.name == "ship")
-        hud.addScore(5);
+        hud.addScore(this.getScore());
     }
   }
 
@@ -80,7 +85,7 @@ class Asteroid extends GravityObject {
       let y = this.y;
       let vx = this.vx + Math.random() * 20 - 10;
       let vy = this.vy + Math.random() * 20 - 10;
-      let r = Math.random() * 10 + 10;
+      let r = Math.random() * 10 + 10 + 20 * (this.split - 1);
 
       switch (type) {
         case "fuel":
@@ -96,6 +101,7 @@ class Asteroid extends GravityObject {
           asteroid = new Asteroid(x, y, r, vx, vy);
       }
 
+      asteroid.split = this.split - 1;
       asteroid.isSplit = true;
       asteroids.push(asteroid);
     }
@@ -240,7 +246,13 @@ function spawnAsteroid(type, playerCheck) {
   // Random massive asteroid
   if (Math.random() < 0.05) {
     r += 20;
-    split = true;
+    split = 1;
+
+    // Random supermassive asteroid
+    if (Math.random() < 0.25) {
+      r += 20;
+      split = 2;
+    }
   }
 
   let x = Math.cos(t) * d;

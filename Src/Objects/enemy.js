@@ -115,6 +115,16 @@ class Enemy extends Ship {
     this.bTime = bullet.delay * this.bDelay;
   }
   
+  strengthen(percent) {
+    this.damage *= percent;
+    this.bSpeed *= percent;
+    this.speed *= percent;
+    this.topSpeed *= percent;
+    this.range *= percent;
+    this.health *= percent;
+    this.bImpactForce *= percent;
+  }
+
   move(dt) {
     // Gravity
     this.attract(dt, 1);
@@ -213,6 +223,7 @@ class SpeedEnemy extends Enemy {
   }
 
   grantEffect(object) {
+    super.grantEffect(object);
     object.applyEffect(SpeedRounds, {
       duration: 80
     });
@@ -236,6 +247,7 @@ class HomingEnemy extends Enemy {
   }
 
   grantEffect(object) {
+    supe.grantEffect(object);
     object.applyEffect(HomingRounds, {
       duration: 40
     });
@@ -267,6 +279,7 @@ class MegaEnemy extends HomingEnemy {
   }
 
   grantEffect(object) {
+    super.grantEffect(object);
     object.applyEffect(MegaRounds, {
       duration: 40
     });
@@ -305,9 +318,13 @@ function spawnEnemy(playerCheck = true, type = "normal") {
     case "homing": enemy = new HomingEnemy(x, y, vx, vy); break;
     case "speed": enemy = new SpeedEnemy(x, y, vx, vy); break;
     case "mega": enemy = new MegaEnemy(x, y, vx, vy); break;
-    default: enemy = new Enemy(x, y, vx, vy); break;
+    default: enemy = new Enemy(x, y, vx, vy);
   }
 
+  const enemyStrengthThresholds = { normal: 500, homing: 800, speed: 800, mega: 1000 };
+  const strengthPercent = 1 + Math.floor(hud.score / enemyStrengthThresholds[enemy.type]) * 0.2;
+  
+  enemy.strengthen(strengthPercent);
   enemies.push(enemy);
 }
 
@@ -316,11 +333,11 @@ function destroyEnemy(enemy, i = enemies.indexOf(enemy)) {
   enemies.splice(i, 1);
 
   // Respawn (same type if not killed by player)
-  let type = (!enemy.slainByPlayer) ? enemy.type : "normal";
+  let type = (!enemy.slainByPlayer) ? enemy.type : randomEnemyType();
   spawnEnemy(true, type);
 
   // Chance for more
-  if (Math.random() < 0.5 && enemy.slainByPlayer) {
+  if (enemy.slainByPlayer && Math.random() < 0.3) {
     let type = randomEnemyType();
     spawnEnemy(true, type);
   }
@@ -347,9 +364,9 @@ function drawEnemies(ctx) {
 
 function randomEnemyType() {
   let rand = Math.random();
-  if (rand < 0.1) return "mega";
-  else if (rand < 0.3) return "homing";
-  else if (rand < 0.5) return "speed";
+  if (rand < 0.05) return "mega";
+  else if (rand < 0.15) return "homing";
+  else if (rand < 0.25) return "speed";
   else return "normal";
 }
 

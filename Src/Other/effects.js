@@ -5,8 +5,10 @@ class Effect {
     constructor(target, dat) {
         objectEffects.push(this);
         this.name = "effect";
+        this.category = "default";
         this.target = target;
         this.duration = dat.duration || 1;
+        this.level = dat.level || 1;
         this.timeRemaining = this.duration;
         this.done = false;
         this.color = color(255);
@@ -34,6 +36,7 @@ class SuperSpeed extends Effect {
     constructor(target, dat) {
         super(target, dat);
         this.name = "speed";
+        this.category = "boost";
         this.color = color(30, 180, 200);
     }
 
@@ -68,6 +71,7 @@ class CustomRounds extends Effect {
     constructor(target, dat) {
         super(target, dat);
         this.name = "custom";
+        this.category = "bullet";
         this.bulletType = "custom";
         this.color = color(30, 180, 200);
     }
@@ -120,22 +124,62 @@ class MegaRounds extends CustomRounds {
     }
 }
 
+class MultiShot extends Effect {
+    constructor(target, dat) {
+        super(target, dat);
+        this.name = "triple shot";
+        this.category = "bullet modifier";
+        this.color = color(247, 243, 7);
+    }
+
+    update(dt) {
+        this.target.bulletType = this.bulletType;
+    }
+
+    stop() {
+        this.target.bulletType = "normal";
+    }
+
+    run(dt) {
+        this.update(dt);
+
+        // Time remaining
+        if (!this.target.control.fire) return;
+        this.timeRemaining -= 1;
+        if (this.timeRemaining <= 0) {
+            this.done = true;
+            this.stop();
+        }
+    }
+}
+
 function updateAllEffects(dt) {
-    let effectedObjects = [];
+    let affectedObjects = new Map(); // Map to track categories per target
+
     for (let i = 0; i < objectEffects.length; ++i) {
         const effect = objectEffects[i];
+        const target = effect.target;
 
-        // One effect at a time
-        if (effectedObjects.indexOf(effect.target) != -1)
+        // Initialize map for the target if it doesn't exist
+        if (!affectedObjects.has(target)) {
+            affectedObjects.set(target, new Set());
+        }
+
+        const activeCategories = affectedObjects.get(target);
+
+        // Skip this effect if its category is already running on the target
+        if (activeCategories.has(effect.category)) {
             continue;
+        }
 
         if (effect.done) {
             effect.target.removeEffect(effect);
             objectEffects.splice(i--, 1);
             continue;
         }
+
         effect.run(dt);
-        effectedObjects.push(effect.target);
+        activeCategories.add(effect.category); // Mark the category as active for this target
     }
 }
 

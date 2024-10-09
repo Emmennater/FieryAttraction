@@ -405,7 +405,6 @@ class GameScene extends Scene {
       ship.vy = -45;
       ship.control.steerVel = 4;
       ship.setPosition(600, 600);
-      print("Y")
     }
 
     // Set ship angle at start

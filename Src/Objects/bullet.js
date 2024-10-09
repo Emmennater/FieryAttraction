@@ -152,7 +152,8 @@ class HomingBullet extends Bullet {
     if (targets.length == 0) return;
     let bulletAngle = atan2(this.vy, this.vx);
     let aimFov = PI * 0.4;
-    let selectedTarget = selectTarget(this, targets, aimFov, bulletAngle);
+    let targetAliens = this.owner.name == "ship";
+    let selectedTarget = selectTarget(this, targets, aimFov, bulletAngle, targetAliens);
 
     // let shortestDist = Infinity;
     // for (let target of targets) {
@@ -256,7 +257,7 @@ function drawBullets(ctx) {
 }
 
 // Bullet functions
-function selectTarget(bullet, targets, fov, firingAngle) {
+function selectTarget(bullet, targets, fov, firingAngle, targetAliens = false) {
   if (targets.length == 0) return;
   const T = bullet;
   let target = null;
@@ -271,13 +272,23 @@ function selectTarget(bullet, targets, fov, firingAngle) {
     let angleDiff = smallestAngleDifference(angleToTarget, firingAngle);
     let score = map(Math.abs(angleDiff), 0, fov, 1, 0) / d;
     
+    if (targetAliens) {
+      // Increase score for tracking aliens
+      if (t.name == "enemy") {
+        score *= 1.5;
+      }
+    }
+
     t.score = score;
     if (score > best) {
       best = score;
       target = t;
     }
   }
-  
+
+  // console.log(Math.hypot(target.x - T.x, target.y - T.y));
+  // console.log(best);
+
   return target;
 }
 

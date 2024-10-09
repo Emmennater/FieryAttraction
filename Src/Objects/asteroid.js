@@ -60,8 +60,8 @@ class Asteroid extends GravityObject {
   }
   
   getScore() {
-    // Based on health
-    return Math.ceil(this.health / 2.5);
+    // Based on radius
+    return Math.ceil(this.r / 2.5);
   }
 
   takeDamage(damage, bullet) {
@@ -83,8 +83,8 @@ class Asteroid extends GravityObject {
 
       let x = this.x;
       let y = this.y;
-      let vx = this.vx + Math.random() * 20 - 10;
-      let vy = this.vy + Math.random() * 20 - 10;
+      let vx = this.vx + Math.random() * 40 - 20;
+      let vy = this.vy + Math.random() * 40 - 20;
       let r = Math.random() * 10 + 10 + 20 * (this.split - 1);
 
       switch (type) {
@@ -250,7 +250,7 @@ function spawnAsteroid(type, playerCheck) {
 
     // Random supermassive asteroid
     if (Math.random() < 0.25) {
-      r += 20;
+      r += 40;
       split = 2;
     }
   }

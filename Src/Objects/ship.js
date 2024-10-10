@@ -330,14 +330,16 @@ class Ship extends GravityObject {
     
     // Calculate angle to sun
     const sunAngle = Math.atan2(sun.y - this.y, sun.x - this.x);
-    const a = sunAngle;
+    const r1 = -sunAngle + HALF_PI;
+    const r2 = -this.a - HALF_PI;
+    const r3 = lerpAngle(r1, r2, 0.25);
 
     switch (this.cameraMode) {
       case "rotated":
         const s = Math.min(width, height) * 0.2;
         x = this.x * 0.95 + cos(this.a) * s / panzoom.zoom;
         y = this.y * 0.95 + sin(this.a) * s / panzoom.zoom;
-        panzoom.setRotation(-a + HALF_PI);
+        panzoom.setRotation(r3);
         break;
       default:
         x = this.x * 0.9;

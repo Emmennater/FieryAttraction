@@ -50,21 +50,13 @@ class Ship extends GravityObject {
     super(x, y, 50000);
     this.name = "ship";
     this.trail = new Trail();
-    this.oldExaustCol = {
-      min: { r: 255, g: 100, b: 0, a: 100 },
-      add: { r: 0, g: 100, b: 0, a: 0 }
-    };
-    this.exaustCol = this.oldExaustCol;
     this.vx = 0;
     this.vy = -35;
-    this.a = 0;
+    this.velocityAngle = 0;
     this.s = 10;
     this.drag = 0.9998;
     this.speed = 8;
     this.turnSpeed = 2.4;
-    this.fuel = 50;
-    this.ammo = 200;
-    this.health = 100;
     this.control = { steeringAngle: 0, steerVel: 4, boost: false, fire:false };
     this.stats = { distToSun: 0, temp: 0 };
     this.inputs = {};
@@ -80,6 +72,19 @@ class Ship extends GravityObject {
     this.speedMultTime = 0;
     this.damage = 1;
     this.cameraMode = "normal";
+
+    // Supplies
+    this.fuel = 50;
+    this.ammo = 200;
+    this.health = 100;
+
+    // Boost attributes
+    this.oldExaustCol = {
+      min: { r: 255, g: 100, b: 0, a: 100 },
+      add: { r: 0, g: 100, b: 0, a: 0 }
+    };
+    this.exaustCol = this.oldExaustCol;
+    this.exaustDelay = 4;
 
     // Bullet attributes
     this.bTime = 0;
@@ -165,7 +170,7 @@ class Ship extends GravityObject {
       this.bTime += this.bDelay * 2;
     }
     
-    const shipAngle = this.a + this.control.steeringAngle;
+    const shipAngle = this.velocityAngle + this.control.steeringAngle;
     let x = this.x + cos(shipAngle) * this.s;
     let y = this.y + sin(shipAngle) * this.s;
     let vx = this.vx + cos(shipAngle) * this.bSpeed;
@@ -235,7 +240,7 @@ class Ship extends GravityObject {
     
     // Boost
     if (this.control.boost) {
-      let shipAngle = this.a + this.control.steeringAngle - PI;
+      let shipAngle = this.velocityAngle + this.control.steeringAngle - PI;
       this.vx -= cos(shipAngle) * this.speed * this.speedMult * dt;
       this.vy -= sin(shipAngle) * this.speed * this.speedMult * dt;
       hud.addCameraShake(5, 10);
@@ -331,20 +336,20 @@ class Ship extends GravityObject {
     // Calculate angle to sun
     const sunAngle = Math.atan2(sun.y - this.y, sun.x - this.x);
     const r1 = -sunAngle + HALF_PI;
-    const r2 = -this.a - HALF_PI;
+    const r2 = -this.velocityAngle - HALF_PI;
     const r3 = lerpAngle(r1, r2, 0.25);
 
     switch (this.cameraMode) {
       case "rotated":
         const s = Math.min(width, height) * 0.2;
-        x = this.x * 0.95 + cos(this.a) * s / panzoom.zoom;
-        y = this.y * 0.95 + sin(this.a) * s / panzoom.zoom;
+        x = this.x * 0.95 + cos(this.velocityAngle) * s / panzoom.zoom;
+        y = this.y * 0.95 + sin(this.velocityAngle) * s / panzoom.zoom;
         panzoom.setRotation(r3);
         break;
       default:
         x = this.x * 0.9;
         y = this.y * 0.9;
-        panzoom.setRotation(-this.a - HALF_PI);
+        panzoom.setRotation(-this.velocityAngle - HALF_PI);
         break;
     }
     stars.setViewPosition(x, y);
@@ -385,31 +390,32 @@ class Ship extends GravityObject {
     let speed = Math.sqrt(this.vx ** 2 + this.vy ** 2);
     
     let shipTurnRate = (this.control.boost) ? 0.01 : 0.02;
-    let oldAngle = this.a;
+    let oldAngle = this.velocityAngle;
     let newAngle = atan2(this.vy, this.vx);
     this.oldAngle = newAngle;
     oldAngle = ((oldAngle % TWO_PI) + TWO_PI) % TWO_PI;
     newAngle = ((newAngle % TWO_PI) + TWO_PI) % TWO_PI;
     let diff = smallestAngleDifference(oldAngle, newAngle);
     // this.a += (newAngle - oldAngle) * shipTurnRate;
-    this.a += diff * shipTurnRate;
-    this.a = ((this.a % TWO_PI) + TWO_PI) % TWO_PI    
+    this.velocityAngle += diff * shipTurnRate;
+    this.velocityAngle = ((this.velocityAngle % TWO_PI) + TWO_PI) % TWO_PI    
 
-    let shipAngle = this.a + this.control.steeringAngle - PI;
+    let shipAngle = this.velocityAngle + this.control.steeringAngle - PI;
     let exaustDist = this.s * 0.6;
     let exaustVx = 0, exaustVy = 0;
-    let exaustDelay = 4;
+    let exaustDelay = this.exaustDelay;
     let exaustRadius = this.s * 0.5;
     let exaustSpread = 0.1;
     
     if (this.control.boost) {
       exaustVx = cos(shipAngle) * this.s * 0.035;
       exaustVy = sin(shipAngle) * this.s * 0.035;
-      exaustDelay = 2;
+      exaustDelay /= 2;
       exaustRadius = 0.6 * this.s;
-      exaustSpread = 0.2;
+      exaustSpread *= 2;
     }
     
+    // Smoke trail
     let trailX = this.x + cos(shipAngle) * exaustDist;
     let trailY = this.y + sin(shipAngle) * exaustDist;
     this.trail.updateTrail(trailX, trailY, exaustVx, exaustVy, exaustDelay, exaustRadius, exaustSpread);
@@ -449,7 +455,7 @@ class Ship extends GravityObject {
 
     ctx.push();
     ctx.translate(this.x, this.y);
-    ctx.rotate(HALF_PI + this.a + this.control.steeringAngle);
+    ctx.rotate(HALF_PI + this.velocityAngle + this.control.steeringAngle);
     ctx.translate(0, -this.s / 4);
     ctx.imageMode(CENTER);
     

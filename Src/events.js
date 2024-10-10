@@ -4,10 +4,12 @@ class EventManager {
         this.threshold = 200;
         this.threshold2 = 150;
         this.threshold3 = 250;
+        this.threshold4 = 350;
         this.activeEvents = [];
         this.lastBigScore = 0;
         this.lastMidScore = 0;
         this.lastFarScore = 0;
+        this.lastFarerScore = 0;
     }
 
     reset() {
@@ -54,6 +56,11 @@ class EventManager {
         if (hud.score - this.lastFarScore >= this.threshold3) {
             this.lastFarScore = Math.floor(hud.score / this.threshold3) * this.threshold3;
             spawnEnemy(true, "mega");
+        }
+
+        if (hud.score - this.lastFarerScore >= this.threshold4) {
+            this.lastFarerScore = Math.floor(hud.score / this.threshold4) * this.threshold4;
+            spawnEnemy(true, "black");
         }
 
         for (let i = this.activeEvents.length - 1; i >= 0; --i) {

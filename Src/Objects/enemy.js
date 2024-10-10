@@ -61,8 +61,8 @@ class Enemy extends Ship {
     const distToPlayer = dist(this.x, this.y, ship.x, ship.y);
     if (distToPlayer > 80 || closeToSun) {
       this.control.boost = true;
-      this.vx += cos(this.a + this.control.steeringAngle) * this.speed * dt;
-      this.vy += sin(this.a + this.control.steeringAngle) * this.speed * dt;
+      this.vx += cos(this.velocityAngle + this.control.steeringAngle) * this.speed * dt;
+      this.vy += sin(this.velocityAngle + this.control.steeringAngle) * this.speed * dt;
     } else {
       // Slow down
       // this.vx *= 0.99;
@@ -96,7 +96,7 @@ class Enemy extends Ship {
     finalTargetAngle += stray;
 
     // Setting target angle
-    this.control.steeringAngle = finalTargetAngle - this.a;
+    this.control.steeringAngle = finalTargetAngle - this.velocityAngle;
     let bvx = cos(finalTargetAngle) * bulletSpeed;
     let bvy = sin(finalTargetAngle) * bulletSpeed;
 
@@ -144,7 +144,7 @@ class Enemy extends Ship {
     }
     
     // Steer away from sun
-    let A = this.a;
+    let A = this.velocityAngle;
     let a = atan2(dy, dx);
     A = ((A + TWO_PI) % TWO_PI + TWO_PI);
     a = ((a + TWO_PI) % TWO_PI + TWO_PI);
@@ -176,8 +176,8 @@ class Enemy extends Ship {
       this.control.boost = true;
       
       // Acceleration
-      this.vx += cos(this.a + this.control.steeringAngle) * this.speed * dt;
-      this.vy += sin(this.a + this.control.steeringAngle) * this.speed * dt;
+      this.vx += cos(this.velocityAngle + this.control.steeringAngle) * this.speed * dt;
+      this.vy += sin(this.velocityAngle + this.control.steeringAngle) * this.speed * dt;
       
     } else if (closeToPlayer) {
       // Aiming at player
@@ -194,6 +194,40 @@ class Enemy extends Ship {
     
     this.x += this.vx * dt;
     this.y += this.vy * dt;
+  }
+}
+
+class BlackEnemy extends Enemy {
+  constructor(x, y, vx, vy) {
+    super(x, y, vx, vy);
+    this.type = "black";
+    this.sprite = blackEnemySprite;
+    this.oldExaustCol = {
+      min: { r: 0, g: 0, b: 0, a: 100 },
+      add: { r: 255, g: 255, b: 255, a: 0 }
+    };
+    this.exaustCol = this.oldExaustCol;
+    this.bCol = { r:100, g:0, b:0 };
+    this.damage = 1.5;
+    this.bImpactForce = 3;
+    this.exaustDelay = 20;
+  }
+
+  drawBoost(ctx) {
+    const exaustCol1 = {
+      min: { r: 0, g: 0, b: 0, a: 100 },
+      add: { r: 0, g: 0, b: 0, a: 0 }
+    };
+    const exaustCol2 = {
+      min: { r: 0, g: 0, b: 0, a: 100 },
+      add: { r: 255, g: 0, b: 0, a: 0 }
+    };
+
+    // Alternate exaust color
+    this.oldExaustCol = (Math.random() < 0.1) ? exaustCol2 : exaustCol1;
+    this.exaustCol = this.oldExaustCol;
+
+    super.drawBoost(ctx);
   }
 }
 
@@ -288,7 +322,7 @@ class MegaEnemy extends HomingEnemy {
 
 function initEnemies() {
   if (noSpawns) return;
-  // enemies.push(new Enemy(ship.x, ship.y, 0, 0));
+  // enemies.push(new BlackEnemy(ship.x, ship.y, 0, 0));
   for (let i = 0; i < 2; i++)
     spawnEnemy(true);
 }
@@ -318,6 +352,7 @@ function spawnEnemy(playerCheck = true, type = "normal") {
     case "homing": enemy = new HomingEnemy(x, y, vx, vy); break;
     case "speed": enemy = new SpeedEnemy(x, y, vx, vy); break;
     case "mega": enemy = new MegaEnemy(x, y, vx, vy); break;
+    case "black": enemy = new BlackEnemy(x, y, vx, vy); break;
     default: enemy = new Enemy(x, y, vx, vy);
   }
 
@@ -364,6 +399,7 @@ function drawEnemies(ctx) {
 
 function randomEnemyType() {
   let rand = Math.random();
+  if (rand < 0.02) return "black";
   if (rand < 0.05) return "mega";
   else if (rand < 0.15) return "homing";
   else if (rand < 0.25) return "speed";

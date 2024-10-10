@@ -9,6 +9,7 @@ function preload() {
   futureFont = loadFont("Assets/Fonts/future-font.ttf");
   rocketSprite = loadImage("Assets/fighterjet2.png");
   enemySprite = loadImage("Assets/enemyjet.png");
+  blackEnemySprite = loadImage("Assets/black-enemy-jet.png");
   homingEnemySprite = loadImage("Assets/homing-enemy-jet.png");
   speedEnemySprite = loadImage("Assets/speed-enemy-jet.png");
   megaEnemySprite = loadImage("Assets/mega-enemy-jet.png");

@@ -14,6 +14,7 @@ class Bullet extends GravityObject {
     this.vy = dat.vy;
     this.px = dat.x;
     this.py = dat.y;
+    this.impactForce = dat.impactForce || 1;
     
     this.owner = dat.owner;
     this.col = dat.bCol || { r: 255, g: 255, b: 255 };
@@ -23,8 +24,8 @@ class Bullet extends GravityObject {
   }
   
   transferMomentumTo(object) {
-    object.vx += this.vx / object.m * 400;
-    object.vy += this.vy / object.m * 400;
+    object.vx += this.vx / object.m * 400 * this.impactForce;
+    object.vy += this.vy / object.m * 400 * this.impactForce;
   }
 
   checkForHit() {

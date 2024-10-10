@@ -22,8 +22,11 @@ class EventManager {
     }
 
     startRandomEvent() {
-        if (!this.checkForEvent(GravityStorm))
-            this.startEvent(GravityStorm);
+        const events = [ GravityStorm, SpinStorm ];
+        let RandomEvent = events[Math.floor(Math.random() * events.length)];
+
+        if (!this.checkForEvent(RandomEvent))
+            this.startEvent(RandomEvent);
     }
 
     checkForEvent(constructor) {
@@ -67,6 +70,7 @@ class EventManager {
 class WorldEvent {
     constructor() {
         this.timeElapsed = 0;
+        this.stageTime = 0;
         this.stage = 0;
         this.lastStage = -1;
         this.ended = false;
@@ -116,6 +120,9 @@ class WorldEvent {
         this.justTransitioned = this.lastStage != this.stage;
         this.lastStage = this.stage;
 
+        // Reset elapsed stage time
+        if (this.justTransitioned) this.stageTime = 0;
+
         switch (this.stage) {
             case 0: if (this.start(dt, ctx)) ++this.stage; break;
             case 1: if (this.middle(dt, ctx)) ++this.stage; break;
@@ -127,6 +134,7 @@ class WorldEvent {
 
         // Update time elapsed
         this.timeElapsed += dt;
+        this.stageTime += dt;
     }
 }
 
@@ -159,7 +167,7 @@ class GravityStorm extends WorldEvent {
 
     start(dt) {
         // Wait a bit before starting...
-        if (this.timeElapsed < 5)
+        if (this.stageTime < 5)
             return;
 
         if (!this.started) {
@@ -175,11 +183,7 @@ class GravityStorm extends WorldEvent {
     }
 
     middle(dt) {
-        if (this.justTransitioned)
-            this.time = 0;
-
-        this.time += dt * 0.1;
-        return this.time >= 1;
+        return this.stageTime >= 10;
     }
 
     end(dt) {
@@ -196,5 +200,71 @@ class GravityStorm extends WorldEvent {
         sun.r = this.originalSunRadius;
         sun.m = this.originalSunMass;
         sun.tintReset();
+    }
+}
+
+class SpinStorm extends WorldEvent {
+    constructor() {
+        super();
+        this.title = "SPIN STORM";
+        this.time = 0;
+        this.strength = 4;
+        this.sunRotationSpeed = 0.01;
+        this.star = system.getRandomStar();
+    }
+
+    start(dt) {
+        // Wait a bit before starting...
+        if (this.stageTime < 5)
+            return;
+
+        const time = Math.min((this.stageTime - 5) * 0.1, 1);
+        const multiplier = lerp(1, this.strength, time);
+
+        // Set asteroid speed multiplier
+        for (let asteroid of asteroids) {
+            asteroid.speedMultiplier = multiplier;
+        }
+
+        // Rotate sun and stars
+        this.star.rot += (multiplier - 1) * this.sunRotationSpeed;
+        stars.rot += (multiplier - 1) * this.sunRotationSpeed;
+
+        if (time >= 1) console.log("SPIN STORM STARTED");
+        return time >= 1;
+    }
+
+    middle(dt) {
+
+        // Rotate sun and stars
+        this.star.rot += this.sunRotationSpeed * this.strength;
+        stars.rot += this.sunRotationSpeed * this.strength;
+
+        return this.stageTime >= 15;
+    }
+
+    end(dt) {
+        // Die down to default speed
+        const time = Math.min(this.stageTime * 0.1, 1);
+        const multiplier = lerp(this.strength, 1, time);
+
+        // Set asteroid speed multiplier
+        for (let asteroid of asteroids) {
+            asteroid.speedMultiplier = multiplier;
+        }
+
+        // Rotate sun and stars
+        this.star.rot += (multiplier - 1) * this.sunRotationSpeed;
+        stars.rot += (multiplier - 1) * this.sunRotationSpeed;
+
+        if (time >= 1) console.log("SPIN STORM ENDED");
+        return time >= 1;
+    }
+
+    stop() {
+        // Reset speed
+        for (let asteroid of asteroids) {
+            asteroid.speedMultiplier = 1;
+        }
     }
 }

@@ -26,8 +26,8 @@ class Guide {
         const shipAngle = ship.a + ship.control.steeringAngle;
         let x = ship.x + cos(shipAngle) * ship.s;
         let y = ship.y + sin(shipAngle) * ship.s;
-        let vx = cos(shipAngle) * ship.bSpeed;
-        let vy = sin(shipAngle) * ship.bSpeed;
+        let vx = cos(shipAngle) * ship.bSpeed + ship.vx;
+        let vy = sin(shipAngle) * ship.bSpeed + ship.vy;
         const DUMMY = new DummyProjectile(x, y, vx, vy);
         const DT = 0.1;
         let dx = 0;

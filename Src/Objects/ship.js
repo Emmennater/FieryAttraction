@@ -326,9 +326,9 @@ class Ship extends GravityObject {
   alignCamera() {
     let x = this.x * 0.9;
     let y = this.y * 0.9;
+    stars.setViewPosition(x, y);
     panzoom.setInView(x, y);
     panzoom.setRotation(-this.a - HALF_PI);
-    stars.setViewPosition(x, y);
   }
   
   setPosition(x, y) {

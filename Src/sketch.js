@@ -68,7 +68,8 @@ function setup() {
   // Namespaces
   mobile = new MobileControls();
   panzoom = new PanZoom();
-  sun = new Sun();
+  system = new StarSystem();
+  sun = system.stars[0];
   ship = new Ship(600, 600);
   stars = new Stars();
   hud = new HUD();

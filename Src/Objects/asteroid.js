@@ -32,9 +32,11 @@ class Asteroid extends GravityObject {
     this.split = 0;
     this.isSplit = false;
     this.type = "normal";
+    this.speedMultiplier = 1;
   }
   
   move(dt) {
+    dt *= this.speedMultiplier;
     this.attract(dt);
 
 
@@ -231,6 +233,7 @@ function destroyAllAsteroids() {
 function spawnAsteroid(type, playerCheck) {
   let t = Math.random() * TWO_PI;
   let dir = Math.random() < 0.5 ? 1 : -1;
+  
   if (playerCheck) {
     // Ship direction to sun
     let dx = sun.x - ship.x;
@@ -249,7 +252,7 @@ function spawnAsteroid(type, playerCheck) {
     split = 1;
 
     // Random supermassive asteroid
-    if (Math.random() < 0.25) {
+    if (Math.random() < 0.15) {
       r += 40;
       split = 2;
     }

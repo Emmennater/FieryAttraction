@@ -420,15 +420,14 @@ class GameScene extends Scene {
     if (scenes.paused)
       dt = 0;
 
-    ctx.background(bgCol);
-    
     ship.controls(dt);
     mobile.update(dt);
     ship.alignCamera();
 
-    panzoom.begin(ctx);
-    panzoom.end(ctx);
+    // Background
+    ctx.background(bgCol);
     
+    // Space background
     // const aspect = spacebg.height / spacebg.width;
     // const MIN_SCL = Math.min(width, height);
     // const imgW = 4 * MIN_SCL;
@@ -446,8 +445,8 @@ class GameScene extends Scene {
     stars.draw(ctx);
     sun.update(dt);
     sun.draw(ctx);
+    
     panzoom.begin(ctx);
-
     updateAllEffects(dt);
     moveAsteroids(dt);
     moveEnemies(dt);
@@ -460,7 +459,6 @@ class GameScene extends Scene {
     
     drawEnemies(ctx);
     ship.draw(ctx);
-
     drawBullets(ctx);
     panzoom.end(ctx);
 
@@ -490,6 +488,7 @@ class GameScene extends Scene {
       htmlSounds.fadeSound(soundTrack, 0.8 * scenes.musicVolume, 1);
     }
 
+    // Pause screen
     if (scenes.paused) {
       background(0, 100);
       if (!mobile.isMobile) {

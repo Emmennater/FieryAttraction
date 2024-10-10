@@ -5,6 +5,7 @@ class Stars {
     this.generate();
     this.viewX = 0;
     this.viewY = 0;
+    this.rot = 0;
   }
   
   generate() {
@@ -43,8 +44,14 @@ class Stars {
     // const sunr = (sun.r / sun.depth) ** 2;
     const sz = 16;
     for (let s of this.stars) {
-      let x = (s.x + panzoom.xoff) / s.depth;
-      let y = (s.y + panzoom.yoff) / s.depth;
+      // Rotate star position
+      let a = Math.atan2(s.y, s.x);
+      let d = Math.hypot(s.x, s.y);
+      a += this.rot;
+      let newX = cos(a) * d;
+      let newY = sin(a) * d;
+      let x = (newX + panzoom.xoff) / s.depth;
+      let y = (newY + panzoom.yoff) / s.depth;
       // s.depth > sun.depth
       // if ((sun.graphicx - x) ** 2 + (sun.graphicy - y) ** 2 < sunr2) continue;
       // if (s.depth > sun.depth && (sun.graphicx - x) ** 2 + (sun.graphicy - y) ** 2 < sunr) continue;

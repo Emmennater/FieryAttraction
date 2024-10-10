@@ -3,6 +3,7 @@ class Sun {
   constructor() {
     this.x = 0;
     this.y = 0;
+    this.rot = 0;
     this.density = 1.4;
     this.r = 400;
     this.m = PI * this.r ** 2 * this.density; // 4500;
@@ -77,13 +78,17 @@ class Sun {
     ctx.fill(255, 140, 0);
     ctx.noStroke();
     ctx.imageMode(CENTER);
+    ctx.push();
+    ctx.translate(x, y);
+    ctx.rotate(this.rot);
 
     if (!this.isTintNormal()) {
       ctx.tint(this.tint.r, this.tint.g, this.tint.b, this.tint.a);
-      ctx.image(sunSprite, x, y, r, r);
+      ctx.image(sunSprite, 0, 0, r, r);
       ctx.noTint();
-    } else ctx.image(sunSprite, x, y, r, r);
+    } else ctx.image(sunSprite, 0, 0, r, r);
     
+    ctx.pop();
     ctx.pop();
     
     // ellipse(this.x, this.y, this.r * 2, this.r * 2);
@@ -92,5 +97,26 @@ class Sun {
     // fill(255, 80, 0);
     // ellipse(this.x, this.y, this.r * 1.8, this.r * 1.8);
   }
+
+  gravitateObject(gravityObject) {
+
+  }
 }
 
+class StarSystem {
+  constructor() {
+    this.stars = [
+      new Sun()
+    ];
+  }
+
+  gravitateObject(gravityObject) {
+    for (let star of this.stars) {
+      star.gravitateObject(gravityObject);
+    }
+  }
+
+  getRandomStar() {
+    return this.stars[Math.floor(Math.random() * this.stars.length)];
+  }
+}

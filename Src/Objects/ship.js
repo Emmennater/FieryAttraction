@@ -79,6 +79,7 @@ class Ship extends GravityObject {
     this.speedMult = 1;
     this.speedMultTime = 0;
     this.damage = 1;
+    this.cameraMode = "normal";
 
     // Bullet attributes
     this.bTime = 0;
@@ -109,7 +110,7 @@ class Ship extends GravityObject {
 
   getSteeringAccel() {
     let turnSpeed = this.fuel > 0 ? this.turnSpeed : this.turnSpeed /  6;
-    if (keys.SHIFT) turnSpeed *= 0.5;
+    // if (keys.SHIFT) turnSpeed *= 0.5;
     return turnSpeed;
   }
 
@@ -324,13 +325,36 @@ class Ship extends GravityObject {
   }
   
   alignCamera() {
-    let x = this.x * 0.9;
-    let y = this.y * 0.9;
+    let x = this.x;
+    let y = this.y;
+    
+    // Calculate angle to sun
+    const sunAngle = Math.atan2(sun.y - this.y, sun.x - this.x);
+    const a = sunAngle;
+
+    switch (this.cameraMode) {
+      case "rotated":
+        const s = Math.min(width, height) * 0.2;
+        x = this.x * 0.95 + cos(this.a) * s / panzoom.zoom;
+        y = this.y * 0.95 + sin(this.a) * s / panzoom.zoom;
+        panzoom.setRotation(-a + HALF_PI);
+        break;
+      default:
+        x = this.x * 0.9;
+        y = this.y * 0.9;
+        panzoom.setRotation(-this.a - HALF_PI);
+        break;
+    }
     stars.setViewPosition(x, y);
     panzoom.setInView(x, y);
-    panzoom.setRotation(-this.a - HALF_PI);
   }
   
+  toggleCameraMode() {
+    this.cameraMode = this.cameraMode == "normal" ? "rotated" : "normal";
+
+    storeItem("fiery-attraction-camera-mode", this.cameraMode);
+  }
+
   setPosition(x, y) {
     this.x = x;
     this.y = y;

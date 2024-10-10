@@ -77,6 +77,8 @@ function setup() {
   sounds = new Sounds();
   htmlSounds = new HTMLSounds();
   
+  ship.applyEffect(SuperSpeed, {duration:10000}, null);
+
   // Objects
   asteroids = [];
   initAsteroids();

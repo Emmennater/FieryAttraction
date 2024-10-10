@@ -41,6 +41,10 @@ class Scenes {
     // Update music slider and volume
     this.musicSlider.value = this.musicVolume * 100;
     this.updateVolume();
+
+    // Ship camera mode
+    const cameraMode = getItem("fiery-attraction-camera-mode") || "normal";
+    if (cameraMode == "rotated") document.getElementById("alternate-camera").click();
   }
 
   setup() {

@@ -247,7 +247,7 @@ class HomingEnemy extends Enemy {
   }
 
   grantEffect(object) {
-    supe.grantEffect(object);
+    super.grantEffect(object);
     object.applyEffect(HomingRounds, {
       duration: 40
     });

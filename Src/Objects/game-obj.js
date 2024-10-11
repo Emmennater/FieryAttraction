@@ -5,8 +5,7 @@ class GameObject {
     }
 
     applyEffect(Effect, dat = {}, sender = null) {
-        const effect = new Effect(this, dat);
-        this.effects.push(effect);
+        const effect = addEffect(Effect, this, dat, sender);
         return effect;
     }
 

@@ -205,3 +205,28 @@ function clearAllEffects() {
         objectEffects.splice(i, 1);
     }
 }
+
+function addEffect(Effect, target, dat, sender) {
+    // Look to see if this effect already exists
+    for (let i = 0; i < objectEffects.length; ++i) {
+        const effect = objectEffects[i];
+        const hasSameTarget = effect.target === target;
+        const hasSameLevel = effect.level === dat.level;
+        const hasSameEffect = effect.constructor === Effect;
+        if (hasSameTarget && hasSameLevel && hasSameEffect) {
+            effect.duration += dat.duration;
+            effect.timeRemaining += dat.duration;
+            return effect;
+        }
+    }
+
+    const effect = new Effect(target, dat);
+    objectEffects.push(effect);
+
+    if (target.name == "ship") {
+        // Look to see if this effect already exists
+        target.effects.push(effect);
+    }
+
+    return effect;
+}

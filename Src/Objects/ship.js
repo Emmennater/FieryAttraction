@@ -496,8 +496,8 @@ class Ship extends GravityObject {
     
     ctx.image(this.sprite, 0, 0, this.s * SIZE, this.s * aspect * SIZE);
 
-    if (this.effects.length > 0)
-      ctx.image(jetEnchantmentSprite, 0, 0, this.s * SIZE, this.s * aspect * SIZE);
+    // if (this.effects.length > 0)
+    //   ctx.image(jetEnchantmentSprite, 0, 0, this.s * SIZE, this.s * aspect * SIZE);
 
     if (this.alpha != 255)
       ctx.noTint();

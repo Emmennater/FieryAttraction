@@ -50,7 +50,8 @@ class Enemy extends Ship {
       if (bullet && bullet.owner.name == "ship") {
         this.slainByPlayer = true;
         hud.addScore(25);
-        this.grantEffect(bullet.owner);
+        if (bullet && bullet.owner)
+          this.grantEffect(bullet.owner);
       }
     }
   }
@@ -200,16 +201,29 @@ class BlackEnemy extends Enemy {
   constructor(x, y, vx, vy) {
     super(x, y, vx, vy);
     this.type = "black";
+    this.bulletType = "explosive";
     this.sprite = blackEnemySprite;
+    this.health = 25;
+
+    // Boost attributes
     this.oldExaustCol = {
       min: { r: 0, g: 0, b: 0, a: 100 },
       add: { r: 255, g: 255, b: 255, a: 0 }
     };
     this.exaustCol = this.oldExaustCol;
+
+    // Bullet attributes
     this.bCol = { r:100, g:0, b:0 };
     this.damage = 1.5;
     this.bImpactForce = 3;
     this.exaustDelay = 20;
+  }
+
+  grantEffect(object) {
+    super.grantEffect(object);
+    object.applyEffect(ExplosiveRounds, {
+      duration: 20
+    })
   }
 
   drawBoost(ctx) {
@@ -406,12 +420,32 @@ function drawEnemies(ctx) {
 }
 
 function randomEnemyType() {
-  let rand = Math.random();
-  if (rand < 0.02) return "black";
-  if (rand < 0.05) return "mega";
-  else if (rand < 0.15) return "homing";
-  else if (rand < 0.25) return "speed";
-  else return "normal";
+  const typeChances = {
+    normal: 75,
+    speed: 10,
+    homing: 10,
+    mega: 5,
+    black: 5
+  };
+
+  // Calculate the total sum of all chances
+  let totalChance = Object.values(typeChances).reduce((sum, chance) => sum + chance, 0);
+
+  // Scale rand between 0 and totalChance
+  let rand = Math.random() * totalChance;
+  let cumulativeChance = 0;
+  let type;
+
+  // Iterate through each type and add up the chances
+  for (let key in typeChances) {
+    cumulativeChance += typeChances[key];
+    if (rand <= cumulativeChance) {
+      type = key;
+      break;
+    }
+  }
+
+  return type; // Return the randomly selected type
 }
 
 /*

@@ -382,8 +382,8 @@ function randomAsteroid() {
     normal: 70,
     fuel: 10,
     ammo: 10,
-    health: 10,
-    speed: 5,
+    health: 5,
+    speed: 3,
     explosive: 2,
   };
 

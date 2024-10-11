@@ -362,7 +362,7 @@ function spawnEnemy(playerCheck = true, type = "normal") {
 
   // Random effect
   const effects = [SuperSpeed, HomingRounds, SpeedRounds, MegaRounds, ExplosiveRounds, MultiShot];
-  if (Math.random() < 0.1) {
+  if (Math.random() < 0.03) {
     let RandomEffect = effects[Math.floor(Math.random() * effects.length)];
     const level = Math.ceil(Math.sqrt(Math.random() * 9));
     enemy.applyEffect(RandomEffect, { duration: 100000000, level });

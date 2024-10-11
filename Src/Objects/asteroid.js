@@ -63,18 +63,29 @@ class Asteroid extends GravityObject {
   
   getScore() {
     // Based on radius
-    return Math.ceil(this.r / 2.5);
+    return this.scaleReward(5);
+  }
+
+  onDestroy(bullet) {
+    if (!this.destroy && this.split)
+      this.splitAsteroid();
+    
+    this.destroy = true;
+    spawnExplosion(this.x, this.y, null, this.r / 40 * 0.2, this.r);
+
+    const ownerIsJet = bullet && (bullet.owner.name == "ship" || bullet.owner.name == "enemy");
+    if (ownerIsJet) this.giveReward(bullet.owner);
+  }
+
+  giveReward(object) {
+    if (object.name == "ship") hud.addScore(this.getScore());
   }
 
   takeDamage(damage, bullet) {
     this.health -= damage;
+    
     if (this.health <= 0) {
-      if (!this.destroy && this.split)
-        this.splitAsteroid();
-      this.destroy = true;
-      spawnExplosion(this.x, this.y, null, this.r / 40 * 0.2);
-      if (bullet.owner.name == "ship")
-        hud.addScore(this.getScore());
+      this.onDestroy(bullet);
     }
   }
 
@@ -152,13 +163,9 @@ class FuelAsteroid extends Asteroid {
     this.sprite = fuelAsteroidSprite;
   }
   
-  takeDamage(damage, bullet) {
-    super.takeDamage(damage, bullet);
-    if (this.destroy) {
-      bullet.owner.addFuel(this.scaleReward(4), this);
-      if (bullet.owner.name == "ship")
-        hud.addScore(5);
-    }
+  giveReward(object) {
+    super.giveReward(object);
+    object.addFuel(this.scaleReward(4), this);
   }
 }
 
@@ -169,13 +176,9 @@ class HealthAsteroid extends Asteroid {
     this.sprite = healthAsteroidSprite;
   }
   
-  takeDamage(damage, bullet) {
-    super.takeDamage(damage, bullet);
-    if (this.destroy) {
-      bullet.owner.addHealth(this.scaleReward(20), this);
-      if (bullet.owner.name == "ship")
-        hud.addScore(5);
-    }
+  giveReward(object) {
+    super.giveReward(object);
+    object.addHealth(this.scaleReward(20), this);
   }
 }
 
@@ -186,13 +189,9 @@ class AmmoAsteroid extends Asteroid {
     this.sprite = ammoAsteroidSprite;
   }
   
-  takeDamage(damage, bullet) {
-    super.takeDamage(damage, bullet);
-    if (this.destroy) {
-      bullet.owner.addAmmo(this.scaleReward(20), this);
-      if (bullet.owner.name == "ship")
-        hud.addScore(5);
-    }
+  giveReward(object) {
+    super.giveReward(object);
+    object.addAmmo(this.scaleReward(20), this);
   }
 }
 
@@ -203,25 +202,59 @@ class SpeedAsteroid extends Asteroid {
     this.sprite = blueAsteroidSprite; // speedAsteroidSprite;
   }
   
-  takeDamage(damage, bullet) {
-    super.takeDamage(damage, bullet);
-    if (this.destroy) {
-      if (bullet)
-        bullet.owner.applyEffect(SuperSpeed, {
-          duration: this.scaleReward(10)
-        }, this);
-      // bullet.owner.goCrazy();
-      if (bullet.owner.name == "ship")
-        hud.addScore(5);
-    }
+  giveReward(object) {
+    super.giveReward(object);
+    object.applyEffect(SuperSpeed, {
+      duration: this.scaleReward(10)
+    }, this);
   }
 
   draw(ctx) {
-    // const frames = blueAsteroidSprite.numFrames();
-    // const currentFrame = blueAsteroidSprite.getCurrentFrame();
-    // const frame = Math.floor(frameCount / 8) % frames;
-    // this.sprite.setFrame(frame);
     super.draw(ctx);
+  }
+}
+
+class ExplosiveAsteroid extends Asteroid {
+  constructor(x, y, r, vx, vy) {
+    super(x, y, r, vx, vy);
+    this.type = "explosive";
+    this.sprite = explosiveAsteroidSprite;
+  }
+
+  giveReward(object) {
+    super.giveReward(object);
+    const level = Math.ceil(this.scaleReward(1) ** 0.5);
+    object.applyEffect(MultiShot, {
+      duration: this.scaleReward(15),
+      level
+    }, this);
+  }
+
+  onDestroy(bullet) {
+    super.onDestroy(bullet);
+
+    // Shake screen
+    hud.addCameraShake(10, 10);
+
+    const nBullets = this.scaleReward(7);
+    const x = this.x;
+    const y = this.y;
+
+    // Spawn explosive bullets
+    const BULLET_SPEED = 220;
+    const ANGLE_GAP = TWO_PI / nBullets;
+    for (let i = 0; i < nBullets; i++) {
+      let a = ANGLE_GAP * i + Math.random() * ANGLE_GAP;
+      let vel = (Math.random() + 0.75) * BULLET_SPEED * 0.5;
+      const vx = Math.cos(a) * vel;
+      const vy = Math.sin(a) * vel;
+      const bullet = spawnBullet({
+        x, y, vx, vy,
+        owner: this,
+        type: "explosive",
+        damageMult: 1.5
+      });
+    }
   }
 }
 
@@ -278,6 +311,9 @@ function spawnAsteroid(type, playerCheck) {
     case "speed":
       asteroid = new SpeedAsteroid(x, y, r, vx, vy);
       break;
+    case "explosive":
+      asteroid = new ExplosiveAsteroid(x, y, r, vx, vy);
+      break;
     default:
       asteroid = new Asteroid(x, y, r, vx, vy);
   }
@@ -292,6 +328,10 @@ function spawnAsteroid(type, playerCheck) {
 
 function initAsteroids() {
   if (noSpawns) return;
+  
+  // Test
+  // asteroids.push(new ExplosiveAsteroid(ship.x - 100, ship.y, 25, ship.vx, ship.vy));
+
   for (let i = 0; i < 28; ++i)
     spawnAsteroid();
   for (let i = 0; i < 8; ++i)
@@ -338,23 +378,38 @@ function drawAsteroids(CTX) {
 }
 
 function randomAsteroid() {
-  let rand = Math.random();
-  if (rand < 0.05) {
-    return "speed";
-  } else if (rand < 0.1) {
-    return "health";
-  } else if (rand < 0.2) {
-    return "fuel";
-  } else if (rand < 0.3) {
-    return "ammo";
-  } else {
-    return "normal";
+  const typeChances = {
+    normal: 70,
+    fuel: 10,
+    ammo: 10,
+    health: 10,
+    speed: 5,
+    explosive: 2,
+  };
+
+  // Calculate the total sum of all chances
+  let totalChance = Object.values(typeChances).reduce((sum, chance) => sum + chance, 0);
+
+  // Scale rand between 0 and totalChance
+  let rand = Math.random() * totalChance;
+  let cumulativeChance = 0;
+  let type;
+
+  // Iterate through each type and add up the chances
+  for (let key in typeChances) {
+    cumulativeChance += typeChances[key];
+    if (rand <= cumulativeChance) {
+      type = key;
+      break;
+    }
   }
+
+  return type; // Return the randomly selected type
 }
 
 function trueRandomAsteroid() {
-  let rand = Math.floor(Math.random() * 5);
-  return ["normal", "fuel", "ammo", "health"][rand];
+  let rand = Math.floor(Math.random() * 7);
+  return ["normal", "fuel", "ammo", "health", "speed", "explosive"][rand];
 }
 
 function clearAsteroids() {

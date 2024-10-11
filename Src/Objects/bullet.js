@@ -8,7 +8,7 @@ class Bullet extends GravityObject {
     this.damage = 5;
     this.consumes = 1;
     this.speed = 1;
-    this.delay = 2 / 5;
+    this.delay = 0.4;
     this.r = 0.5;
     this.vx = dat.vx;
     this.vy = dat.vy;
@@ -28,14 +28,20 @@ class Bullet extends GravityObject {
     object.vy += this.vy / object.m * 400 * this.impactForce;
   }
 
+  onDestroy() {
+    this.destroy = true;
+  }
+
   checkForHit() {
+    const NO_OWNER = this.owner == null || (this.owner.name !== "ship" && this.owner.name !== "enemy");
+
     for (let asteroid of asteroids) {
-      const sz = asteroid.r / 2;
+      const sz = asteroid.r / 2 + this.r / 2;
       if (asteroid.x > this.x - sz &&
           asteroid.x < this.x + sz &&
           asteroid.y > this.y - sz &&
           asteroid.y < this.y + sz) {
-        this.destroy = true;
+        this.onDestroy();
         asteroid.takeDamage(this.damage * this.damageMult, this);
         this.transferMomentumTo(asteroid);
         htmlSounds.playSound(hitSound, 0.5);
@@ -44,14 +50,14 @@ class Bullet extends GravityObject {
       }
     }
     
-    if (this.owner.name == "enemy") {
+    if (this.owner.name == "enemy" || NO_OWNER) {
       // Ship
-      const sz = ship.s / 2;
+      const sz = ship.s / 2 + this.r / 2;
       if (ship.x > this.x - sz &&
           ship.x < this.x + sz &&
           ship.y > this.y - sz &&
           ship.y < this.y + sz) {
-        this.destroy = true;
+        this.onDestroy();
         ship.takeDamage(this.damage * this.damageMult, this);
         this.transferMomentumTo(ship);
         hud.addCameraShake(10, 10);
@@ -61,15 +67,15 @@ class Bullet extends GravityObject {
       }
     }
     
-    if (this.owner.name == "ship") {
+    if (this.owner.name == "ship" || NO_OWNER) {
       // Enemies
       for (let enemy of enemies) {
-        const sz = enemy.s / 2;
+        const sz = enemy.s / 2 + this.r / 2;
         if (enemy.x > this.x - sz &&
             enemy.x < this.x + sz &&
             enemy.y > this.y - sz &&
             enemy.y < this.y + sz) {
-          this.destroy = true;
+          this.onDestroy();
           enemy.takeDamage(this.damage * this.damageMult, this);
           this.transferMomentumTo(enemy);
           htmlSounds.playSound(hitSound, 0.5);
@@ -228,12 +234,32 @@ class MegaBullet extends HomingBullet {
   }
 }
 
+class ExplosiveBullet extends Bullet {
+  constructor(dat) {
+    super(dat);
+    this.consumes = 2;
+    this.col = { r: 255, g: 115, b: 0 };
+    this.delay = 0.4;
+    this.damage = 30;
+    this.r = 1;
+    this.time /= 2;
+  }
+
+  onDestroy() {
+    super.onDestroy();
+
+    // Spawn explosion
+    spawnExplosion(this.x, this.y, null, 0.05, 10);
+  }
+}
+
 function spawnBullet(dat) {
   let bullet = null;
   switch (dat.type) {
     case "homing": bullet = new HomingBullet(dat); break;
     case "speed": bullet = new SpeedBullet(dat); break;
     case "mega": bullet = new MegaBullet(dat); break;
+    case "explosive": bullet = new ExplosiveBullet(dat); break;
     default: bullet = new Bullet(dat); break;
   }
   bullets.push(bullet);

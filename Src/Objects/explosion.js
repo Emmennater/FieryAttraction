@@ -2,11 +2,11 @@
 explosions = [];
 
 class Explosion extends GameObject {
-  constructor(x, y, tracking = null) {
+  constructor(x, y, r, tracking = null) {
     super();
     this.x = x;
     this.y = y;
-    this.r = 20;
+    this.r = r || 20;
     this.tracking = tracking;
     this.frame = 0;
     this.destroy = false;
@@ -37,8 +37,8 @@ class Explosion extends GameObject {
   }
 }
 
-function spawnExplosion(x, y, tracking = null, volume = 0.2) {
-  const explosion = new Explosion(x, y, tracking);
+function spawnExplosion(x, y, tracking = null, volume = 0.2, radius = 20) {
+  const explosion = new Explosion(x, y, radius, tracking);
   explosions.push(explosion);
   htmlSounds.playSound(explodeSound, volume, true);
 }

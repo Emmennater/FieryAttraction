@@ -40,3 +40,26 @@ Bullet calculations
 // make gravity stronger
 // g *= Math.max((-this.fuel + 2) * 1.025, 1)
 // g = Math.min(g / this.m, 40);
+
+// class SpeedAsteroid extends Asteroid {
+//   constructor(x, y, r, vx, vy) {
+//     super(x, y, r, vx, vy);
+//     this.type = "speed";
+//     this.sprite = blueAsteroidSprite; // speedAsteroidSprite;
+//   }
+//   
+//   onDestroy(bullet) {
+//     super.onDestroy(bullet);
+//     bullet.owner.applyEffect(Speed, {
+//       duration: this.scaleReward(10)
+//     }, this);
+//   }
+// 
+//   draw(ctx) {
+//     // const frames = blueAsteroidSprite.numFrames();
+//     // const currentFrame = blueAsteroidSprite.getCurrentFrame();
+//     // const frame = Math.floor(frameCount / 8) % frames;
+//     // this.sprite.setFrame(frame);
+//     super.draw(ctx);
+//   }
+// }

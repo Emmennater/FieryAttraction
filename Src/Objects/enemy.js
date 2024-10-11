@@ -56,13 +56,12 @@ class Enemy extends Ship {
   }
   
   fireAtPlayer(dirOffset, dt, closeToSun) {
-
     // Accelerate towards player
     const distToPlayer = dist(this.x, this.y, ship.x, ship.y);
     if (distToPlayer > 80 || closeToSun) {
       this.control.boost = true;
-      this.vx += cos(this.velocityAngle + this.control.steeringAngle) * this.speed * dt;
-      this.vy += sin(this.velocityAngle + this.control.steeringAngle) * this.speed * dt;
+      this.vx += cos(this.a + this.control.steeringAngle) * this.speed * dt;
+      this.vy += sin(this.a + this.control.steeringAngle) * this.speed * dt;
     } else {
       // Slow down
       // this.vx *= 0.99;
@@ -96,7 +95,7 @@ class Enemy extends Ship {
     finalTargetAngle += stray;
 
     // Setting target angle
-    this.control.steeringAngle = finalTargetAngle - this.velocityAngle;
+    this.control.steeringAngle = finalTargetAngle - this.a;
     let bvx = cos(finalTargetAngle) * bulletSpeed;
     let bvy = sin(finalTargetAngle) * bulletSpeed;
 
@@ -144,7 +143,7 @@ class Enemy extends Ship {
     }
     
     // Steer away from sun
-    let A = this.velocityAngle;
+    let A = this.a;
     let a = atan2(dy, dx);
     A = ((A + TWO_PI) % TWO_PI + TWO_PI);
     a = ((a + TWO_PI) % TWO_PI + TWO_PI);
@@ -176,8 +175,8 @@ class Enemy extends Ship {
       this.control.boost = true;
       
       // Acceleration
-      this.vx += cos(this.velocityAngle + this.control.steeringAngle) * this.speed * dt;
-      this.vy += sin(this.velocityAngle + this.control.steeringAngle) * this.speed * dt;
+      this.vx += cos(this.a + this.control.steeringAngle) * this.speed * dt;
+      this.vy += sin(this.a + this.control.steeringAngle) * this.speed * dt;
       
     } else if (closeToPlayer) {
       // Aiming at player
@@ -356,10 +355,19 @@ function spawnEnemy(playerCheck = true, type = "normal") {
     default: enemy = new Enemy(x, y, vx, vy);
   }
 
+  // Strength
   const enemyStrengthThresholds = { normal: 500, homing: 800, speed: 800, mega: 1000 };
   const strengthPercent = 1 + Math.floor(hud.score / enemyStrengthThresholds[enemy.type]) * 0.2;
-  
   enemy.strengthen(strengthPercent);
+
+  // Random effect
+  const effects = [SuperSpeed, HomingRounds, SpeedRounds, MegaRounds, ExplosiveRounds, MultiShot];
+  if (Math.random() < 0.1) {
+    let RandomEffect = effects[Math.floor(Math.random() * effects.length)];
+    const level = Math.ceil(Math.sqrt(Math.random() * 9));
+    enemy.applyEffect(RandomEffect, { duration: 100000000, level });
+  }
+
   enemies.push(enemy);
 }
 

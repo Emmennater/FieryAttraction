@@ -14,6 +14,10 @@ class Effect {
         this.color = color(255);
     }
 
+    getText() {
+        return this.name + (this.level > 1 ? " " + romanNumeral(this.level) : "");
+    }
+
     update(dt) {}
 
     stop() {
@@ -124,20 +128,30 @@ class MegaRounds extends CustomRounds {
     }
 }
 
+class ExplosiveRounds extends CustomRounds {
+    constructor(target, dat) {
+        super(target, dat);
+        this.name = "explosive rounds";
+        this.bulletType = "explosive";
+        this.color = color(255, 115, 0);
+    }
+}
+
 class MultiShot extends Effect {
     constructor(target, dat) {
         super(target, dat);
-        this.name = "triple shot";
+        this.name = "multishot";
         this.category = "bullet modifier";
-        this.color = color(247, 243, 7);
+        this.color = color(255, 114, 0);
+        this.multishotQuantity = 2 + this.level;
     }
 
     update(dt) {
-        this.target.bulletType = this.bulletType;
+        this.target.multishot = this.multishotQuantity;
     }
 
     stop() {
-        this.target.bulletType = "normal";
+        this.target.multishot = 1;
     }
 
     run(dt) {

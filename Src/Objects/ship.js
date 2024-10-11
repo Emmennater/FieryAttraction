@@ -52,7 +52,7 @@ class Ship extends GravityObject {
     this.trail = new Trail();
     this.vx = 0;
     this.vy = -35;
-    this.velocityAngle = 0;
+    this.a = 0;
     this.s = 10;
     this.drag = 0.9998;
     this.speed = 8;
@@ -92,11 +92,14 @@ class Ship extends GravityObject {
     this.bCol = { r: 60, g: 255, b: 80 };
     this.bSpeed = 120;
     this.bulletType = "normal";
+    this.multishot = 1;
   }
   
   applyEffect(...args) {
     const effect = super.applyEffect(...args);
-    spawnBonusEffect(`+${effect.duration} ${effect.name}`, ship.x, ship.y, effect.color, 2);
+    if (this.name == "ship") {
+      spawnBonusEffect(`+${effect.duration} ${effect.getText()}`, ship.x, ship.y, effect.color, 2);
+    }
   }
 
   steer(dt, delta) {
@@ -170,22 +173,48 @@ class Ship extends GravityObject {
       this.bTime += this.bDelay * 2;
     }
     
-    const shipAngle = this.velocityAngle + this.control.steeringAngle;
-    let x = this.x + cos(shipAngle) * this.s;
-    let y = this.y + sin(shipAngle) * this.s;
-    let vx = this.vx + cos(shipAngle) * this.bSpeed;
-    let vy = this.vy + sin(shipAngle) * this.bSpeed;
-    
-    const bullet = spawnBullet({
-      x, y, vx, vy,
-      owner:this,
-      type:this.bulletType,
-      damageMult:this.damage,
-      bCol:this.bCol
-    });
+    const shipAngle = this.a + this.control.steeringAngle;
+    const multishot = this.multishot;
+    const spreadAngle = PI * 0.1;
+    const angleGap = spreadAngle / multishot;
+    let bullet = null;
+
+    const s = this.s * 0.75;
+    const leftWingX = this.x - cos(shipAngle - HALF_PI) * s + cos(shipAngle) * s * 0.5;
+    const leftWingY = this.y - sin(shipAngle - HALF_PI) * s + sin(shipAngle) * s * 0.5;
+    const rightWingX = this.x - cos(shipAngle + HALF_PI) * s + cos(shipAngle) * s * 0.5;
+    const rightWingY = this.y - sin(shipAngle + HALF_PI) * s + sin(shipAngle) * s * 0.5;
+
+    for (let i = 0; i < multishot; i++) {
+      let a = shipAngle - spreadAngle / 2;
+      a += angleGap * (i + 0.5);
+
+      let x, y;
+
+      if (Math.abs(a - shipAngle) < 0.01) {
+        x = this.x + cos(a) * this.s;
+        y = this.y + sin(a) * this.s;
+      } else {
+        const t = (a - shipAngle + spreadAngle / 2) / spreadAngle;
+        x = lerp(rightWingX, leftWingX, t);
+        y = lerp(rightWingY, leftWingY, t);
+      }
+
+      let vx = this.vx + cos(a) * this.bSpeed;
+      let vy = this.vy + sin(a) * this.bSpeed;
+      
+      bullet = spawnBullet({
+        x, y, vx, vy,
+        owner:this,
+        type:this.bulletType,
+        damageMult:this.damage,
+        bCol:this.bCol
+      });
+    }
+
 
     this.bTime += bullet.delay;
-    this.ammo = Math.max(this.ammo - bullet.consumes, 0);
+    this.ammo = Math.max(this.ammo - bullet.consumes * multishot, 0);
   }
   
   addFuel(amount, sender) {
@@ -240,7 +269,7 @@ class Ship extends GravityObject {
     
     // Boost
     if (this.control.boost) {
-      let shipAngle = this.velocityAngle + this.control.steeringAngle - PI;
+      let shipAngle = this.a + this.control.steeringAngle - PI;
       this.vx -= cos(shipAngle) * this.speed * this.speedMult * dt;
       this.vy -= sin(shipAngle) * this.speed * this.speedMult * dt;
       hud.addCameraShake(5, 10);
@@ -312,7 +341,10 @@ class Ship extends GravityObject {
           let s = Math.sqrt((vx2 - vx) ** 2 + (vx2 - vy) ** 2);
           let damage = s / 10 * collidedAsteroid.r / 10;
           damage = round(damage * 10) / 10;
+          
+          // Damage
           this.takeDamage(damage);
+          collidedAsteroid.takeDamage(damage, { owner: this });
           
           // Speed of impact;
           let v = Math.min(damage / 10, 0.5);  
@@ -336,20 +368,20 @@ class Ship extends GravityObject {
     // Calculate angle to sun
     const sunAngle = Math.atan2(sun.y - this.y, sun.x - this.x);
     const r1 = -sunAngle + HALF_PI;
-    const r2 = -this.velocityAngle - HALF_PI;
+    const r2 = -this.a - HALF_PI;
     const r3 = lerpAngle(r1, r2, 0.25);
 
     switch (this.cameraMode) {
       case "rotated":
         const s = Math.min(width, height) * 0.2;
-        x = this.x * 0.95 + cos(this.velocityAngle) * s / panzoom.zoom;
-        y = this.y * 0.95 + sin(this.velocityAngle) * s / panzoom.zoom;
+        x = this.x * 0.95 + cos(this.a) * s / panzoom.zoom;
+        y = this.y * 0.95 + sin(this.a) * s / panzoom.zoom;
         panzoom.setRotation(r3);
         break;
       default:
         x = this.x * 0.9;
         y = this.y * 0.9;
-        panzoom.setRotation(-this.velocityAngle - HALF_PI);
+        panzoom.setRotation(-this.a - HALF_PI);
         break;
     }
     stars.setViewPosition(x, y);
@@ -390,17 +422,17 @@ class Ship extends GravityObject {
     let speed = Math.sqrt(this.vx ** 2 + this.vy ** 2);
     
     let shipTurnRate = (this.control.boost) ? 0.01 : 0.02;
-    let oldAngle = this.velocityAngle;
+    let oldAngle = this.a;
     let newAngle = atan2(this.vy, this.vx);
     this.oldAngle = newAngle;
     oldAngle = ((oldAngle % TWO_PI) + TWO_PI) % TWO_PI;
     newAngle = ((newAngle % TWO_PI) + TWO_PI) % TWO_PI;
     let diff = smallestAngleDifference(oldAngle, newAngle);
     // this.a += (newAngle - oldAngle) * shipTurnRate;
-    this.velocityAngle += diff * shipTurnRate;
-    this.velocityAngle = ((this.velocityAngle % TWO_PI) + TWO_PI) % TWO_PI    
+    this.a += diff * shipTurnRate;
+    this.a = ((this.a % TWO_PI) + TWO_PI) % TWO_PI    
 
-    let shipAngle = this.velocityAngle + this.control.steeringAngle - PI;
+    let shipAngle = this.a + this.control.steeringAngle - PI;
     let exaustDist = this.s * 0.6;
     let exaustVx = 0, exaustVy = 0;
     let exaustDelay = this.exaustDelay;
@@ -455,13 +487,18 @@ class Ship extends GravityObject {
 
     ctx.push();
     ctx.translate(this.x, this.y);
-    ctx.rotate(HALF_PI + this.velocityAngle + this.control.steeringAngle);
+    ctx.rotate(HALF_PI + this.a + this.control.steeringAngle);
     ctx.translate(0, -this.s / 4);
     ctx.imageMode(CENTER);
     
     if (this.alpha != 255)
       ctx.tint(255, this.alpha);
+    
     ctx.image(this.sprite, 0, 0, this.s * SIZE, this.s * aspect * SIZE);
+
+    if (this.effects.length > 0)
+      ctx.image(jetEnchantmentSprite, 0, 0, this.s * SIZE, this.s * aspect * SIZE);
+
     if (this.alpha != 255)
       ctx.noTint();
     

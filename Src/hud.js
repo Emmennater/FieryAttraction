@@ -140,7 +140,7 @@ class HUD {
       );
       fill(255);
       noStroke();
-      text(effect.name, effectOffX + effectW / 2, yOff + effectH / 2);
+      text(effect.getText(), effectOffX + effectW / 2, yOff + effectH / 2);
     }
 
     // Low fuel

@@ -20,7 +20,9 @@ function preload() {
   healthAsteroidSprite = loadImage("Assets/health-asteroid-sprite.png");
   ammoAsteroidSprite = loadImage("Assets/ammo-asteroid-sprite.png");
   explosionSprite = loadImage("Assets/explosion.gif");
+  explosiveAsteroidSprite = loadImage("Assets/explosive-asteroid.png");``
   aimArcSprite = loadImage("Assets/aim-arc.png");
+  jetEnchantmentSprite = loadImage("Assets/jet-enchantment.png");
   // spacebg = loadImage("Assets/redsky.jpg");
   
   // Festive
@@ -29,7 +31,6 @@ function preload() {
     festive = !festive;
     document.getElementById("festive-button").click();
   } else loadTheme("default");
-  
 
   // Sounds
   alarmSound = loadSound("Assets/alarm-loop.wav");

@@ -106,7 +106,7 @@ function sleep(ms) {
 
 async function initSounds() {
   document.addEventListener('click', async function(event) {
-    if (documentClicked) return;
+    if (!event.isTrusted || documentClicked) return;
     documentClicked = true;
 
     soundTrack.volume = 0;

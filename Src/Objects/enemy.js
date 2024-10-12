@@ -46,11 +46,11 @@ class Enemy extends Ship {
     this.destroy = true;
 
     spawnExplosion(this.x, this.y, this);
-    if (bullet && bullet.owner.name == "ship") {
+    if (damageSource && damageSource instanceof Bullet && damageSource.owner.name == "ship") {
       this.slainByPlayer = true;
       hud.addScore(25);
-      if (bullet && bullet.owner)
-        this.grantEffect(bullet.owner);
+      if (damageSource && damageSource.owner)
+        this.grantEffect(damageSource.owner);
     }
   }
 

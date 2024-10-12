@@ -333,7 +333,7 @@ class MegaEnemy extends HomingEnemy {
 
 function initEnemies() {
   if (noSpawns) return;
-  enemies.push(new MegaEnemy(ship.x, ship.y - 300, 0, 0));
+  // enemies.push(new MegaEnemy(ship.x, ship.y - 300, 0, 0));
   for (let i = 0; i < 2; i++)
     spawnEnemy(true);
 }

@@ -39,17 +39,25 @@ class Enemy extends Ship {
     object.addFuel(randInt(5, 10));
   }
 
+  onDestroy(damageSource) {
+    // Already destroyed
+    if (this.destroy) return;
+
+    this.destroy = true;
+
+    spawnExplosion(this.x, this.y, this);
+    if (bullet && bullet.owner.name == "ship") {
+      this.slainByPlayer = true;
+      hud.addScore(25);
+      if (bullet && bullet.owner)
+        this.grantEffect(bullet.owner);
+    }
+  }
+
   takeDamage(damage, bullet) {
     this.health -= damage;
     if (this.health <= 0) {
-      this.destroy = true;
-      spawnExplosion(this.x, this.y, this);
-      if (bullet && bullet.owner.name == "ship") {
-        this.slainByPlayer = true;
-        hud.addScore(25);
-        if (bullet && bullet.owner)
-          this.grantEffect(bullet.owner);
-      }
+      this.onDestroy(bullet);
     }
   }
   

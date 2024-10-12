@@ -81,6 +81,9 @@ class Asteroid extends GravityObject {
   }
 
   onDestroy(bullet) {
+    // Already destroyed
+    if (this.destroy) return;
+
     if (!this.destroy && this.split)
       this.splitAsteroid(bullet);
     

@@ -2,6 +2,7 @@
 // - gravity storm (sucking in)
 // - meteor shower
 // - spin storm
+// Fix collision algorithm for asteroids (done)
 
 function preload() {
   // Sprites

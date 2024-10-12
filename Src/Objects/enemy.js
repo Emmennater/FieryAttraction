@@ -31,15 +31,12 @@ class Enemy extends Ship {
     this.bStray = 0.2;
     this.lastBullet = null;
   }
-  
+
   grantEffect(object) {
     if (!object) return;
-    let health = Math.random() * 5 + 5;
-    let ammo = Math.random() * 10 + 10;
-    let fuel = Math.random() * 5 + 5;
-    object.addHealth(Math.floor(health) + 1);
-    object.addAmmo(Math.floor(ammo) + 1);
-    object.addFuel(Math.floor(fuel) + 1);
+    object.addHealth(randInt(5, 10));
+    object.addAmmo(randInt(10, 20));
+    object.addFuel(randInt(5, 10));
   }
 
   takeDamage(damage, bullet) {
@@ -194,6 +191,7 @@ class Enemy extends Ship {
     
     this.x += this.vx * dt;
     this.y += this.vy * dt;
+    this.updateMesh();
   }
 }
 
@@ -222,7 +220,7 @@ class BlackEnemy extends Enemy {
   grantEffect(object) {
     super.grantEffect(object);
     object.applyEffect(ExplosiveRounds, {
-      duration: 20
+      duration: randInt(10, 20)
     })
   }
 
@@ -272,7 +270,7 @@ class SpeedEnemy extends Enemy {
   grantEffect(object) {
     super.grantEffect(object);
     object.applyEffect(SpeedRounds, {
-      duration: 80
+      duration: randInt(40, 80)
     });
   }
 }
@@ -296,7 +294,7 @@ class HomingEnemy extends Enemy {
   grantEffect(object) {
     super.grantEffect(object);
     object.applyEffect(HomingRounds, {
-      duration: 40
+      duration: randInt(20, 40)
     });
   }
 }
@@ -326,18 +324,32 @@ class MegaEnemy extends HomingEnemy {
   }
 
   grantEffect(object) {
-    super.grantEffect(object);
+    Enemy.prototype.grantEffect.call(this, object);
     object.applyEffect(MegaRounds, {
-      duration: 40
+      duration: randInt(20, 40)
     });
   }
 }
 
 function initEnemies() {
   if (noSpawns) return;
-  // enemies.push(new BlackEnemy(ship.x, ship.y, 0, 0));
+  // enemies.push(new MegaEnemy(ship.x, ship.y - 300, 0, 0));
   for (let i = 0; i < 2; i++)
     spawnEnemy(true);
+}
+
+function createEnemy(type, x = 0, y = 0, vx = 0, vy = 0) {
+  let enemy;
+  
+  switch (type) {
+    case "homing": enemy = new HomingEnemy(x, y, vx, vy); break;
+    case "speed": enemy = new SpeedEnemy(x, y, vx, vy); break;
+    case "mega": enemy = new MegaEnemy(x, y, vx, vy); break;
+    case "black": enemy = new BlackEnemy(x, y, vx, vy); break;
+    default: enemy = new Enemy(x, y, vx, vy);
+  }
+
+  return enemy;
 }
 
 function spawnEnemy(playerCheck = true, type = "normal") {
@@ -359,15 +371,7 @@ function spawnEnemy(playerCheck = true, type = "normal") {
   let dir = Math.random() < 0.5 ? 1 : -1;
   let vx = Math.cos(t + HALF_PI) * s * dir;
   let vy = Math.sin(t + HALF_PI) * s * dir;
-  let enemy = null;
-  
-  switch (type) {
-    case "homing": enemy = new HomingEnemy(x, y, vx, vy); break;
-    case "speed": enemy = new SpeedEnemy(x, y, vx, vy); break;
-    case "mega": enemy = new MegaEnemy(x, y, vx, vy); break;
-    case "black": enemy = new BlackEnemy(x, y, vx, vy); break;
-    default: enemy = new Enemy(x, y, vx, vy);
-  }
+  let enemy = createEnemy(type, x, y, vx, vy);
 
   // Strength
   const enemyStrengthThresholds = { normal: 500, homing: 800, speed: 800, mega: 1000 };
@@ -392,12 +396,6 @@ function destroyEnemy(enemy, i = enemies.indexOf(enemy)) {
   // Respawn (same type if not killed by player)
   let type = (!enemy.slainByPlayer) ? enemy.type : randomEnemyType();
   spawnEnemy(true, type);
-
-  // Chance for more
-  if (enemy.slainByPlayer && Math.random() < 0.3) {
-    let type = randomEnemyType();
-    spawnEnemy(true, type);
-  }
 }
 
 function moveEnemies(dt) {
@@ -423,8 +421,8 @@ function randomEnemyType() {
   const typeChances = {
     normal: 75,
     speed: 10,
-    homing: 10,
-    mega: 5,
+    homing: 5,
+    mega: 3,
     black: 5
   };
 
@@ -446,6 +444,50 @@ function randomEnemyType() {
   }
 
   return type; // Return the randomly selected type
+}
+
+function getRandomEnemyIndex() {
+  return Math.floor(Math.random() * enemies.length);
+}
+
+function upgradeEnemyAt(enemyIndex) {
+  const enemy = enemies[enemyIndex];
+  const enemyType = enemy.type;
+  const upgradePath = ["normal", "speed", "homing", "mega", "black"];
+  const newIndex = upgradePath.indexOf(enemyType) + 1;
+
+  if (newIndex >= upgradePath.length) return false;
+
+  const nextType = upgradePath[newIndex];
+  const newEnemy = createEnemy(nextType);
+
+  // Copy over the old enemy's properties
+  newEnemy.x = enemy.x;
+  newEnemy.y = enemy.y;
+  newEnemy.vx = enemy.vx;
+  newEnemy.vy = enemy.vy;
+  newEnemy.health = enemy.health;
+  newEnemy.control.steeringAngle = enemy.control.steeringAngle;
+  newEnemy.bTime = enemy.bTime;
+  newEnemy.lastBullet = enemy.lastBullet;
+  newEnemy.slainByPlayer = enemy.slainByPlayer;
+
+  // Replace old enemy with new one
+  enemies[enemyIndex] = newEnemy;
+
+  return true;
+}
+
+function blacklistEnemyTypes(enemyList, Classes) {
+  return enemyList.filter((enemy) => {
+    for (let Class of Classes) {
+      if (enemy instanceof Class) {
+        return false;
+      }
+    }
+
+    return true;
+  });
 }
 
 /*

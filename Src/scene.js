@@ -519,6 +519,7 @@ class GameOverScene extends Scene {
     scenes.eventManager.reset();
     clearAllEffects();
     alarmSound.stop();
+    if (scenes.paused) scenes.togglePause();
   }
 
   run(dt, ctx) {

@@ -12,7 +12,18 @@ class HUD {
     if (isNaN(1 + this.topScore))
       this.topScore = 0;
 
+    // Load previous motionblur value from localStorage
+    const motionBlurSlider = document.getElementById("motion-blur");
+    const motionBlurValue = getItem("fiery-attraction-motion-blur");
+    motionBlurSlider.value = motionBlurValue === undefined ? 0.5 : motionBlurValue;
+    this.setMotionBlur(parseFloat(motionBlurSlider.value));
+
     this.cameraShake = { amount: 0, speed: 0 };
+  }
+
+  setMotionBlur(amt) {
+    this.motionBlur = amt;
+    storeItem("fiery-attraction-motion-blur", amt);
   }
   
   addCameraShake(amount, speed) {
@@ -52,11 +63,16 @@ class HUD {
   }
 
   draw(dt, ctx) {
-
     // Camera transformations
     const SCALE = max(width, height);
     const MIN_SCALE = min(width, height);
-    const ALPHA = max((1 - ship.stats.temp * 5) * 100, 5) + 10;
+
+    // Motion blur
+    const ALPHA1 = max((1 - ship.stats.temp * 5) * 100, 5) + 10;
+    const ALPHA2 = max((1 - ship.stats.temp * 5) * 50, 5) - 10;
+    const ALPHA = this.motionBlur < 0.5 ? lerp(255, ALPHA1, this.motionBlur * 2) : lerp(ALPHA1, ALPHA2, (this.motionBlur - 0.5) * 2);
+    
+    // Shake
     const SHAKE_SCALER = Math.max(panzoom.zoom, 1.5);
     const shakeMult = this.cameraShake.amount * SHAKE_SCALER;
     const shakeSpeed = this.cameraShake.speed;

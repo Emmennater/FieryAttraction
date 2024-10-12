@@ -1,75 +1,80 @@
 
 class EventManager {
     constructor() {
-        this.threshold = 200;
-        this.threshold2 = 150;
-        this.threshold3 = 250;
-        this.threshold4 = 350;
+        this.thresholds = [];
+
+        this.addEvent(100, () => {
+            const BASELINE_COUNT = 2;
+            const MAX_ENEMIES = 15;
+            const TARGET_COUNT = Math.floor(hud.score / 100) + BASELINE_COUNT;
+            
+            // Replace enemies with stronger ones
+            if (TARGET_COUNT >= MAX_ENEMIES) {
+                const idx = getRandomEnemyIndex();
+                upgradeEnemyAt(idx);
+                console.log(TARGET_COUNT, enemies.length)
+                return;
+            } else {
+                spawnEnemy();
+            }
+        });
+
+        this.addEvent(200, () => {
+            this.startRandomEvent();
+        });
+
         this.activeEvents = [];
-        this.lastBigScore = 0;
-        this.lastMidScore = 0;
-        this.lastFarScore = 0;
-        this.lastFarerScore = 0;
+    }
+
+    addEvent(threshold, event) {
+        const obj = { score: threshold, event: () => event(this), lastTriggered: 0 };
+        this.thresholds.push(obj);
     }
 
     reset() {
-        this.lastBigScore = 0;
-        this.lastMidScore = 0;
-        this.lastFarScore = 0;
+        this.thresholds.forEach(t => t.lastTriggered = 0);
 
-        // Stop events
-        for (let evt of this.activeEvents)
-            evt.stop();
+        // Stop all active events
+        this.activeEvents.forEach(evt => evt.stop());
         this.activeEvents.length = 0;
     }
 
     startRandomEvent() {
-        const events = [ GravityStorm, SpinStorm ];
+        const events = [GravityStorm, SpinStorm];
         let RandomEvent = events[Math.floor(Math.random() * events.length)];
-
-        if (!this.checkForEvent(RandomEvent))
-            this.startEvent(RandomEvent);
+        return this.startEvent(RandomEvent);
     }
 
-    checkForEvent(constructor) {
-        for (let event of this.activeEvents)
-            if (event.constructor == constructor) return true;
-        return false;
+    checkForEvent(EventConstructor) {
+        return this.activeEvents.some(event => event.constructor === EventConstructor);
     }
 
     startEvent(Event) {
+        if (this.checkForEvent(Event)) return false;
+
         const event = new Event();
         this.activeEvents.push(event);
+
+        return true;
     }
 
     updateEvents(dt, ctx) {
-        if (hud.score - this.lastBigScore >= this.threshold) {
-            this.lastBigScore = Math.floor(hud.score / this.threshold) * this.threshold;
-            this.startRandomEvent();
-        }
+        // Iterate through the thresholds and check for triggering conditions
+        this.thresholds.forEach(threshold => {
+            if (hud.score - threshold.lastTriggered >= threshold.score) {
+                threshold.lastTriggered = Math.floor(hud.score / threshold.score) * threshold.score;
+                threshold.event();
+            }
+        });
 
-        if (hud.score - this.lastMidScore >= this.threshold2) {
-            this.lastMidScore = Math.floor(hud.score / this.threshold2) * this.threshold2;
-            spawnEnemy(true, Math.random() < 0.5 ? "homing" : "speed");
-        }
-
-        if (hud.score - this.lastFarScore >= this.threshold3) {
-            this.lastFarScore = Math.floor(hud.score / this.threshold3) * this.threshold3;
-            spawnEnemy(true, "mega");
-        }
-
-        if (hud.score - this.lastFarerScore >= this.threshold4) {
-            this.lastFarerScore = Math.floor(hud.score / this.threshold4) * this.threshold4;
-            spawnEnemy(true, "black");
-        }
-
+        // Run active events and remove them if they're done
         for (let i = this.activeEvents.length - 1; i >= 0; --i) {
             const event = this.activeEvents[i];
             event.run(dt, ctx);
 
-            // Event over
-            if (event.ended)
+            if (event.ended) {
                 this.activeEvents.splice(i, 1);
+            }
         }
     }
 }
@@ -119,7 +124,7 @@ class WorldEvent {
             textSize(MIN_SCL * 0.1 * FADE);
             textFont(arialBlack);
             textAlign(CENTER, CENTER);
-            text(this.title, width/2 + xoff, height/2 + yoff);
+            text(this.title, width / 2 + xoff, height / 2 + yoff);
         }
     }
 
@@ -168,7 +173,7 @@ class GravityStorm extends WorldEvent {
 
         sun.r = lerp(this.original.r, this.target.r, this.time);
         sun.m = lerp(this.original.m, this.target.m, this.time);
-        
+
         return this.time >= 1;
     }
 
@@ -215,7 +220,7 @@ class SpinStorm extends WorldEvent {
         super();
         this.title = "SPIN STORM";
         this.time = 0;
-        this.strength = 4;
+        this.strength = 3;
         this.sunRotationSpeed = 0.01;
         this.star = system.getRandomStar();
     }
@@ -237,7 +242,6 @@ class SpinStorm extends WorldEvent {
         this.star.rot += (multiplier - 1) * this.sunRotationSpeed;
         stars.rot += (multiplier - 1) * this.sunRotationSpeed;
 
-        if (time >= 1) console.log("SPIN STORM STARTED");
         return time >= 1;
     }
 
@@ -264,7 +268,6 @@ class SpinStorm extends WorldEvent {
         this.star.rot += (multiplier - 1) * this.sunRotationSpeed;
         stars.rot += (multiplier - 1) * this.sunRotationSpeed;
 
-        if (time >= 1) console.log("SPIN STORM ENDED");
         return time >= 1;
     }
 

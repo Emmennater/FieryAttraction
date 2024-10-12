@@ -211,7 +211,7 @@ function addEffect(Effect, target, dat, sender) {
     for (let i = 0; i < objectEffects.length; ++i) {
         const effect = objectEffects[i];
         const hasSameTarget = effect.target === target;
-        const hasSameLevel = effect.level === dat.level;
+        const hasSameLevel = effect.level === (dat.level || 1);
         const hasSameEffect = effect.constructor === Effect;
         if (hasSameTarget && hasSameLevel && hasSameEffect) {
             effect.duration += dat.duration;
@@ -222,11 +222,7 @@ function addEffect(Effect, target, dat, sender) {
 
     const effect = new Effect(target, dat);
     objectEffects.push(effect);
-
-    if (target.name == "ship") {
-        // Look to see if this effect already exists
-        target.effects.push(effect);
-    }
+    target.effects.push(effect);
 
     return effect;
 }

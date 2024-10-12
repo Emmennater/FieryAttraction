@@ -93,6 +93,13 @@ class Ship extends GravityObject {
     this.bSpeed = 120;
     this.bulletType = "normal";
     this.multishot = 1;
+
+    // Collision mesh
+    const scl = 1 / 738;
+    this.makeCollisionMesh([368, 0], [273, 395], [0, 600], [0, 695], [144, 828], [595, 828], [737, 695], [737, 600], [465, 395]);
+    this.collisionMesh.setOrigin(738/2, 897/2);
+    this.collisionMesh.setScale(this.s * 1.4 * scl);
+    this.collisionMesh.updateTransform();
   }
   
   applyEffect(...args) {
@@ -234,7 +241,16 @@ class Ship extends GravityObject {
     this.health = Math.min(this.health, 100);
     spawnBonusEffect(`+${amount} health`, ship.x, ship.y, color(0, 255, 0), 2);
   }
-  
+
+  updateMesh() {
+    const shipAngle = this.a + this.control.steeringAngle - PI;
+    const offx = -cos(shipAngle) * this.s / 4;
+    const offy = -sin(shipAngle) * this.s / 4;
+    this.collisionMesh.setPosition(this.x + offx, this.y + offy);
+    this.collisionMesh.setRotation(shipAngle - HALF_PI);
+    this.collisionMesh.updateTransform();
+  }
+
   move(dt, ctx) {
     let startOfGame = scenes.sceneTime < 5;
 
@@ -268,10 +284,17 @@ class Ship extends GravityObject {
 
     
     // Boost
+    const shipAngle = this.a + this.control.steeringAngle - PI;
     if (this.control.boost) {
-      let shipAngle = this.a + this.control.steeringAngle - PI;
-      this.vx -= cos(shipAngle) * this.speed * this.speedMult * dt;
-      this.vy -= sin(shipAngle) * this.speed * this.speedMult * dt;
+      let speedIncrease = 1;
+      
+      // If the ship is moving slow in the direction of the player, increase speed
+      // (increased maneuverability)
+      const projectedVelocity = Math.max(0, -(this.vx * cos(shipAngle) + this.vy * sin(shipAngle)));
+      speedIncrease = Math.max(1, 2 / (projectedVelocity * 0.1 + 1));
+
+      this.vx -= cos(shipAngle) * this.speed * this.speedMult * speedIncrease * dt;
+      this.vy -= sin(shipAngle) * this.speed * this.speedMult * speedIncrease * dt;
       hud.addCameraShake(5, 10);
     }
     
@@ -285,6 +308,7 @@ class Ship extends GravityObject {
     this.y += this.vy * dt;
     this.vx *= this.drag;
     this.vy *= this.drag;
+    this.updateMesh();
     
     // Constrain velocity
     if (!startOfGame) {
@@ -310,13 +334,7 @@ class Ship extends GravityObject {
     let collidedAsteroid = null;
     
     for (let asteroid of asteroids) {
-      const aSize = asteroid.r / 2;
-      const sSize = this.s / 2;
-      // const sz = sSize - aSize;
-      if (asteroid.x + aSize < this.x - sSize ||
-          asteroid.x - aSize > this.x + sSize ||
-          asteroid.y + aSize < this.y - sSize ||
-          asteroid.y - aSize > this.y + sSize) continue;
+      if (!this.collides(asteroid)) continue;
       collided = true;
       collidedAsteroid = asteroid;
       break;
@@ -344,7 +362,8 @@ class Ship extends GravityObject {
           
           // Damage
           this.takeDamage(damage);
-          collidedAsteroid.takeDamage(damage, { owner: this });
+          const asteroidDamage = damage / collidedAsteroid.scaleReward(1);
+          collidedAsteroid.takeDamage(asteroidDamage, { owner: this });
           
           // Speed of impact;
           let v = Math.min(damage / 10, 0.5);  
@@ -503,6 +522,9 @@ class Ship extends GravityObject {
       ctx.noTint();
     
     ctx.pop();
+
+    // Draw mesh
+    // this.drawMesh(ctx);
     
   }
 }

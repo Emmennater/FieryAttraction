@@ -68,6 +68,9 @@
       Your browser does not support the audio element.
     </audio>
     
+    <!-- Math Sources -->
+    <script src="Src/Math/collision-mesh.js"></script>
+
     <!-- Object Sources -->
     <script src="Src/Objects/game-obj.js"></script>
     <script src="Src/Objects/gravity-obj.js"></script>
@@ -95,7 +98,7 @@
     <script src="Src/sketch.js"></script>
     
     <!-- Version -->
-    <version id="version">Beta 1.9.0</version>
+    <version id="version">Beta 1.9.1</version>
 
     <!-- Pause Button -->
     <button id="pause" class="pause" style="visibility: hidden;" onclick="scenes.togglePause()">Pause</button>
@@ -128,11 +131,15 @@
               Music Designed by Emmett J.<br>
               <inputline>
                 Master
-                <input type="range" min="1" max="100" value="100" class="slider" id="master-volume" oninput="htmlSounds.updateMaster()">
+                <input type="range" min="0" max="100" value="100" class="slider" id="master-volume" oninput="htmlSounds.updateMaster()">
               </inputline>
               <inputline>
                 Music
-                <input type="range" min="1" max="100" value="50" class="slider" id="music-volume" oninput="scenes.changeMusicVolume()">
+                <input type="range" min="0" max="100" value="50" class="slider" id="music-volume" oninput="scenes.changeMusicVolume()">
+              </inputline>
+              <inputline>
+                Motion Blur
+                <input type="range" min="0" max="1" value="0.5" step = "0.1" class="slider" id="motion-blur" oninput="hud.setMotionBlur(parseFloat(this.value))">
               </inputline>
               <inputline>
                 Festive

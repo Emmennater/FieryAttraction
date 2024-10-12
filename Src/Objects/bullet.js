@@ -16,6 +16,7 @@ class Bullet extends GravityObject {
     this.py = dat.y;
     this.impactForce = dat.impactForce || 1;
     
+    this.isProjectile = true;
     this.owner = dat.owner;
     this.col = dat.bCol || { r: 255, g: 255, b: 255 };
     this.damageMult = dat.damageMult || 1;
@@ -36,33 +37,22 @@ class Bullet extends GravityObject {
     const NO_OWNER = this.owner == null || (this.owner.name !== "ship" && this.owner.name !== "enemy");
 
     for (let asteroid of asteroids) {
-      const sz = asteroid.r / 2 + this.r / 2;
-      if (asteroid.x > this.x - sz &&
-          asteroid.x < this.x + sz &&
-          asteroid.y > this.y - sz &&
-          asteroid.y < this.y + sz) {
+      if (asteroid.containsPoint(this.x, this.y)) {
         this.onDestroy();
         asteroid.takeDamage(this.damage * this.damageMult, this);
         this.transferMomentumTo(asteroid);
         htmlSounds.playSound(hitSound, 0.5);
-        // sounds.playRandomly(hitSound, 0.5);
         return;
       }
     }
     
     if (this.owner.name == "enemy" || NO_OWNER) {
-      // Ship
-      const sz = ship.s / 2 + this.r / 2;
-      if (ship.x > this.x - sz &&
-          ship.x < this.x + sz &&
-          ship.y > this.y - sz &&
-          ship.y < this.y + sz) {
+      if (ship.containsPoint(this.x, this.y)) {
         this.onDestroy();
         ship.takeDamage(this.damage * this.damageMult, this);
         this.transferMomentumTo(ship);
         hud.addCameraShake(10, 10);
         htmlSounds.playSound(hitSound, 0.5);
-        // sounds.playRandomly(hitSound, 0.5);
         return;
       }
     }
@@ -70,11 +60,7 @@ class Bullet extends GravityObject {
     if (this.owner.name == "ship" || NO_OWNER) {
       // Enemies
       for (let enemy of enemies) {
-        const sz = enemy.s / 2 + this.r / 2;
-        if (enemy.x > this.x - sz &&
-            enemy.x < this.x + sz &&
-            enemy.y > this.y - sz &&
-            enemy.y < this.y + sz) {
+        if (enemy.containsPoint(this.x, this.y)) {
           this.onDestroy();
           enemy.takeDamage(this.damage * this.damageMult, this);
           this.transferMomentumTo(enemy);
@@ -143,13 +129,17 @@ class HomingBullet extends Bullet {
 
   pickTarget() {
     // Select a target
+    let targets;
     this.target = null;
     switch (this.owner.name) {
       case "ship":
-        this.target = this.selectTarget(asteroids.concat(enemies));
+        const enemyTargets = enemies.concat(blacklistEnemyTypes(enemies, [HomingEnemy, MegaEnemy]));
+        targets = asteroids.concat(enemyTargets);
+        this.target = this.selectTarget(targets);
         break;
       case "enemy":
-        this.target = ship;
+        targets = asteroids.concat([ship]);
+        this.target = this.selectTarget(targets);
         break;
     }
   }
@@ -232,6 +222,23 @@ class MegaBullet extends HomingBullet {
     this.vy *= this.speed;
     this.damage = 7.5;
   }
+
+  pickTarget() {
+    // Select a target
+    let targets;
+    this.target = null;
+    switch (this.owner.name) {
+      case "ship":
+        const enemyTargets = enemies.concat(blacklistEnemyTypes(enemies, [MegaEnemy]));
+        targets = asteroids.concat(enemyTargets);
+        this.target = this.selectTarget(targets);
+        break;
+      case "enemy":
+        targets = asteroids.concat([ship]);
+        this.target = this.selectTarget(targets);
+        break;
+    }
+  }
 }
 
 class ExplosiveBullet extends Bullet {
@@ -242,7 +249,7 @@ class ExplosiveBullet extends Bullet {
     this.delay = 0.4;
     this.damage = 30;
     this.r = 1;
-    this.time /= 2;
+    this.time /= 1.5;
   }
 
   onDestroy() {

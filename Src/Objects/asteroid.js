@@ -13,6 +13,13 @@ const ASTEROID_COUNTS = {
   health: 0
 };
 
+const ASTEROID_MINIMUMS = {
+  normal: 28,
+  fuel: 8,
+  health: 3,
+  ammo: 6
+};
+
 class Asteroid extends GravityObject {
   constructor(x, y, r, vx, vy) {
     super(x, y, 100);
@@ -23,7 +30,6 @@ class Asteroid extends GravityObject {
     this.rotVel = Math.random() * 5 - 2.5;
     this.vx = vx;
     this.vy = vy;
-    this.depth = 1;
     this.graphicx = 0;
     this.graphicy = 0;
     this.sprite = asteroidSprite;
@@ -33,17 +39,25 @@ class Asteroid extends GravityObject {
     this.isSplit = false;
     this.type = "normal";
     this.speedMultiplier = 1;
+    // this.depth = 1;
+    
+    // Collision mesh
+    this.makeCollisionMesh([114, 10], [64, 22], [40, 54], [43, 145], [97, 191], [131, 181], [164, 123], [167, 61]);
+    this.collisionMesh.setOrigin(100, 100);
+    this.collisionMesh.setScale(this.r / 200);
   }
   
   move(dt) {
     dt *= this.speedMultiplier;
     this.attract(dt);
 
-
-
     this.x += this.vx * dt;
     this.y += this.vy * dt;
     this.rot += this.rotVel * dt;
+
+    this.collisionMesh.setPosition(this.x, this.y);
+    this.collisionMesh.setRotation(this.rot);
+    this.collisionMesh.updateTransform();
   }
   
   drawRock(ctx) {
@@ -68,11 +82,11 @@ class Asteroid extends GravityObject {
 
   onDestroy(bullet) {
     if (!this.destroy && this.split)
-      this.splitAsteroid();
+      this.splitAsteroid(bullet);
     
     this.destroy = true;
     spawnExplosion(this.x, this.y, null, this.r / 40 * 0.2, this.r);
-
+    
     const ownerIsJet = bullet && (bullet.owner.name == "ship" || bullet.owner.name == "enemy");
     if (ownerIsJet) this.giveReward(bullet.owner);
   }
@@ -81,24 +95,45 @@ class Asteroid extends GravityObject {
     if (object.name == "ship") hud.addScore(this.getScore());
   }
 
-  takeDamage(damage, bullet) {
+  takeDamage(damage, damageSource) {
     this.health -= damage;
     
     if (this.health <= 0) {
-      this.onDestroy(bullet);
+      this.onDestroy(damageSource);
     }
   }
 
-  splitAsteroid() {
+  splitAsteroid(damageSource) {
+    const explodeVel = 20;
+    
+    let sourceVx = 0, sourceVy = 0;
+    if (damageSource instanceof Bullet) {
+      sourceVx = damageSource.vx;
+      sourceVy = damageSource.vy;
+    }
+
     for (let i = 0; i < 3; i++) {
       let type = randomAsteroid();
       let asteroid = null;
 
       let x = this.x;
       let y = this.y;
-      let vx = this.vx + Math.random() * 40 - 20;
-      let vy = this.vy + Math.random() * 40 - 20;
+      let vx = 0, vy = 0;
       let r = Math.random() * 10 + 10 + 20 * (this.split - 1);
+      
+      // Initialize velocity
+      vx += this.vx * 0.5;
+      vy += this.vy * 0.5;
+
+      // Outwards velocity
+      let a = Math.random() * TWO_PI;
+      let v = (Math.random() + 1) * 0.5 * explodeVel;
+      vx += cos(a) * v;
+      vy += sin(a) * v;
+
+      // Damage source velocity
+      vx += sourceVx * 0.25;
+      vy += sourceVy * 0.25;
 
       switch (type) {
         case "fuel":
@@ -134,23 +169,33 @@ class Asteroid extends GravityObject {
   }
 
   draw(ctx) {
-    let r = this.r / this.depth;
-    let x = (this.x + panzoom.xoff) / this.depth;
-    let y = (this.y + panzoom.yoff) / this.depth;
-    this.graphicx = x;
-    this.graphicy = y;
+    this.graphicx = this.x + panzoom.xoff;
+    this.graphicy = this.y + panzoom.yoff;
     
     ctx.push();
     ctx.translate(width/2, height/2);
     ctx.scale(panzoom.zoom);
     ctx.rotate(panzoom.rot);
-    ctx.translate(x, y);
+    ctx.translate(panzoom.xoff, panzoom.yoff);
+    
+    ctx.push();
+    ctx.translate(this.x, this.y);
     ctx.rotate(this.rot);
     
     ctx.fill(70);
     ctx.noStroke();
     ctx.imageMode(CENTER);
-    ctx.image(this.sprite, 0, 0, r, r);
+    ctx.image(this.sprite, 0, 0, this.r, this.r);
+    
+    ctx.pop();
+    
+    // Hitbox
+    // this.drawMesh(ctx);
+    // ctx.stroke(255, 0, 0);
+    // ctx.strokeWeight(1);
+    // ctx.noFill();
+    // ctx.rectMode(CENTER);
+    // ctx.rect(0, 0, r, r);
     
     ctx.pop();
   }
@@ -236,7 +281,7 @@ class ExplosiveAsteroid extends Asteroid {
     // Shake screen
     hud.addCameraShake(10, 10);
 
-    const nBullets = this.scaleReward(7);
+    const nBullets = this.scaleReward(8);
     const x = this.x;
     const y = this.y;
 
@@ -331,6 +376,9 @@ function initAsteroids() {
   
   // Test
   // asteroids.push(new ExplosiveAsteroid(ship.x - 100, ship.y, 25, ship.vx, ship.vy));
+  const asteroid = new Asteroid(ship.x + 100, ship.y, 50, ship.vx, ship.vy);
+  asteroid.split = 1;
+  asteroids.push(asteroid);
 
   for (let i = 0; i < 28; ++i)
     spawnAsteroid();
@@ -358,8 +406,15 @@ function moveAsteroids(dt) {
         const currentRatio = ASTEROID_COUNTS[oldType] / asteroids.length;
         // let newType = (currentRatio <= expectedRatio) ? asteroid.type : randomAsteroid();
 
+        // Minimum asteroids (preserve asteroid types)
+        let newType = randomAsteroid();
+        const TYPE_MIN = ASTEROID_MINIMUMS[oldType];
+        if (TYPE_MIN && ASTEROID_COUNTS[asteroid.type] < TYPE_MIN) {
+          newType = oldType;
+        }
+
         // Replacement asteroids
-        spawnAsteroid(oldType, true);
+        spawnAsteroid(newType, true);
         if (Math.random() < 2 / 3) {
           spawnAsteroid(randomAsteroid(), true)
         }

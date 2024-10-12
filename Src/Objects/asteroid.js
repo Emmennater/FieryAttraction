@@ -376,9 +376,9 @@ function initAsteroids() {
   
   // Test
   // asteroids.push(new ExplosiveAsteroid(ship.x - 100, ship.y, 25, ship.vx, ship.vy));
-  const asteroid = new Asteroid(ship.x + 100, ship.y, 50, ship.vx, ship.vy);
-  asteroid.split = 1;
-  asteroids.push(asteroid);
+  // const asteroid = new Asteroid(ship.x + 100, ship.y, 50, ship.vx, ship.vy);
+  // asteroid.split = 1;
+  // asteroids.push(asteroid);
 
   for (let i = 0; i < 28; ++i)
     spawnAsteroid();

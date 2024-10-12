@@ -84,6 +84,8 @@ function setup() {
   asteroids = [];
   initAsteroids();
   
+  ship.applyEffect(HomingRounds, { duration: 40 });
+
   // Scenes
   scenes.setup();
 }

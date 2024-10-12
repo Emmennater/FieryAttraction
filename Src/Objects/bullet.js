@@ -133,7 +133,7 @@ class HomingBullet extends Bullet {
     this.target = null;
     switch (this.owner.name) {
       case "ship":
-        const enemyTargets = enemies.concat(blacklistEnemyTypes(enemies, [HomingEnemy, MegaEnemy]));
+        const enemyTargets = blacklistEnemyTypes(enemies, [HomingEnemy, MegaEnemy]);
         targets = asteroids.concat(enemyTargets);
         this.target = this.selectTarget(targets);
         break;
@@ -229,7 +229,7 @@ class MegaBullet extends HomingBullet {
     this.target = null;
     switch (this.owner.name) {
       case "ship":
-        const enemyTargets = enemies.concat(blacklistEnemyTypes(enemies, [MegaEnemy]));
+        const enemyTargets = blacklistEnemyTypes(enemies, [MegaEnemy]);
         targets = asteroids.concat(enemyTargets);
         this.target = this.selectTarget(targets);
         break;

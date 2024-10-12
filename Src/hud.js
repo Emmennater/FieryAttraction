@@ -1,10 +1,11 @@
 
 class HUD {
   constructor() {
+    const version = document.getElementById("version").innerHTML;
     this.motionBlur = 0.5;
     this.temp = 0;
     this.score = 0;
-    this.topScore = getItem("fiery-attraction-top-score") || 0;
+    this.topScore = getItem("fiery-attraction-top-score-" + version) || 0;
     this.guide = new Guide();
     this.radar = new Radar();
 

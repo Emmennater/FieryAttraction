@@ -571,7 +571,8 @@ class GameOverScene extends Scene {
     if (hud.score > hud.topScore) {
       scenes.highScore = true;
       hud.topScore = hud.score;
-      storeItem("fiery-attraction-top-score", hud.topScore);
+      const version = document.getElementById("version").innerHTML;
+      storeItem("fiery-attraction-top-score-" + version, hud.topScore);
     }
 
     if (scenes.highScore) {

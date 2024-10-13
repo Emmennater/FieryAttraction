@@ -32,7 +32,7 @@ class Scenes {
     
     // Music volume
     this.musicVolume = 0.5;
-    this.musicVolume = getItem("fiery-attraction-music-volume") || 0.5;
+    this.musicVolume = getItem("fiery-attraction-music-volume") ?? 0.5;
     
     // Bad data test
     if (isNaN(1 + this.musicVolume))

@@ -47,8 +47,8 @@ class Sounds {
 class HTMLSounds {
   constructor() {
     this.running = [];
-    this.volumeSlider = document.getElementById("master-volume");
-    this.master = getItem("fiery-attraction-sfx-volume") || 1.0;
+    this.volumeSlider = document.getElementById("master-volume") ?? 1.0;
+    this.master = getItem("fiery-attraction-sfx-volume") ?? 1.0;
     this.volumeSlider.value = 100 * this.master;
   }
 

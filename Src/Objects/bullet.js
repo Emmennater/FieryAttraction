@@ -124,6 +124,7 @@ class HomingBullet extends Bullet {
     super(dat);
     this.col = { r: 183, g: 45, b: 247 };
     this.homingVelocity = Math.sqrt(dat.vx ** 2 + dat.vy ** 2) * 1.5;
+    this.homingBlacklist = [ HomingEnemy, MegaEnemy ];
     this.pickTarget();
   }
 
@@ -133,8 +134,7 @@ class HomingBullet extends Bullet {
     this.target = null;
     switch (this.owner.name) {
       case "ship":
-        const enemyTargets = blacklistEnemyTypes(enemies, [HomingEnemy, MegaEnemy]);
-        targets = asteroids.concat(enemyTargets);
+        targets = asteroids.concat(enemies);
         this.target = this.selectTarget(targets);
         break;
       case "enemy":
@@ -171,22 +171,31 @@ class HomingBullet extends Bullet {
       this.pickTarget();
       return;
     }
-    
+
+    // Homing blacklist
+    let homeOnTarget = true;
+    for (let Class of this.homingBlacklist) {
+      if (this.target instanceof Class) {
+        homeOnTarget = false;
+        break;
+      }
+    }
+
+    // Can't home on target
+    if (!homeOnTarget) {
+      return;
+    }
+
+    const targetX = this.target.x;
+    const targetY = this.target.y;
     let vx = this.vx;
     let vy = this.vy;
-    let targetX = this.target.x;
-    let targetY = this.target.y;
     let velocity = Math.sqrt(vx ** 2 + vy ** 2);
     let currentA = atan2(vy, vx);
     let targetA = atan2(targetY - this.y, targetX - this.x);
     currentA = ((currentA % TWO_PI) + TWO_PI) % TWO_PI;
     targetA = ((targetA % TWO_PI) + TWO_PI) % TWO_PI;
     let deltaA = smallestAngleDifference(currentA, targetA);
-
-    CTX.noFill();
-    CTX.stroke(255, 0, 0, 50);
-    CTX.strokeWeight(2);
-    CTX.ellipse(targetX, targetY, 20, 20);
 
     // Calculating the maximum turning angle
     // Centripetal acceleration
@@ -207,6 +216,38 @@ class HomingBullet extends Bullet {
   move(dt) {
     this.homeOnTarget(dt);
     super.move(dt);
+  }
+
+  draw(ctx) {
+    super.draw(ctx);
+
+    // Homing blacklist
+    let homeOnTarget = true;
+    for (let Class of this.homingBlacklist) {
+      if (this.target instanceof Class) {
+        homeOnTarget = false;
+        break;
+      }
+    }
+
+    // Draw homing circle
+    const homingCol = color(255, 0, 0, 50);
+    const targetX = this.target.x;
+    const targetY = this.target.y;
+    CTX.noFill();
+    CTX.stroke(homingCol);
+    CTX.strokeWeight(2);
+    CTX.ellipse(targetX, targetY, 20, 20);
+    
+    // If can't homing on target draw a line through the circle (not sign)
+    if (!homeOnTarget) {
+      const LINE_ANGLE = ship.a - PI * 0.25;
+      const x1 = targetX + cos(LINE_ANGLE) * 10;
+      const y1 = targetY + sin(LINE_ANGLE) * 10;
+      const x2 = targetX - cos(LINE_ANGLE) * 10;
+      const y2 = targetY - sin(LINE_ANGLE) * 10;
+      CTX.line(x1, y1, x2, y2);
+    }
   }
 }
 
@@ -229,8 +270,7 @@ class MegaBullet extends HomingBullet {
     this.target = null;
     switch (this.owner.name) {
       case "ship":
-        const enemyTargets = blacklistEnemyTypes(enemies, [MegaEnemy]);
-        targets = asteroids.concat(enemyTargets);
+        targets = asteroids.concat(enemies);
         this.target = this.selectTarget(targets);
         break;
       case "enemy":

@@ -30,8 +30,6 @@ class Asteroid extends GravityObject {
     this.rotVel = Math.random() * 5 - 2.5;
     this.vx = vx;
     this.vy = vy;
-    this.graphicx = 0;
-    this.graphicy = 0;
     this.sprite = asteroidSprite;
     this.destroy = false;
     this.health = 15;
@@ -172,9 +170,6 @@ class Asteroid extends GravityObject {
   }
 
   draw(ctx) {
-    this.graphicx = this.x + panzoom.xoff;
-    this.graphicy = this.y + panzoom.yoff;
-    
     ctx.push();
     ctx.translate(width/2, height/2);
     ctx.scale(panzoom.zoom);

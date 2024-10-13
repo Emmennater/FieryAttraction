@@ -70,6 +70,7 @@ class Ship extends GravityObject {
     this.oldAngle = 0;
     this.speedMult = 1;
     this.speedMultTime = 0;
+    this.maxSpeed = 100;
     this.damage = 1;
     this.cameraMode = "normal";
 
@@ -312,7 +313,7 @@ class Ship extends GravityObject {
     
     // Constrain velocity
     if (!startOfGame) {
-      let maxSpeed = this.control.boost ? 100 : 40;
+      let maxSpeed = this.control.boost ? this.maxSpeed : this.maxSpeed * 0.4;
       let sp = Math.sqrt(this.vx ** 2 + this.vy ** 2);
       let ns = Math.min(sp, maxSpeed) / sp;
       this.vx = lerp(this.vx, this.vx * ns, 0.025);

@@ -52,9 +52,6 @@ class Stars {
       let newY = sin(a) * d;
       let x = (newX + panzoom.xoff) / s.depth;
       let y = (newY + panzoom.yoff) / s.depth;
-      // s.depth > sun.depth
-      // if ((sun.graphicx - x) ** 2 + (sun.graphicy - y) ** 2 < sunr2) continue;
-      // if (s.depth > sun.depth && (sun.graphicx - x) ** 2 + (sun.graphicy - y) ** 2 < sunr) continue;
       
       if (starSprite) {
         ctx.push();

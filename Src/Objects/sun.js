@@ -8,8 +8,6 @@ class Sun {
     this.r = 400;
     this.m = PI * this.r ** 2 * this.density; // 4500;
     this.depth = 1.5;
-    this.graphicx = 0;
-    this.graphicy = 0;
     this.oldTint = { r: 255, g: 255, b: 255, a: 255 };
     this.tint = { ...this.oldTint };
     this.targetTint = { r: 255, g: 255, b: 255, a: 255 };
@@ -72,8 +70,6 @@ class Sun {
     let r = this.r * 2.5 / this.depth;
     let x = (this.x + panzoom.xoff) / this.depth;
     let y = (this.y + panzoom.yoff) / this.depth;
-    this.graphicx = x;
-    this.graphicy = y;
     
     ctx.fill(255, 140, 0);
     ctx.noStroke();
@@ -118,5 +114,10 @@ class StarSystem {
 
   getRandomStar() {
     return this.stars[Math.floor(Math.random() * this.stars.length)];
+  }
+
+  getRandomPosition() {
+    let star = this.getRandomStar();
+    return star.getRandomPosition();
   }
 }

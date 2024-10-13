@@ -13,8 +13,8 @@ class BonusEffect extends GameObject {
         this.destroy = false;
 
         // Randomness
-        this.x += Math.random() * 20 - 10;
-        this.y += Math.random() * 20 - 10;
+        this.x += Math.random() * 40 - 20;
+        this.y += Math.random() * 40 - 20;
     }
 
     getAlpha() {

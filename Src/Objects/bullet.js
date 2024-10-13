@@ -218,8 +218,8 @@ class HomingBullet extends Bullet {
     super.move(dt);
   }
 
-  draw(ctx) {
-    super.draw(ctx);
+  drawHomingCirlce(ctx) {
+    if (!this.target) return;
 
     // Homing blacklist
     let homeOnTarget = true;
@@ -248,6 +248,11 @@ class HomingBullet extends Bullet {
       const y2 = targetY - sin(LINE_ANGLE) * 10;
       CTX.line(x1, y1, x2, y2);
     }
+  }
+
+  draw(ctx) {
+    super.draw(ctx);
+    this.drawHomingCirlce(ctx);
   }
 }
 

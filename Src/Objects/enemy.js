@@ -34,7 +34,7 @@ class Enemy extends Ship {
 
   grantEffect(object) {
     if (!object) return;
-    object.addHealth(randInt(5, 10));
+    object.addHealth(randInt(7, 15));
     object.addAmmo(randInt(10, 20));
     object.addFuel(randInt(5, 10));
   }
@@ -426,12 +426,14 @@ function drawEnemies(ctx) {
 }
 
 function randomEnemyType() {
+  const difficulty = Math.floor(hud.score / 200);
+  
   const typeChances = {
     normal: 75,
-    speed: 10,
-    homing: 5,
-    mega: 3,
-    black: 5
+    speed: 10 + difficulty,
+    homing: 5 + difficulty,
+    mega: 3 + difficulty,
+    black: 5 + difficulty
   };
 
   // Calculate the total sum of all chances

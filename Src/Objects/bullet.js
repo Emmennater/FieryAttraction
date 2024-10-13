@@ -262,6 +262,7 @@ class MegaBullet extends HomingBullet {
     this.vx *= this.speed;
     this.vy *= this.speed;
     this.damage = 7.5;
+    this.homingBlacklist = [ MegaEnemy ];
   }
 
   pickTarget() {

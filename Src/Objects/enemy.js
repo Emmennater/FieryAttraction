@@ -1,6 +1,8 @@
 
 enemies = [];
 
+const enemyStrengthThresholds = { normal: 500, homing: 800, speed: 800, mega: 1000, black: 1000 };
+
 class Enemy extends Ship {
   constructor(x, y, vx, vy) {
     super(x, y);
@@ -341,7 +343,7 @@ class MegaEnemy extends HomingEnemy {
 
 function initEnemies() {
   if (noSpawns) return;
-  // enemies.push(new MegaEnemy(ship.x, ship.y - 300, 0, 0));
+  // enemies.push(new BlackEnemy(ship.x, ship.y - 300, 0, 0));
   for (let i = 0; i < 2; i++)
     spawnEnemy(true);
 }
@@ -382,8 +384,9 @@ function spawnEnemy(playerCheck = true, type = "normal") {
   let enemy = createEnemy(type, x, y, vx, vy);
 
   // Strength
-  const enemyStrengthThresholds = { normal: 500, homing: 800, speed: 800, mega: 1000 };
-  const strengthPercent = 1 + Math.floor(hud.score / enemyStrengthThresholds[enemy.type]) * 0.2;
+  const threshold = enemyStrengthThresholds[enemy.type];
+  if (!threshold) throw new Error(`Unknown enemy type: ${enemy.type}`);
+  const strengthPercent = 1 + Math.floor(hud.score / threshold) * 0.2;
   enemy.strengthen(strengthPercent);
 
   // Random effect
@@ -426,8 +429,8 @@ function drawEnemies(ctx) {
 }
 
 function randomEnemyType() {
-  const difficulty = Math.floor(hud.score / 200);
-  
+  const difficulty = Math.floor(hud.score / 100);
+
   const typeChances = {
     normal: 75,
     speed: 10 + difficulty,

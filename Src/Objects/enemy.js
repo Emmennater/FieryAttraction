@@ -19,6 +19,7 @@ class Enemy extends Ship {
     this.bulletType = "normal";
     this.damage = 2 / 5;
     this.range = 200;
+    this.playerRange = 150;
     this.topSpeed = 100;
     this.slainByPlayer = false;
 
@@ -30,7 +31,7 @@ class Enemy extends Ship {
     this.bGravity = 0;
     this.bDecay = 1;
     this.bCol = { r:255, g:80, b:60 };
-    this.bStray = 0.2;
+    this.bStray = 0.6; // 0.2
     this.lastBullet = null;
   }
 
@@ -66,7 +67,7 @@ class Enemy extends Ship {
   fireAtPlayer(dirOffset, dt, closeToSun) {
     // Accelerate towards player
     const distToPlayer = dist(this.x, this.y, ship.x, ship.y);
-    if (distToPlayer > 80 || closeToSun) {
+    if (distToPlayer > this.playerRange || closeToSun) {
       this.control.boost = true;
       this.vx += cos(this.a + this.control.steeringAngle) * this.speed * dt;
       this.vy += sin(this.a + this.control.steeringAngle) * this.speed * dt;
@@ -260,6 +261,7 @@ class SpeedEnemy extends Enemy {
     this.sprite = speedEnemySprite;
     this.revive = false;
     this.range = 200;
+    this.playerRange = 100;
     this.speed = 80;
     this.topSpeed = 300;
     this.health = 20;
@@ -269,7 +271,7 @@ class SpeedEnemy extends Enemy {
     this.bImpactForce = 0.25;
     this.bGravity = 0.0;
     this.bDecay = 1;
-    this.bStray = 0.4;
+    this.bStray = 0.6;
 
     this.exaustCol = this.oldExaustCol = {
       min: { r: 30, g: 180, b: 200, a: 100 },
@@ -316,6 +318,7 @@ class MegaEnemy extends HomingEnemy {
     this.bulletType = "mega";
     this.health = 25;
     this.range = 250;
+    this.playerRange = 100;
     this.speed = 80;
 
     // Bullet attributes

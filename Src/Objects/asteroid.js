@@ -206,6 +206,11 @@ class FuelAsteroid extends Asteroid {
     this.sprite = fuelAsteroidSprite;
   }
   
+  getScore() {
+    // Based on radius
+    return this.scaleReward(8);
+  }
+
   giveReward(object) {
     super.giveReward(object);
     object.addFuel(this.scaleReward(4), this);
@@ -217,6 +222,11 @@ class HealthAsteroid extends Asteroid {
     super(x, y, r, vx, vy);
     this.type = "health";
     this.sprite = healthAsteroidSprite;
+  }
+
+  getScore() {
+    // Based on radius
+    return this.scaleReward(10);
   }
   
   giveReward(object) {
@@ -230,6 +240,11 @@ class AmmoAsteroid extends Asteroid {
     super(x, y, r, vx, vy);
     this.type = "ammo";
     this.sprite = ammoAsteroidSprite;
+  }
+
+  getScore() {
+    // Based on radius
+    return this.scaleReward(8);
   }
   
   giveReward(object) {
@@ -245,6 +260,11 @@ class SpeedAsteroid extends Asteroid {
     this.sprite = blueAsteroidSprite; // speedAsteroidSprite;
   }
   
+  getScore() {
+    // Based on radius
+    return this.scaleReward(15);
+  }
+
   giveReward(object) {
     super.giveReward(object);
     object.applyEffect(SuperSpeed, {
@@ -262,6 +282,11 @@ class ExplosiveAsteroid extends Asteroid {
     super(x, y, r, vx, vy);
     this.type = "explosive";
     this.sprite = explosiveAsteroidSprite;
+  }
+
+  getScore() {
+    // Based on radius
+    return this.scaleReward(15);
   }
 
   giveReward(object) {

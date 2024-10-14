@@ -57,7 +57,7 @@ class Ship extends GravityObject {
     this.drag = 0.9998;
     this.speed = 8;
     this.turnSpeed = 2.4;
-    this.control = { steeringAngle: 0, steerVel: 4, boost: false, fire:false };
+    this.control = { steeringAngle: 0, steerVel: 0, boost: false, fire:false };
     this.stats = { distToSun: 0, temp: 0 };
     this.inputs = {};
     this.colliding = false;
@@ -115,6 +115,19 @@ class Ship extends GravityObject {
       delta *= 2;
     this.control.steerVel += delta * dt;
     this.fuel -= 0.0005;
+  }
+
+  steerTargetAngle(dt, targetAngle) {
+    let steerSpeed = this.getSteeringAccel();
+
+    let dir = optimalAccel(
+        this.control.steeringAngle,
+        targetAngle,
+        this.control.steerVel,
+        steerSpeed
+    );
+
+    this.steer(dt, dir * steerSpeed);
   }
 
   boost() {

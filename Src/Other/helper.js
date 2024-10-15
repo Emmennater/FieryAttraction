@@ -64,3 +64,7 @@ function romanNumeral(num) {
 function randInt(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
+
+function randSign() {
+  return Math.random() < 0.5 ? -1 : 1;
+}

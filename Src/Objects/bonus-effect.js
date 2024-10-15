@@ -10,7 +10,6 @@ class BonusEffect extends GameObject {
         this.c = c;
         this.t = t;
         this.duration = t;
-        this.destroy = false;
 
         // Randomness
         this.x += Math.random() * 40 - 20;
@@ -18,12 +17,12 @@ class BonusEffect extends GameObject {
     }
 
     getAlpha() {
-        return Math.min(this.t, 1);
+        return Math.min(this.t, 1) * 255;
     }
 
     run(dt, ctx) {
         // Display text
-        ctx.fill(colorAlpha(this.c, this.getAlpha() * 255));
+        ctx.fill(colorAlpha(this.c, this.getAlpha()));
         ctx.noStroke();
         ctx.textSize(6);
         ctx.push();
@@ -35,7 +34,7 @@ class BonusEffect extends GameObject {
         // Time remaining
         this.t -= dt;
         if (this.t <= 0)
-            this.destroy = true;
+            this.destroy();
     }
 }
 
@@ -48,7 +47,7 @@ function spawnBonusEffect(txt, x, y, c, t = 1) {
 function runBonusEffects(dt, ctx) {
     for (let i = bonusEffects.length - 1; i >= 0; --i) {
         const effect = bonusEffects[i];
-        if (effect.destroy) {
+        if (effect.destroyed) {
             bonusEffects.splice(i, 1);
             continue;
         }

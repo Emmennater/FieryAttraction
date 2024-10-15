@@ -13,7 +13,7 @@ class Enemy extends Ship {
     this.vx = vx;
     this.vy = vy;
     this.steerAngle = 0;
-    this.health = 15;
+    this.setHealth(15, 15);
     this.speed = 10;
     this.sprite = enemySprite;
     this.bulletType = "normal";
@@ -43,11 +43,6 @@ class Enemy extends Ship {
   }
 
   onDestroy(damageSource) {
-    // Already destroyed
-    if (this.destroy) return;
-
-    this.destroy = true;
-
     spawnExplosion(this.x, this.y, this);
     if (damageSource && damageSource instanceof Bullet && damageSource.owner.name == "ship") {
       this.slainByPlayer = true;
@@ -57,21 +52,7 @@ class Enemy extends Ship {
     }
   }
 
-  takeDamage(damage, bullet) {
-    this.health -= damage;
-    if (this.health <= 0) {
-      this.onDestroy(bullet);
-    }
-  }
-
-  fireAtPlayer(dirOffset, dt, closeToSun) {
-    // Accelerate towards player
-    const distToPlayer = dist(this.x, this.y, ship.x, ship.y);
-    if (distToPlayer > this.playerRange || closeToSun) {
-      this.control.boost = true;
-      this.vx += cos(this.a + this.control.steeringAngle) * this.speed * dt;
-      this.vy += sin(this.a + this.control.steeringAngle) * this.speed * dt;
-    }
+  fireAtPlayer(dirOffset, dt, closeToStar) {
     
     // Variables
     let bSpeedMult = this.lastBullet ? this.lastBullet.speed : 1;
@@ -90,9 +71,21 @@ class Enemy extends Ship {
     let finalTargetAngle = angleToTarget + A;
 
     this.steerTargetAngle(dt, finalTargetAngle - this.a);
+    
+    const angleFromTarget = smallestAngleDifference(this.control.steeringAngle, finalTargetAngle - this.a);
+    const angleCloseToTarget = Math.abs(angleFromTarget) < 0.4;
+    
+    // Accelerate towards player
+    const distToPlayer = dist(this.x, this.y, ship.x, ship.y);
+    const closeToPlayer = distToPlayer > this.playerRange;
+    if (closeToPlayer || closeToStar) {
+      this.control.boost = true;
+      this.vx += cos(this.a + this.control.steeringAngle) * this.speed * dt;
+      this.vy += sin(this.a + this.control.steeringAngle) * this.speed * dt;
+    }
 
     this.bTime -= dt;
-    if (this.bTime > 0) return;
+    if (this.bTime > 0 || !angleCloseToTarget) return;
 
     let bulletAngle = this.control.steeringAngle + this.a;
 
@@ -135,13 +128,16 @@ class Enemy extends Ship {
     // Gravity
     this.attract(dt, 1);
 
-    // Distance to sun
-    let dx = sun.x - this.x;
-    let dy = sun.y - this.y;
-    let d = sqrt(dx ** 2 + dy ** 2);
+    const closestStar = system.getClosestStar(this.x, this.y);
+    const star = closestStar.star;
+    const d = closestStar.dist;
 
-    // Damage from sun
-    let damage = Math.max(sun.r - d, 0) / 4;
+    // Distance to star
+    let dx = star.x - this.x;
+    let dy = star.y - this.y;
+
+    // Damage from star
+    let damage = Math.max(star.r - d, 0) / 4;
     damage = round(damage * 10) / 10;
     
     if (damage > 0 && this.damageTime++ >= this.damageDelay) {
@@ -149,12 +145,12 @@ class Enemy extends Ship {
       this.takeDamage(damage);
     }
     
-    // Steer away from sun
+    // Steer away from star
     let A = this.a;
     let a = atan2(dy, dx);
     A = ((A + TWO_PI) % TWO_PI + TWO_PI);
     a = ((a + TWO_PI) % TWO_PI + TWO_PI);
-    let turnAway = sun.r / d;
+    let turnAway = star.r / d;
     let angleAway1 = a - HALF_PI - turnAway;
     let angleAway2 = a + HALF_PI + turnAway;
     
@@ -166,28 +162,34 @@ class Enemy extends Ship {
     
     // Attacking priority
     let distToPlayer = dist(this.x, this.y, ship.x, ship.y);
-    let closeToSun = d < sun.r * 1.3;
+    let closeToStar = d < star.r * 1.3;
     let closeToPlayer = distToPlayer < this.range;
-    let escapeSun = false;
+    let escapeStar = false;
 
-    // Conditions for boosting away from sun
-    if (d < sun.r + 50) escapeSun = true;
-    if (closeToSun && !closeToPlayer) escapeSun = true;
+    // Conditions for boosting away from star
+    if (d < star.r + 80) escapeStar = true;
+    if (closeToStar && !closeToPlayer) escapeStar = true;
 
     // Boosting
     this.control.boost = false;
-    if (escapeSun) {
+    if (escapeStar) {
       this.steerTargetAngle(dt, angleDelta);
-      this.control.boost = true;
-      
-      // Acceleration
-      this.vx += cos(this.a + this.control.steeringAngle) * this.speed * dt;
-      this.vy += sin(this.a + this.control.steeringAngle) * this.speed * dt;
-      
+      const angleFromTarget = smallestAngleDifference(this.control.steeringAngle, angleDelta);
+      const angleCloseToTarget = Math.abs(angleFromTarget) < 0.1;
+
+      if (angleCloseToTarget) {
+        this.control.boost = true;
+        
+        // Acceleration
+        this.vx += cos(this.a + this.control.steeringAngle) * this.speed * dt;
+        this.vy += sin(this.a + this.control.steeringAngle) * this.speed * dt;
+      }
     } else if (closeToPlayer) {
       // Aiming at player
       let dir = diff1 < diff2 ? -1 : 1;
-      this.fireAtPlayer(dir, dt, closeToSun);
+      this.fireAtPlayer(dir, dt, closeToStar);
+    } else {
+      this.steerTargetAngle(dt, 0);
     }
     
     // Constrain velocity
@@ -210,7 +212,7 @@ class BlackEnemy extends Enemy {
     this.type = "black";
     this.bulletType = "explosive";
     this.sprite = blackEnemySprite;
-    this.health = 25;
+    this.setHealth(25, 25);
 
     // Boost attributes
     this.oldExaustCol = {
@@ -262,7 +264,7 @@ class SpeedEnemy extends Enemy {
     this.playerRange = 100;
     this.speed = 80;
     this.topSpeed = 300;
-    this.health = 20;
+    this.setHealth(20, 20);
     
     // Bullet attributes
     this.bDelay = 1;
@@ -291,7 +293,7 @@ class HomingEnemy extends Enemy {
     this.type = "homing";
     this.bulletType = "homing";
     this.sprite = homingEnemySprite;
-    this.health = 20;
+    this.setHealth(20, 20);
 
     // Bullet attributes
     this.bDelay = 1;
@@ -314,7 +316,7 @@ class MegaEnemy extends HomingEnemy {
     super(x, y, vx, vy);
     this.type = "mega";
     this.bulletType = "mega";
-    this.health = 25;
+    this.setHealth(25, 25);
     this.range = 250;
     this.playerRange = 100;
     this.speed = 80;
@@ -346,7 +348,7 @@ function initEnemies() {
   if (noSpawns) return;
   // enemies.push(new Enemy(ship.x, ship.y - 300, 0, 0));
   for (let i = 0; i < 2; i++)
-    spawnEnemy(true);
+    spawnEnemy();
 }
 
 function createEnemy(type, x = 0, y = 0, vx = 0, vy = 0) {
@@ -363,25 +365,13 @@ function createEnemy(type, x = 0, y = 0, vx = 0, vy = 0) {
   return enemy;
 }
 
-function spawnEnemy(playerCheck = true, type = "normal") {
-  let t = Math.random() * TWO_PI;
-  
-  // Player check
-  if (playerCheck) {
-    let dx = sun.x - ship.x;
-    let dy = sun.y - ship.y;
-    let a = atan2(dy, dx);
-    t = a + Math.random() * 4 - 2;
-  }
-  
-  let d = sun.r + 100 + Math.random() * 100;
-  let r = Math.random() * 10 + 10;
-  let x = Math.cos(t) * d;
-  let y = Math.sin(t) * d;
-  let s = Math.random() * 20 + 20;
-  let dir = Math.random() < 0.5 ? 1 : -1;
-  let vx = Math.cos(t + HALF_PI) * s * dir;
-  let vy = Math.sin(t + HALF_PI) * s * dir;
+function spawnEnemy(type = "normal") {
+  const { pos, angle } = system.getRandomSpawn(100, 200, 600);
+  const { x, y } = pos;
+
+  let speed = randInt(20, 40);
+  let vx = Math.cos(angle) * speed;
+  let vy = Math.sin(angle) * speed;
   let enemy = createEnemy(type, x, y, vx, vy);
 
   // Strength
@@ -407,14 +397,14 @@ function destroyEnemy(enemy, i = enemies.indexOf(enemy)) {
 
   // Respawn (same type if not killed by player)
   let type = (!enemy.slainByPlayer) ? enemy.type : randomEnemyType();
-  spawnEnemy(true, type);
+  spawnEnemy(type);
 }
 
 function moveEnemies(dt) {
   for (let i = enemies.length - 1; i >= 0; --i) {
     const enemy = enemies[i];
 
-    if (enemy.destroy) {
+    if (enemy.destroyed) {
       destroyEnemy(enemy, i);
       continue;
     }

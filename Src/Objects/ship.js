@@ -78,6 +78,7 @@ class Ship extends GravityObject {
     this.fuel = 50;
     this.ammo = 200;
     this.health = 100;
+    this.maxHealth = 100;
 
     // Boost attributes
     this.oldExaustCol = {
@@ -94,6 +95,7 @@ class Ship extends GravityObject {
     this.bSpeed = 120;
     this.bulletType = "normal";
     this.multishot = 1;
+    this.lastBullet = null;
 
     // Collision mesh
     const scl = 1 / 738;
@@ -233,9 +235,9 @@ class Ship extends GravityObject {
       });
     }
 
-
+    this.lastBullet = bullet;
     this.bTime += bullet.delay;
-    this.ammo = Math.max(this.ammo - bullet.consumes * multishot, 0);
+    this.ammo = Math.max(this.ammo - bullet.consumes * Math.max(multishot - 1, 1), 0);
   }
   
   addFuel(amount, sender) {
@@ -268,14 +270,17 @@ class Ship extends GravityObject {
   move(dt, ctx) {
     let startOfGame = scenes.sceneTime < 5;
 
+    const closestStar = system.getClosestStar(this.x, this.y);
+    const star = closestStar.star;
+    const d = closestStar.dist;
+
     // Distance to sun
-    let dx = sun.x - this.x;
-    let dy = sun.y - this.y;
-    let d = Math.sqrt(dx ** 2 + dy ** 2);
-    this.stats.distToSun = d;
-    
+    let dx = star.x - this.x;
+    let dy = star.y - this.y;
+    this.stats.distToSun = Math.max(d - star.r, 0);
+
     // Damage from sun
-    let damage = Math.max(sun.r - d, 0) / 4;
+    let damage = Math.max(star.r - d, 0) / 4;
     damage = round(damage * 10) / 10;
     
     this.damageTime -= dt;
@@ -295,7 +300,6 @@ class Ship extends GravityObject {
         htmlSounds.fadeSound(burningSound, 0.0, 0.2);
       }
     }
-
     
     // Boost
     const shipAngle = this.a + this.control.steeringAngle - PI;
@@ -337,10 +341,6 @@ class Ship extends GravityObject {
     this.bulletTime -= dt * 60;
     if (this.bulletTime < 0)
       this.bulletTime = 0;
-  }
-  
-  takeDamage(damage) {
-    this.health = Math.max(this.health - damage, 0);
   }
   
   updateCollisions() {
@@ -391,29 +391,31 @@ class Ship extends GravityObject {
   }
   
   updateStats() {
-    this.stats.temp = (100 ** 6) / (this.stats.distToSun ** 5 + 1);
+    this.stats.temp = 100 / ((this.stats.distToSun + 50) * 10 + 100);
   }
   
   alignCamera() {
     let x = this.x;
     let y = this.y;
     
+    const star = system.getClosestStar(this.x, this.y).star;
+
     // Calculate angle to sun
-    const sunAngle = Math.atan2(sun.y - this.y, sun.x - this.x);
+    const sunAngle = Math.atan2(star.y - this.y, star.x - this.x);
     const r1 = -sunAngle + HALF_PI;
     const r2 = -this.a - HALF_PI;
     const r3 = lerpAngle(r1, r2, 0.25);
+    const s = Math.min(width, height) * 0.1;
 
     switch (this.cameraMode) {
       case "rotated":
-        const s = Math.min(width, height) * 0.2;
-        x = this.x * 0.95 + cos(this.a) * s / panzoom.zoom;
-        y = this.y * 0.95 + sin(this.a) * s / panzoom.zoom;
+        x = this.x + cos(this.a) * s / panzoom.zoom;
+        y = this.y + sin(this.a) * s / panzoom.zoom;
         panzoom.setRotation(r3);
         break;
       default:
-        x = this.x * 0.9;
-        y = this.y * 0.9;
+        x = this.x + cos(this.a) * s / panzoom.zoom;
+        y = this.y + sin(this.a) * s / panzoom.zoom;
         panzoom.setRotation(-this.a - HALF_PI);
         break;
     }
@@ -432,10 +434,12 @@ class Ship extends GravityObject {
     this.y = y;
   }
   
-  reset() {
-    this.setPosition(sun.r + 200, 300);
-    this.vx = 0;
-    this.vy = -40;
+  reset(difficult = false) {
+    let { pos, angle } = system.getRandomSpawn(200, 200, -1, 0);
+    angle += difficult ? PI * 0.2 : PI * 0.3;
+    this.setPosition(pos.x, pos.y);
+    this.vx = cos(angle) * 40;
+    this.vy = sin(angle) * 40;
     this.fuel = 10;
     this.ammo = 100;
     this.health = 60;
@@ -443,17 +447,10 @@ class Ship extends GravityObject {
     this.damageTime = 0;
     this.control.steeringAngle = 0;
     this.control.steerVel = 0;
+    this.destroyed = false;
   }
   
   drawBoost(ctx) {
-    // Distance to sun
-    let dx = sun.x - this.x;
-    let dy = sun.y - this.y;
-    let d = Math.sqrt(dx ** 2 + dy ** 2);
-    let vx = dx / d;
-    let vy = dy / d;
-    let speed = Math.sqrt(this.vx ** 2 + this.vy ** 2);
-    
     let shipTurnRate = (this.control.boost) ? 0.01 : 0.02;
     let oldAngle = this.a;
     let newAngle = atan2(this.vy, this.vx);

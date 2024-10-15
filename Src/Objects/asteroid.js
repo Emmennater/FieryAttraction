@@ -31,8 +31,6 @@ class Asteroid extends GravityObject {
     this.vx = vx;
     this.vy = vy;
     this.sprite = asteroidSprite;
-    this.destroy = false;
-    this.health = 15;
     this.split = 0;
     this.isSplit = false;
     this.type = "normal";
@@ -44,7 +42,7 @@ class Asteroid extends GravityObject {
     this.collisionMesh.setOrigin(100, 100);
     this.collisionMesh.setScale(this.r / 200);
   }
-  
+
   move(dt) {
     dt *= this.speedMultiplier;
     this.attract(dt);
@@ -79,13 +77,9 @@ class Asteroid extends GravityObject {
   }
 
   onDestroy(bullet) {
-    // Already destroyed
-    if (this.destroy) return;
-
-    if (!this.destroy && this.split)
+    if (this.split)
       this.splitAsteroid(bullet);
     
-    this.destroy = true;
     spawnExplosion(this.x, this.y, null, this.r / 40 * 0.2, this.r);
     
     const ownerIsJet = bullet && (bullet.owner.name == "ship" || bullet.owner.name == "enemy");
@@ -94,14 +88,6 @@ class Asteroid extends GravityObject {
 
   giveReward(object) {
     if (object.name == "ship") hud.addScore(this.getScore());
-  }
-
-  takeDamage(damage, damageSource) {
-    this.health -= damage;
-    
-    if (this.health <= 0) {
-      this.onDestroy(damageSource);
-    }
   }
 
   splitAsteroid(damageSource) {
@@ -114,7 +100,7 @@ class Asteroid extends GravityObject {
     }
 
     for (let i = 0; i < 3; i++) {
-      let type = randomAsteroid();
+      let type = randomAsteroidType();
       let asteroid = null;
 
       let x = this.x;
@@ -331,41 +317,104 @@ function destroyAllAsteroids() {
     asteroid.takeDamage(100);
 }
 
-function spawnAsteroid(type, playerCheck) {
-  let t = Math.random() * TWO_PI;
-  let dir = Math.random() < 0.5 ? 1 : -1;
-  
-  if (playerCheck) {
-    // Ship direction to sun
-    let dx = sun.x - ship.x;
-    let dy = sun.y - ship.y;
-    let a = atan2(dy, dx);
-    t = a + Math.random() * 0.5 * dir;
-  }
-  
-  let d = sun.r + 40 + Math.random() * 400;
-  let r = Math.floor(Math.random() * 10 + 10);
-  let split = false;
+function spawnAsteroid(type, spawnArc = 0.5) {
+  // Player check
+  // const OPPOSITE_ANGLE = atan2(sun.y - ship.y, sun.x - ship.x);
+  // const ANGLE_OFFSET = PI * spawnArc * randSign();
+  // spawnAngle = OPPOSITE_ANGLE + Math.random() * ANGLE_OFFSET;
+  const { pos, angle } = system.getRandomSpawn(40, 400, 200);
+  const { x, y } = pos;
 
+  let asteroidSpeed = randInt(20, 60);
+  let vx = Math.cos(angle) * asteroidSpeed;
+  let vy = Math.sin(angle) * asteroidSpeed;
+  let asteroid = createAsteroid(type, x, y, vx, vy);
+
+  ASTEROID_COUNTS[asteroid.type]++;
+  asteroids.push(asteroid);
+}
+
+function initAsteroids() {
+  if (noSpawns) return;
+  
+  // Test
+  // asteroids.push(new ExplosiveAsteroid(ship.x - 100, ship.y, 25, ship.vx, ship.vy));
+  // const asteroid = new Asteroid(ship.x + 100, ship.y, 50, ship.vx, ship.vy);
+  // asteroid.split = 1;
+  // asteroids.push(asteroid);
+
+  const SPAWN_ARC = 0.9;
+  for (let i = 0; i < 1; ++i) {
+    for (let i = 0; i < 28; ++i)
+      spawnAsteroid("normal", SPAWN_ARC);
+    for (let i = 0; i < 8; ++i)
+      spawnAsteroid("fuel", SPAWN_ARC);
+    for (let i = 0; i < 3; ++i)
+      spawnAsteroid("health", SPAWN_ARC);
+    for (let i = 0; i < 6; ++i)
+      spawnAsteroid("ammo", SPAWN_ARC);
+  }
+}
+
+function moveAsteroids(dt) {
+  for (let i = asteroids.length - 1; i >= 0; --i) {
+    const asteroid = asteroids[i];
+    if (asteroid.destroyed) {
+      asteroids.splice(i, 1);
+      ASTEROID_COUNTS[asteroid.type]--;
+
+      // For every asteroid destroyed, 2 more spawn
+      if (!asteroid.isSplit) {
+
+        // Current ratio for this type
+        const oldType = asteroid.type || "normal";
+        const expectedRatio = ASTEROID_RATIOS[oldType];
+        const currentRatio = ASTEROID_COUNTS[oldType] / asteroids.length;
+        // let newType = (currentRatio <= expectedRatio) ? asteroid.type : randomAsteroid();
+
+        // Minimum asteroids (preserve asteroid types)
+        let newType = randomAsteroidType();
+        const TYPE_MIN = ASTEROID_MINIMUMS[oldType];
+        if (TYPE_MIN && ASTEROID_COUNTS[asteroid.type] < TYPE_MIN) {
+          newType = oldType;
+        }
+
+        // Replacement asteroids
+        spawnAsteroid(newType);
+        if (Math.random() < 2 / 3) {
+          spawnAsteroid(randomAsteroidType());
+        }
+      }
+      
+      continue;
+    }
+    asteroid.move(dt);
+  }
+}
+
+function drawAsteroids(CTX) {
+  for (let asteroid of asteroids) {
+    asteroid.draw(CTX);
+  }
+}
+
+function createAsteroid(type, x, y, vx, vy) {
+  let asteroid = null;
+  let split = 0;
+  let r = randInt(10, 20);
+  
   // Random massive asteroid
   if (Math.random() < 0.05) {
     r += 20;
     split = 1;
-
+    
     // Random supermassive asteroid
-    if (Math.random() < 0.15) {
+    if (Math.random() < 0.1) {
       r += 40;
       split = 2;
     }
   }
 
-  let x = Math.cos(t) * d;
-  let y = Math.sin(t) * d;
-  let s = Math.random() * 10 + 25;
-  let vx = Math.cos(t + HALF_PI) * s * dir;
-  let vy = Math.sin(t + HALF_PI) * s * dir;
-  let asteroid = null;
-  
   switch (type) {
     case "fuel":
       asteroid = new FuelAsteroid(x, y, r, vx, vy);
@@ -386,76 +435,14 @@ function spawnAsteroid(type, playerCheck) {
       asteroid = new Asteroid(x, y, r, vx, vy);
   }
   
-  // Set health
-  asteroid.health = Math.max(r - 5, 5);
+  const health = Math.max(r - 5, 5);
+  asteroid.setHealth(health, health);
   asteroid.split = split;
-
-  ASTEROID_COUNTS[asteroid.type]++;
-  asteroids.push(asteroid);
-}
-
-function initAsteroids() {
-  if (noSpawns) return;
   
-  // Test
-  // asteroids.push(new ExplosiveAsteroid(ship.x - 100, ship.y, 25, ship.vx, ship.vy));
-  // const asteroid = new Asteroid(ship.x + 100, ship.y, 50, ship.vx, ship.vy);
-  // asteroid.split = 1;
-  // asteroids.push(asteroid);
-
-  for (let i = 0; i < 28; ++i)
-    spawnAsteroid();
-  for (let i = 0; i < 8; ++i)
-    spawnAsteroid("fuel");
-  for (let i = 0; i < 3; ++i)
-    spawnAsteroid("health");
-  for (let i = 0; i < 6; ++i)
-    spawnAsteroid("ammo");
+  return asteroid;
 }
 
-function moveAsteroids(dt) {
-  for (let i = asteroids.length - 1; i >= 0; --i) {
-    const asteroid = asteroids[i];
-    if (asteroid.destroy) {
-      asteroids.splice(i, 1);
-      ASTEROID_COUNTS[asteroid.type]--;
-
-      // For every asteroid destroyed, 2 more spawn
-      if (!asteroid.isSplit) {
-
-        // Current ratio for this type
-        const oldType = asteroid.type || "normal";
-        const expectedRatio = ASTEROID_RATIOS[oldType];
-        const currentRatio = ASTEROID_COUNTS[oldType] / asteroids.length;
-        // let newType = (currentRatio <= expectedRatio) ? asteroid.type : randomAsteroid();
-
-        // Minimum asteroids (preserve asteroid types)
-        let newType = randomAsteroid();
-        const TYPE_MIN = ASTEROID_MINIMUMS[oldType];
-        if (TYPE_MIN && ASTEROID_COUNTS[asteroid.type] < TYPE_MIN) {
-          newType = oldType;
-        }
-
-        // Replacement asteroids
-        spawnAsteroid(newType, true);
-        if (Math.random() < 2 / 3) {
-          spawnAsteroid(randomAsteroid(), true)
-        }
-      }
-      
-      continue;
-    }
-    asteroid.move(dt);
-  }
-}
-
-function drawAsteroids(CTX) {
-  for (let asteroid of asteroids) {
-    asteroid.draw(CTX);
-  }
-}
-
-function randomAsteroid() {
+function randomAsteroidType() {
   const typeChances = {
     normal: 70,
     fuel: 10,

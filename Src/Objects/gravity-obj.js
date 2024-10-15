@@ -9,22 +9,14 @@ class GravityObject extends GameObject {
     this.vy = 0;
   }
   
-  attract(dt, strength = 1, edgeStrength = 1) {
-    // Distance to sun
-    let dx = sun.x - this.x;
-    let dy = sun.y - this.y;
-    let d = sqrt(dx ** 2 + dy ** 2);
-    let vx = dx / d;
-    let vy = dy / d;
-    let gravity = this.m * sun.m / (d ** 2) / this.m;
-    let edgeForce = Math.max(d - sun.r * 1.5, 0) * 0.05 * edgeStrength;
-    let netForce = Math.min(gravity + edgeForce, 200);
+  attract(dt, strength = 1, edgeForce = 1) {
+    const gForce = system.getGravityForce(this);
+    const eForce = system.getEdgeForce(this);
 
-    // Apply forces
-    let ForceX = vx * netForce;
-    let ForceY = vy * netForce;
-    this.vx += ForceX * dt * strength;
-    this.vy += ForceY * dt * strength;
+    this.vx += gForce.x / this.m * strength * dt;
+    this.vy += gForce.y / this.m * strength * dt;
+    this.vx += eForce.x / this.m * edgeForce * dt;
+    this.vy += eForce.y / this.m * edgeForce * dt;
   }
 }
 

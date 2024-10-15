@@ -9,12 +9,16 @@ class Stars {
   }
   
   generate() {
+    const CENTER = system.getCenter();
+    const CX = CENTER.x;
+    const CY = CENTER.y;
+    let radius = 800;
     let SZ = max(width, height) / 2;
     for (let i = 0; i < 200; ++i) {
       let a = Math.random() * TWO_PI;
-      let d = Math.random() * SZ + sun.r;
-      let x = cos(a) * d;
-      let y = sin(a) * d;
+      let d = Math.random() * SZ + radius;
+      let x = cos(a) * d + CX;
+      let y = sin(a) * d + CY;
       let r = Math.random() * 55 + 200;
       let g = Math.random() * 55 + 200;
       let b = Math.random() * 55 + 200;
@@ -41,7 +45,7 @@ class Stars {
     
     ctx.noStroke();
     ctx.imageMode(CENTER);
-    // const sunr = (sun.r / sun.depth) ** 2;
+    
     const sz = 16;
     for (let s of this.stars) {
       // Rotate star position

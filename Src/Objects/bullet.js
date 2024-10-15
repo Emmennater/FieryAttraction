@@ -16,12 +16,10 @@ class Bullet extends GravityObject {
     this.py = dat.y;
     this.impactForce = dat.impactForce || 1;
     
-    this.isProjectile = true;
     this.owner = dat.owner;
     this.col = dat.bCol || { r: 255, g: 255, b: 255 };
     this.damageMult = dat.damageMult || 1;
     this.time = 4 / (this.dat.decay || 1);
-    this.destroy = false;
   }
   
   transferMomentumTo(object) {
@@ -29,16 +27,12 @@ class Bullet extends GravityObject {
     object.vy += this.vy / object.m * 400 * this.impactForce;
   }
 
-  onDestroy() {
-    this.destroy = true;
-  }
-
   checkForHit() {
     const NO_OWNER = this.owner == null || (this.owner.name !== "ship" && this.owner.name !== "enemy");
 
     for (let asteroid of asteroids) {
       if (asteroid.containsPoint(this.x, this.y)) {
-        this.onDestroy();
+        this.destroy();
         asteroid.takeDamage(this.damage * this.damageMult, this);
         this.transferMomentumTo(asteroid);
         htmlSounds.playSound(hitSound, 0.5);
@@ -48,7 +42,7 @@ class Bullet extends GravityObject {
     
     if (this.owner.name == "enemy" || NO_OWNER) {
       if (ship.containsPoint(this.x, this.y)) {
-        this.onDestroy();
+        this.destroy();
         ship.takeDamage(this.damage * this.damageMult, this);
         this.transferMomentumTo(ship);
         hud.addCameraShake(10, 10);
@@ -61,7 +55,7 @@ class Bullet extends GravityObject {
       // Enemies
       for (let enemy of enemies) {
         if (enemy.containsPoint(this.x, this.y)) {
-          this.onDestroy();
+          this.destroy();
           enemy.takeDamage(this.damage * this.damageMult, this);
           this.transferMomentumTo(enemy);
           htmlSounds.playSound(hitSound, 0.5);
@@ -75,7 +69,7 @@ class Bullet extends GravityObject {
   move(dt) {
     this.time -= dt;
     if (this.time < 0) {
-      this.destroy = true;
+      this.destroy();
     }
     
     const strength = 10 * (this.dat.gravity ?? 1);
@@ -167,7 +161,7 @@ class HomingBullet extends Bullet {
   }
 
   homeOnTarget(dt) {
-    if (this.target == null || this.target.destroy) {
+    if (this.target == null || this.target.destroyed) {
       this.pickTarget();
       return;
     }
@@ -185,7 +179,7 @@ class HomingBullet extends Bullet {
     if (!homeOnTarget) {
       return;
     }
-
+    
     const targetX = this.target.x;
     const targetY = this.target.y;
     let vx = this.vx;
@@ -230,6 +224,11 @@ class HomingBullet extends Bullet {
       }
     }
 
+    let radius = 20;
+    if (this.target instanceof Asteroid) {
+      radius = this.target.r + 5;
+    }
+
     // Draw homing circle
     const homingCol = color(255, 0, 0, 50);
     const targetX = this.target.x;
@@ -237,7 +236,7 @@ class HomingBullet extends Bullet {
     CTX.noFill();
     CTX.stroke(homingCol);
     CTX.strokeWeight(2);
-    CTX.ellipse(targetX, targetY, 20, 20);
+    CTX.ellipse(targetX, targetY, radius);
     
     // If can't homing on target draw a line through the circle (not sign)
     if (!homeOnTarget) {
@@ -322,7 +321,7 @@ function spawnBullet(dat) {
 function moveBullets(dt) {
   for (let i = bullets.length - 1; i >= 0; i--) {
     const bullet = bullets[i];
-    if (bullet.destroy) {
+    if (bullet.destroyed) {
       bullets.splice(i, 1);
       continue;
     }

@@ -1,29 +1,36 @@
 
-class GameObject {
+class GameObject extends CollisionObject {
   constructor() {
+    super();
     this.effects = [];
-    this.makeCollisionMesh();
+    this.health = 1;
+    this.maxHealth = 1;
+    this.destroyed = false;
   }
 
-  // Points must be defined in a counterclockwise order
-  makeCollisionMesh(...pointArrays) {
-    const pointObjects = pointArrays.map((points) => {
-      return { x: points[0], y: points[1] };
-    })
+  onDestroy(damageSource) {
 
-    this.collisionMesh = new CollisionMesh(pointObjects);
   }
 
-  drawMesh(ctx) {
-    this.collisionMesh.draw(ctx, color(0, 0), color(255, 0, 0));
+  destroy() {
+    this.destroyed = true;
+    this.onDestroy();
   }
 
-  collides(other) {
-    return this.collisionMesh.collides(other.collisionMesh);
+  setHealth(health, maxHealth = -1) {
+    this.health = health;
+    if (maxHealth > 0)
+      this.maxHealth = maxHealth;
   }
 
-  containsPoint(x, y) {
-    return this.collisionMesh.boundaryContainsPoint(x, y);
+  takeDamage(damage, damageSource) {
+    this.health = Math.max(this.health - damage, 0);
+    spawnHealthBar(this, 3);
+
+    if (this.health <= 0 && !this.destroyed) {
+      this.destroyed = true;
+      this.onDestroy(damageSource);
+    }
   }
 
   applyEffect(Effect, dat = {}, sender = null) {

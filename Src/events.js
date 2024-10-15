@@ -160,28 +160,21 @@ class WorldEvent {
 class GravityStorm extends WorldEvent {
     constructor() {
         super();
-        this.originalSunRadius = sun.r;
-        this.originalSunMass = sun.m;
+        this.star = system.getRandomStar();
+        this.title = "GRAVITY STORM";
+        
+        // Initial and target values
+        this.originalSunRadius = this.star.r;
+        this.originalSunMass = this.star.m;
+        this.originalSunTint = { ...this.star.tint };
         this.bigSunRadius = this.originalSunRadius * 2;
         this.bigSunMass = this.originalSunMass * 4;
+        this.bigSunTint = { r: 0, g: 0, b: 0, a: 255 };
+        
+        // Transition values
         this.target = { r: 0, m: 0 };
         this.original = { r: 0, m: 0 };
         this.time = 0;
-        this.title = "GRAVITY STORM";
-        this.bigTint = { r: 20, g: 20, b: 20 };
-        this.started = false;
-    }
-
-    goToTarget(dt) {
-        if (this.justTransitioned)
-            this.time = 0;
-
-        this.time += dt * 0.05;
-
-        sun.r = lerp(this.original.r, this.target.r, this.time);
-        sun.m = lerp(this.original.m, this.target.m, this.time);
-
-        return this.time >= 1;
     }
 
     start(dt) {
@@ -189,16 +182,17 @@ class GravityStorm extends WorldEvent {
         if (this.stageTime < 5)
             return;
 
-        if (!this.started) {
-            this.started = true;
-            sun.tintFade(0, 0, 0, 255, 8);
-        }
+        const TIME = Math.min((this.stageTime - 5) * 0.05, 1);
+        const SUN_TIME = Math.min(TIME * 2, 1);
 
-        this.target.r = this.bigSunRadius;
-        this.target.m = this.bigSunMass;
-        this.original.r = this.originalSunRadius;
-        this.original.m = this.originalSunMass;
-        return this.goToTarget(dt);
+        this.star.tint.r = lerp(this.originalSunTint.r, this.bigSunTint.r, SUN_TIME);
+        this.star.tint.g = lerp(this.originalSunTint.g, this.bigSunTint.g, SUN_TIME);
+        this.star.tint.b = lerp(this.originalSunTint.b, this.bigSunTint.b, SUN_TIME);
+        this.star.tint.a = lerp(this.originalSunTint.a, this.bigSunTint.a, SUN_TIME);
+        this.star.r = lerp(this.originalSunRadius, this.bigSunRadius, TIME);
+        this.star.m = lerp(this.originalSunMass, this.bigSunMass, TIME);
+
+        return TIME >= 1;
     }
 
     middle(dt) {
@@ -206,19 +200,23 @@ class GravityStorm extends WorldEvent {
     }
 
     end(dt) {
-        if (this.justTransitioned)
-            sun.tintReset(10);
-        this.target.r = this.originalSunRadius;
-        this.target.m = this.originalSunMass;
-        this.original.r = this.bigSunRadius;
-        this.original.m = this.bigSunMass;
-        return this.goToTarget(dt);
+        const TIME = Math.min(this.stageTime * 0.05, 1);
+        const SUN_TIME = Math.min(TIME * 2, 1);
+
+        this.star.tint.r = lerp(this.bigSunTint.r, this.originalSunTint.r, SUN_TIME);
+        this.star.tint.g = lerp(this.bigSunTint.g, this.originalSunTint.g, SUN_TIME);
+        this.star.tint.b = lerp(this.bigSunTint.b, this.originalSunTint.b, SUN_TIME);
+        this.star.tint.a = lerp(this.bigSunTint.a, this.originalSunTint.a, SUN_TIME);
+        this.star.r = lerp(this.bigSunRadius, this.originalSunRadius, TIME);
+        this.star.m = lerp(this.bigSunMass, this.originalSunMass, TIME);
+
+        return TIME >= 1;
     }
 
     stop() {
-        sun.r = this.originalSunRadius;
-        sun.m = this.originalSunMass;
-        sun.tintReset();
+        this.star.r = this.originalSunRadius;
+        this.star.m = this.originalSunMass;
+        this.star.tint = { ...this.originalSunTint };
     }
 }
 

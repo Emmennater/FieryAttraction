@@ -399,20 +399,24 @@ class GameScene extends Scene {
     bullets.length = 0;
     explosions.length = 0;
     enemies.length = 0;
-    clearAsteroids();
-    initAsteroids();
-    initEnemies();
 
     // Put player in tough spot if they didn't skip (lol)
     if (!scenes.introSkipped) {
-      ship.vx = 0;
-      ship.vy = -45;
       ship.control.steerVel = 4;
-      ship.setPosition(600, 600);
+      ship.reset(true);
+      // ship.vx = 0;
+      // ship.vy = -45;
+      // ship.setPosition(600, 600);
+    } else {
+      ship.reset(false);
     }
 
     // Set ship angle at start
     ship.a = atan2(ship.vy, ship.vx);
+  
+    clearAsteroids();
+    initAsteroids();
+    initEnemies();
   }
 
   run(dt, ctx) {
@@ -447,8 +451,8 @@ class GameScene extends Scene {
     // ctx.pop();
 
     stars.draw(ctx);
-    sun.update(dt);
-    sun.draw(ctx);
+    system.update(dt);
+    system.draw(ctx);
     
     panzoom.begin(ctx);
     updateAllEffects(dt);
@@ -471,6 +475,7 @@ class GameScene extends Scene {
     panzoom.begin(ctx);
     drawExplosions(ctx);
     runBonusEffects(dt, ctx);
+    runHealthBars(dt, ctx);
     hud.updateGuides(dt, ctx);
     panzoom.end(ctx);
     

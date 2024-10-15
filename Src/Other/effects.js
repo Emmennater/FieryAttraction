@@ -159,7 +159,8 @@ class MultiShot extends Effect {
 
         // Time remaining
         if (!this.target.control.fire) return;
-        this.timeRemaining -= 1;
+        const ammoConsumed = this.target.lastBullet ? this.target.lastBullet.consumes : 1;
+        this.timeRemaining -= ammoConsumed;
         if (this.timeRemaining <= 0) {
             this.done = true;
             this.stop();

@@ -74,6 +74,10 @@ class CollisionMesh {
     return this.transformedTris;
   }
 
+  getBoundingRadius() {
+    return this.boundingRadius * this.scl;
+  }
+
   generateTransformedConvexPolygons() {
     this.transformedTris = [];
 

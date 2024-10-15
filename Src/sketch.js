@@ -24,6 +24,7 @@ function preload() {
   explosiveAsteroidSprite = loadImage("Assets/explosive-asteroid.png");``
   aimArcSprite = loadImage("Assets/aim-arc.png");
   jetEnchantmentSprite = loadImage("Assets/jet-enchantment.png");
+  solarFlairSprite = loadImage("Assets/solar-flair2.png");
   // spacebg = loadImage("Assets/redsky.jpg");
   
   // Festive

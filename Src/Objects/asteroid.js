@@ -357,6 +357,7 @@ function initAsteroids() {
 }
 
 function moveAsteroids(dt) {
+  const CAP = 70;
   for (let i = asteroids.length - 1; i >= 0; --i) {
     const asteroid = asteroids[i];
     if (asteroid.destroyed) {
@@ -381,7 +382,7 @@ function moveAsteroids(dt) {
 
         // Replacement asteroids
         spawnAsteroid(newType);
-        if (Math.random() < 2 / 3) {
+        if (Math.random() < 0.5 && asteroids.length < CAP) {
           spawnAsteroid(randomAsteroidType());
         }
       }

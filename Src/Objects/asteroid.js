@@ -322,7 +322,7 @@ function spawnAsteroid(type, spawnArc = 0.5) {
   // const OPPOSITE_ANGLE = atan2(sun.y - ship.y, sun.x - ship.x);
   // const ANGLE_OFFSET = PI * spawnArc * randSign();
   // spawnAngle = OPPOSITE_ANGLE + Math.random() * ANGLE_OFFSET;
-  const { pos, angle } = system.getRandomSpawn(40, 400, 200);
+  const { pos, angle } = system.getRandomSpawn(40, 400, 200, random(PI * 0.4, PI * 0.6));
   const { x, y } = pos;
 
   let asteroidSpeed = randInt(20, 60);

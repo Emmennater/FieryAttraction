@@ -96,20 +96,50 @@ class Enemy extends Ship {
     bulletAngle += stray;
 
     // Setting target angle
-    let bvx = cos(bulletAngle) * bulletSpeed;
-    let bvy = sin(bulletAngle) * bulletSpeed;
+    // let bvx = cos(bulletAngle) * this.bSpeed;
+    // let bvy = sin(bulletAngle) * this.bSpeed;
 
-    // Shoot bullet
-    const bullet = spawnBullet({
-      x:this.x, y:this.y, vx:bvx, vy:bvy,
-      owner:this,
-      type:this.bulletType,
-      damageMult:this.damage,
-      bCol:this.bCol,
-      gravity:this.bGravity,
-      decay:this.bDecay,
-      impactForce:this.bImpactForce
-    });
+    const multishot = this.multishot;
+    const spreadAngle = PI * 0.1;
+    const angleGap = spreadAngle / multishot;
+    let bullet = null;
+    
+    const s = this.s * 0.75;
+    const leftWingX = this.x - cos(bulletAngle - HALF_PI) * s + cos(bulletAngle) * s * 0.5;
+    const leftWingY = this.y - sin(bulletAngle - HALF_PI) * s + sin(bulletAngle) * s * 0.5;
+    const rightWingX = this.x - cos(bulletAngle + HALF_PI) * s + cos(bulletAngle) * s * 0.5;
+    const rightWingY = this.y - sin(bulletAngle + HALF_PI) * s + sin(bulletAngle) * s * 0.5;
+
+    for (let i = 0; i < multishot; i++) {
+      let a = bulletAngle - spreadAngle / 2;
+      a += angleGap * (i + 0.5);
+
+      let x, y;
+
+      if (Math.abs(a - bulletAngle) < 0.01) {
+        x = this.x + cos(a) * this.s;
+        y = this.y + sin(a) * this.s;
+      } else {
+        const t = (a - bulletAngle + spreadAngle / 2) / spreadAngle;
+        x = lerp(rightWingX, leftWingX, t);
+        y = lerp(rightWingY, leftWingY, t);
+      }
+
+      let vx = this.vx + cos(a) * this.bSpeed;
+      let vy = this.vy + sin(a) * this.bSpeed;
+      
+      // Shoot bullet
+      bullet = spawnBullet({
+        x:this.x, y:this.y, vx, vy,
+        owner:this,
+        type:this.bulletType,
+        damageMult:this.damage,
+        bCol:this.bCol,
+        gravity:this.bGravity,
+        decay:this.bDecay,
+        impactForce:this.bImpactForce
+      });
+    }
 
     this.bTime = bullet.delay * this.bDelay;
   }
@@ -346,7 +376,9 @@ class MegaEnemy extends HomingEnemy {
 
 function initEnemies() {
   if (noSpawns) return;
-  // enemies.push(new Enemy(ship.x, ship.y - 300, 0, 0));
+  // const enemy = createEnemy("speed", ship.x, ship.y, 0, 0);
+  // enemy.applyEffect(MultiShot, { duration: 10000, level: 1 });
+  // enemies.push(enemy);
   for (let i = 0; i < 2; i++)
     spawnEnemy();
 }

@@ -247,7 +247,7 @@ class Meter {
     this.targetPercent = percent;
     if (this.t < 2) return;
     const diff = Math.abs(this.targetPercent - this.percent);
-    this.t = diff < 0.01 ? 2 : 0;
+    this.t = diff < 0.01 ? 2 : (this.targetPercent > this.percent ? 1 : 0);
   }
 
   update(dt) {
@@ -262,13 +262,13 @@ class Meter {
   reset() {
     this.percent = 0;
     this.targetPercent = 0;
-    this.t = 0;
+    this.t = 2;
   }
 
   draw() {
     const { x, y, w, h, col, col2, label, percent, targetPercent } = this;
     const p0 = w * Math.min(targetPercent, percent);
-    const p1 = w * Math.max(targetPercent, percent);
+    const p1 = w * percent; // Math.max(targetPercent, percent);
 
     // Meter
     noStroke();

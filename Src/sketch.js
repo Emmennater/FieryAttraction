@@ -84,8 +84,6 @@ function setup() {
   // Objects
   asteroids = [];
   initAsteroids();
-  
-  ship.applyEffect(MultiShot, {duration: 15, level: 1}, null);
 
   // Scenes
   scenes.setup();

@@ -393,9 +393,9 @@ class GameScene extends Scene {
 
     // Settings
     ship.reset();
+    hud.reset();
     ship.control.steerVel = 2;
     panzoom.zoom = mobile.isMobile ? 1.5 : 3.0;
-    hud.score = 0;
     bullets.length = 0;
     explosions.length = 0;
     enemies.length = 0;

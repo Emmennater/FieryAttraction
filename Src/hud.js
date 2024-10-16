@@ -4,6 +4,7 @@ class HUD {
     this.motionBlur = 0.5;
     this.temp = 0;
     this.score = 0;
+    this.scoreText = new ScoreText();
     const version = document.getElementById("version").innerHTML.split(".");
     this.topScore = getItem("fiery-attraction-top-score-" + version[0] + "." + version[1]) || 0;
     this.guide = new Guide();
@@ -20,6 +21,16 @@ class HUD {
     this.setMotionBlur(parseFloat(motionBlurSlider.value));
 
     this.cameraShake = { amount: 0, speed: 0 };
+
+    // Meters
+    this.meters = [];
+    const healthMeter = this.addMeter();
+    const ammoMeter = this.addMeter();
+    const fuelMeter = this.addMeter();
+
+    healthMeter.setColor(color(40, 200, 40, 200), color(200, 40, 40, 200));
+    ammoMeter.setColor(color(220, 70, 20, 200), color(200, 40, 40, 200));
+    fuelMeter.setColor(color(200, 40, 40, 200), color(200, 40, 40, 200));
   }
 
   setMotionBlur(amt) {
@@ -35,32 +46,25 @@ class HUD {
   addScore(amount) {
     this.score += amount;
   }
-  
-  drawMeter(label, precent, x, y, w, h, col) {
-    // Fuel
-    let fuelbarW = w;
-    let meter = precent;    
-    
-    noStroke();
-    fill(col);
-    rect(x - fuelbarW / 2, y - h / 2 - 1, fuelbarW * meter, h);
-    
-    noFill();
-    stroke(50);
-    strokeWeight(2);
-    rect(x - fuelbarW / 2, y - h / 2 - 1, fuelbarW, h);
-    
-    textAlign(CENTER, CENTER);
-    fill(255);
-    noStroke();
-    textSize(h * 0.7);
-    textFont(arialBlack);
-    text(label, x, y);
+
+  addMeter(col) {
+    const meter = new Meter(col);
+    this.meters.push(meter);
+    return meter;
   }
   
   updateGuides(dt, ctx) {
     this.guide.update(dt);
     this.guide.draw(ctx);
+  }
+
+  reset() {
+    this.score = 0;
+    this.scoreText.reset();
+
+    for (const meter of this.meters) {
+      meter.reset();
+    }
   }
 
   draw(dt, ctx) {
@@ -101,37 +105,45 @@ class HUD {
     // this.radar.update(dt);
     // this.radar.draw();
 
+    const healthMeter = this.meters[0];
+    const ammoMeter = this.meters[1];
+    const fuelMeter = this.meters[2];
+
+    const meterH = 30;
+    const meterY = meterH / 2 + 10;
+
     // Health Meter
-    let meterH = 30;
-    let meterY = meterH / 2 + 10;
-    let healthTxt = "Health " + ceil(ship.health*10)/10;
-    let healthPercent = min(ship.health / 100, 1);
-    this.drawMeter(healthTxt, healthPercent, width * 0.35, meterY, width * 0.2, meterH, color(40, 200, 40, 200));
+    healthMeter.setLabel("Health " + ceil(ship.health * 10) / 10);
+    healthMeter.setRect(width * 0.35, meterY, width * 0.2, meterH);
+    healthMeter.setTargetPercent(min(ship.health / 100, 1));
     
     // Ammo meter
-    let ammoTxt = "Ammo " + round(ship.ammo*10)/10;
-    let ammoPercent = min(ship.ammo / 200, 1);
-    this.drawMeter(ammoTxt, ammoPercent, width * 0.6, meterY, width * 0.2, meterH, color(220, 70, 20, 200));
-    
+    ammoMeter.setLabel("Ammo " + round(ship.ammo*10)/10);
+    ammoMeter.setRect(width * 0.6, meterY, width * 0.2, meterH);
+    ammoMeter.setTargetPercent(min(ship.ammo / 200, 1));
+
     // Fuel mater
-    let fuelTxt = "Fuel " + round(ship.fuel*10)/10;
-    let fuelPercent = min(ship.fuel / 50, 1);
-    this.drawMeter(fuelTxt, fuelPercent, width * 0.85, meterY, width * 0.2, meterH, color(200, 40, 40, 200));
-    
+    fuelMeter.setLabel("Fuel " + round(ship.fuel*10)/10);
+    fuelMeter.setRect(width * 0.85, meterY, width * 0.2, meterH);
+    fuelMeter.setTargetPercent(min(ship.fuel / 50, 1));
+
+    // Update meters
+    for (const meter of this.meters) {
+      meter.update(dt);
+      meter.draw();
+    }
+
     // Score
-    fill(255);
-    noStroke();
-    textSize(30);
-    textFont("monospace");
-    textAlign(LEFT, CENTER);
-    text("SCORE " + this.score, meterY, meterH);
-    
+    this.scoreText.setScore(this.score);
+    this.scoreText.update(dt);
+    this.scoreText.draw(meterY, meterH / 2);
+
     // Effects
     textAlign(CENTER, CENTER);
     textFont("monospace");
     textSize(16);
     const effectOffX = 10;
-    const effectOffY = 46;
+    const effectOffY = 86; // 46
     const effectW = width * 0.1;
     const effectH = 20;
     const effectGap = 6;
@@ -208,3 +220,163 @@ class HUD {
   }
 }
 
+class Meter {
+  constructor() {
+    this.percent = 0;
+    this.t = 2;
+  }
+
+  setLabel(label) {
+    this.label = label;
+  }
+
+  setRect(x, y, w, h) {
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = h;
+  }
+
+  setColor(col, col2 = this.col2) {
+    this.col = col;
+    this.col2 = col2;
+  }
+
+  setTargetPercent(percent) {
+    if (this.targetPercent === percent) return;
+    this.targetPercent = percent;
+    if (this.t < 2) return;
+    const diff = Math.abs(this.targetPercent - this.percent);
+    this.t = diff < 0.01 ? 2 : 0;
+  }
+
+  update(dt) {
+    if (this.percent !== this.targetPercent && this.t > 1) {
+      const interp = Math.min(this.t - 1, 1);
+      this.percent = lerp(this.percent, this.targetPercent, interp);
+    }
+
+    this.t += dt;
+  }
+
+  reset() {
+    this.percent = 0;
+    this.targetPercent = 0;
+    this.t = 0;
+  }
+
+  draw() {
+    const { x, y, w, h, col, col2, label, percent, targetPercent } = this;
+    const p0 = w * Math.min(targetPercent, percent);
+    const p1 = w * Math.max(targetPercent, percent);
+
+    // Meter
+    noStroke();
+    fill(red(col) * 0.4, green(col) * 0.4, blue(col) * 0.4, alpha(col));
+    rect(x - w / 2 + p0, y - h / 2 - 1, p1 - p0, h);
+    fill(col);
+    rect(x - w / 2, y - h / 2 - 1, p0, h);
+
+    // Meter outline
+    noFill();
+    stroke(50);
+    strokeWeight(2);
+    rect(x - w / 2, y - h / 2 - 1, w, h);
+    
+    // Label
+    textAlign(CENTER, CENTER);
+    fill(255);
+    noStroke();
+    textSize(h * 0.7);
+    textFont(arialBlack);
+    text(label, x, y);
+  }
+}
+
+class ScoreText {
+  constructor() {
+    this.score = 0;
+    this.scoreEarned = 0;
+    this.t = 0;
+    this.combo = 1;
+    this.comboDuration = 5;
+    this.comboTimer = this.comboDuration;
+  }
+
+  setScore(score) {
+    if (this.score === score) return;
+    
+    if (score > this.score) {
+      this.scoreEarned = Math.round((score - this.score) * this.combo);
+      score = this.score + this.scoreEarned;
+      this.combo += 0.25;
+      this.comboTimer = 0;
+    }
+
+    this.score = score;
+    this.t = 0;
+  }
+
+  reset() {
+    this.score = 0;
+    this.scoreEarned = 0;
+    this.t = 0;
+    this.comboTimer = this.comboDuration;
+    this.combo = 1;
+    this.comboTextValue = this.combo;
+  }
+
+  update(dt) {
+    this.t += dt;
+    this.comboTimer += dt;
+
+    if (this.comboTimer > this.comboDuration) {
+      this.combo = 1;
+    }
+  }
+
+  draw(x, y) {
+    const scoreText = "SCORE " + this.score;
+    const comboText = "COMBO ";
+
+    fill(255);
+    noStroke();
+    textSize(30);
+    textFont("monospace");
+    textAlign(LEFT, TOP);
+    text(scoreText, x, y);
+    
+    // Flash when 3 seconds left
+    const flashTime = 3;
+    const comboTime = Math.min(Math.max(this.comboTimer - (this.comboDuration - flashTime), 0), flashTime);
+    const flashing = 0.5 + 0.5 * sin(comboTime * TWO_PI - HALF_PI);
+    const comboColor = color(255, 255 - flashing * 200);
+
+    fill(comboColor);
+    text(comboText, x, y + 35);
+
+    const comboScaleValue = 0.25;
+    const comboScaleTimeValue = 0.5;
+    const comboScaleTime = Math.min(this.comboTimer / comboScaleTimeValue, 1);
+    const comboScale = 1 + (1 + sin(comboScaleTime * TWO_PI - HALF_PI)) * comboScaleValue;
+    push();
+    translate(x + textWidth(comboText), y + 35 + 15);
+    scale(comboScale);
+    text("x" + this.combo, 0, -15);
+    pop();
+
+    // Score earned
+    if (this.scoreEarned > 0 && this.t < 1) {
+      const offsetX = textWidth(scoreText);
+      const s = 0.5 + 0.5 * sin(this.t * HALF_PI);
+      const a = 255 * cos(this.t * HALF_PI);
+      const earnedText = "+" + Math.round(this.scoreEarned * 100) / 100;
+      fill(255, a);
+      push();
+      translate(x + offsetX + 10, y + 15);
+      scale(s);
+      text(earnedText, 0, -15);
+      pop();
+    }
+  }
+}

@@ -100,7 +100,7 @@ class Asteroid extends GravityObject {
     }
 
     for (let i = 0; i < 3; i++) {
-      let type = randomAsteroidType();
+      let type = randomAsteroidType(this.type);
       let asteroid = null;
 
       let x = this.x;
@@ -122,19 +122,7 @@ class Asteroid extends GravityObject {
       vx += sourceVx * 0.25;
       vy += sourceVy * 0.25;
 
-      switch (type) {
-        case "fuel":
-          asteroid = new FuelAsteroid(x, y, r, vx, vy);
-          break;
-        case "ammo":
-          asteroid = new AmmoAsteroid(x, y, r, vx, vy);
-          break;
-        case "health":
-          asteroid = new HealthAsteroid(x, y, r, vx, vy);
-          break;
-        default:
-          asteroid = new Asteroid(x, y, r, vx, vy);
-      }
+      asteroid = createAsteroid(type, x, y, vx, vy, r)
 
       asteroid.split = this.split - 1;
       asteroid.isSplit = true;
@@ -144,13 +132,15 @@ class Asteroid extends GravityObject {
 
   scaleReward(amount) {
     // Min and Max radius
+    const SCALING_FACTOR = 0.95;
     const MIN = 10;
     const MAX = 20;
     const LOW = 0.5;
     const HIGH = 1.5;
+    const R = (this.r ** SCALING_FACTOR) * (MAX - MIN) / ((MAX - MIN) ** SCALING_FACTOR);
 
     // Map r, min, max, low, high
-    let percent = ((this.r - MIN) / (MAX - MIN)) * (HIGH - LOW) + LOW;
+    let percent = ((R - MIN) / (MAX - MIN)) * (HIGH - LOW) + LOW;
 
     return Math.round(amount * percent + 0.5);
   }
@@ -235,7 +225,7 @@ class AmmoAsteroid extends Asteroid {
   
   giveReward(object) {
     super.giveReward(object);
-    object.addAmmo(this.scaleReward(20), this);
+    object.addAmmo(this.scaleReward(15), this);
   }
 }
 
@@ -277,15 +267,17 @@ class ExplosiveAsteroid extends Asteroid {
 
   giveReward(object) {
     super.giveReward(object);
-    const level = Math.ceil(this.scaleReward(1) ** 0.5);
+    const level = Math.ceil(this.scaleReward(1) ** 0.7 * 0.7);
     object.applyEffect(MultiShot, {
       duration: this.scaleReward(15),
       level
     }, this);
   }
 
-  onDestroy(bullet) {
-    super.onDestroy(bullet);
+  onDestroy(damageSource) {
+    super.onDestroy(damageSource);
+
+    const OWNER = damageSource.owner instanceof Ship && damageSource.owner.name == "ship" ? damageSource.owner : this;
 
     // Shake screen
     hud.addCameraShake(10, 10);
@@ -300,11 +292,13 @@ class ExplosiveAsteroid extends Asteroid {
     for (let i = 0; i < nBullets; i++) {
       let a = ANGLE_GAP * i + Math.random() * ANGLE_GAP;
       let vel = (Math.random() + 0.75) * BULLET_SPEED * 0.5;
+      const x2 = x + Math.cos(a) * this.r * 0.35;
+      const y2 = y + Math.sin(a) * this.r * 0.35;
       const vx = Math.cos(a) * vel;
       const vy = Math.sin(a) * vel;
       const bullet = spawnBullet({
-        x, y, vx, vy,
-        owner: this,
+        x: x2, y: y2, vx, vy,
+        owner: OWNER,
         type: "explosive",
         damageMult: 1.5
       });
@@ -317,12 +311,12 @@ function destroyAllAsteroids() {
     asteroid.takeDamage(100);
 }
 
-function spawnAsteroid(type, spawnArc = 0.5) {
+function spawnAsteroid(type, spawnRadius = 600) {
   // Player check
   // const OPPOSITE_ANGLE = atan2(sun.y - ship.y, sun.x - ship.x);
   // const ANGLE_OFFSET = PI * spawnArc * randSign();
   // spawnAngle = OPPOSITE_ANGLE + Math.random() * ANGLE_OFFSET;
-  const { pos, angle } = system.getRandomSpawn(40, 400, 200, random(PI * 0.4, PI * 0.6));
+  const { pos, angle } = system.getRandomSpawn(40, 400, spawnRadius, random(PI * 0.4, PI * 0.6));
   const { x, y } = pos;
 
   let asteroidSpeed = randInt(20, 60);
@@ -338,21 +332,20 @@ function initAsteroids() {
   if (noSpawns) return;
   
   // Test
-  // asteroids.push(new ExplosiveAsteroid(ship.x - 100, ship.y, 25, ship.vx, ship.vy));
-  // const asteroid = new Asteroid(ship.x + 100, ship.y, 50, ship.vx, ship.vy);
-  // asteroid.split = 1;
+  // asteroids.push(new ExplosiveAsteroid(ship.x - 100, ship.y, ship.vx, ship.vy));
+  // const asteroid = createAsteroid("explosive", ship.x + 100, ship.y, ship.vx, ship.vy, 70);
   // asteroids.push(asteroid);
 
-  const SPAWN_ARC = 0.9;
+  const SPAWN_RADIUS = 200;
   for (let i = 0; i < 1; ++i) {
     for (let i = 0; i < 28; ++i)
-      spawnAsteroid("normal", SPAWN_ARC);
+      spawnAsteroid("normal", SPAWN_RADIUS);
     for (let i = 0; i < 8; ++i)
-      spawnAsteroid("fuel", SPAWN_ARC);
+      spawnAsteroid("fuel", SPAWN_RADIUS);
     for (let i = 0; i < 3; ++i)
-      spawnAsteroid("health", SPAWN_ARC);
+      spawnAsteroid("health", SPAWN_RADIUS);
     for (let i = 0; i < 6; ++i)
-      spawnAsteroid("ammo", SPAWN_ARC);
+      spawnAsteroid("ammo", SPAWN_RADIUS);
   }
 }
 
@@ -399,20 +392,16 @@ function drawAsteroids(CTX) {
   }
 }
 
-function createAsteroid(type, x, y, vx, vy) {
+function createAsteroid(type, x, y, vx, vy, r = null) {
   let asteroid = null;
-  let split = 0;
-  let r = randInt(10, 20);
   
-  // Random massive asteroid
-  if (Math.random() < 0.05) {
-    r += 20;
-    split = 1;
-    
-    // Random supermassive asteroid
-    if (Math.random() < 0.1) {
-      r += 40;
-      split = 2;
+  if (!r) {
+    r = randInt(10, 20);
+    if (Math.random() < 0.05) {
+      r += 20;
+      if (Math.random() < 0.1) {
+        r += 40;
+      }
     }
   }
 
@@ -435,6 +424,10 @@ function createAsteroid(type, x, y, vx, vy) {
     default:
       asteroid = new Asteroid(x, y, r, vx, vy);
   }
+
+  let split = 0;
+  if (r > 70) split = 2;
+  else if (r > 30) split = 1;
   
   const health = Math.max(r - 5, 5);
   asteroid.setHealth(health, health);
@@ -443,7 +436,7 @@ function createAsteroid(type, x, y, vx, vy) {
   return asteroid;
 }
 
-function randomAsteroidType() {
+function randomAsteroidType(baseType = "normal") {
   const typeChances = {
     normal: 70,
     fuel: 10,
@@ -452,6 +445,11 @@ function randomAsteroidType() {
     speed: 3,
     explosive: 2,
   };
+
+  // Swap normal for base
+  const normalChance = typeChances[baseType];
+  typeChances[baseType] = typeChances.normal;
+  typeChances.normal = normalChance;
 
   // Calculate the total sum of all chances
   let totalChance = Object.values(typeChances).reduce((sum, chance) => sum + chance, 0);

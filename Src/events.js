@@ -26,7 +26,7 @@ class EventManager {
       }
     });
 
-    this.addEvent(300, () => {
+    this.addEvent(200, () => {
       this.startRandomEvent();
     });
 

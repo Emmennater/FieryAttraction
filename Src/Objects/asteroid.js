@@ -73,7 +73,7 @@ class Asteroid extends GravityObject {
   
   getScore() {
     // Based on radius
-    return this.scaleReward(5);
+    return this.scaleReward(4);
   }
 
   onDestroy(bullet) {
@@ -184,7 +184,7 @@ class FuelAsteroid extends Asteroid {
   
   getScore() {
     // Based on radius
-    return this.scaleReward(8);
+    return this.scaleReward(6);
   }
 
   giveReward(object) {
@@ -202,7 +202,7 @@ class HealthAsteroid extends Asteroid {
 
   getScore() {
     // Based on radius
-    return this.scaleReward(10);
+    return this.scaleReward(8);
   }
   
   giveReward(object) {
@@ -220,7 +220,7 @@ class AmmoAsteroid extends Asteroid {
 
   getScore() {
     // Based on radius
-    return this.scaleReward(8);
+    return this.scaleReward(6);
   }
   
   giveReward(object) {
@@ -238,7 +238,7 @@ class SpeedAsteroid extends Asteroid {
   
   getScore() {
     // Based on radius
-    return this.scaleReward(15);
+    return this.scaleReward(10);
   }
 
   giveReward(object) {
@@ -262,7 +262,7 @@ class ExplosiveAsteroid extends Asteroid {
 
   getScore() {
     // Based on radius
-    return this.scaleReward(15);
+    return this.scaleReward(10);
   }
 
   giveReward(object) {

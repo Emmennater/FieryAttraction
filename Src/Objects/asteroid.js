@@ -24,7 +24,7 @@ class Asteroid extends GravityObject {
   constructor(x, y, r, vx, vy) {
     super(x, y, 100);
     this.r = r;
-    this.density = 40;
+    this.density = 20;
     this.m = Math.round(PI * this.r ** 2) * this.density;
     this.rot = Math.random() * TWO_PI;
     this.rotVel = Math.random() * 5 - 2.5;

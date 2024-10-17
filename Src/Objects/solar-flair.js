@@ -16,7 +16,7 @@ class Flair extends GameObject {
   }
 
   getDamage() {
-    return 18;
+    return 25;
   }
 
   getAlpha() {

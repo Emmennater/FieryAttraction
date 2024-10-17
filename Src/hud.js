@@ -61,6 +61,7 @@ class HUD {
   reset() {
     this.score = 0;
     this.scoreText.reset();
+    this.temp = 0;
 
     for (const meter of this.meters) {
       meter.reset();
@@ -73,8 +74,9 @@ class HUD {
     const MIN_SCALE = min(width, height);
 
     // Motion blur
-    const ALPHA1 = max((1 - ship.stats.temp * 5) * 100, 5) + 10;
-    const ALPHA2 = max((1 - ship.stats.temp * 5) * 50, 5) - 10;
+    this.temp = lerp(this.temp, ship.stats.temp, 0.01);
+    const ALPHA1 = max((1 - this.temp * 5) * 100, 5) + 10;
+    const ALPHA2 = max((1 - this.temp * 5) * 50, 5) - 10;
     const ALPHA = this.motionBlur < 0.5 ? lerp(255, ALPHA1, this.motionBlur * 2) : lerp(ALPHA1, ALPHA2, (this.motionBlur - 0.5) * 2);
     
     // Shake
@@ -213,7 +215,7 @@ class HUD {
     }
     
     // Ship temperature
-    fill(255, 0, 0, min(ship.stats.temp * 255, 50));
+    fill(255, 0, 0, min(this.temp * 255, 50));
     noStroke();
     rect(0, 0, width, height);
     

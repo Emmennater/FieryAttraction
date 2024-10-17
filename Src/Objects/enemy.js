@@ -174,7 +174,7 @@ class Enemy extends Ship {
       this.damageTime = 0;
       this.takeDamage(damage);
     }
-    
+
     // Steer away from star
     let A = this.a;
     let a = atan2(dy, dx);
@@ -374,12 +374,12 @@ class MegaEnemy extends HomingEnemy {
   }
 }
 
-function initEnemies() {
+function initEnemies(count) {
   if (noSpawns) return;
   // const enemy = createEnemy("speed", ship.x, ship.y, 0, 0);
   // enemy.applyEffect(MultiShot, { duration: 10000, level: 1 });
   // enemies.push(enemy);
-  for (let i = 0; i < 2; i++)
+  for (let i = 0; i < count; i++)
     spawnEnemy();
 }
 

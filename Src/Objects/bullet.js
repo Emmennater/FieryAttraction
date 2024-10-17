@@ -161,6 +161,12 @@ class HomingBullet extends Bullet {
   }
 
   homeOnTarget(dt) {
+    // If owner is destroyed stop homing
+    if (this.owner.destroyed) {
+      this.target = null;
+      return;
+    }
+
     if (this.target == null || this.target.destroyed) {
       this.pickTarget();
       return;

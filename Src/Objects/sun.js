@@ -24,16 +24,15 @@ class Sun {
     ctx.translate(width/2, height/2);
     ctx.scale(panzoom.zoom);
     ctx.rotate(panzoom.rot);
-    
+    ctx.translate(panzoom.xoff, panzoom.yoff);
+
     let r = this.r * 2.5;
-    let x = (this.x + panzoom.xoff);
-    let y = (this.y + panzoom.yoff);
     
     ctx.fill(255, 140, 0);
     ctx.noStroke();
     ctx.imageMode(CENTER);
     ctx.push();
-    ctx.translate(x, y);
+    ctx.translate(this.x, this.y);
     ctx.rotate(this.rot);
 
     if (!this.isTintNormal()) {

@@ -399,6 +399,7 @@ class GameScene extends Scene {
     bullets.length = 0;
     explosions.length = 0;
     enemies.length = 0;
+    healthBars.length = 0;
 
     // Put player in tough spot if they didn't skip (lol)
     if (!scenes.introSkipped) {
@@ -416,7 +417,9 @@ class GameScene extends Scene {
   
     clearAsteroids();
     initAsteroids();
-    initEnemies();
+
+    const ENEMY_COUNT = scenes.introSkipped ? 4 : 2;
+    initEnemies(ENEMY_COUNT);
   }
 
   run(dt, ctx) {
@@ -451,6 +454,12 @@ class GameScene extends Scene {
     // ctx.pop();
 
     stars.draw(ctx);
+    
+    panzoom.begin(ctx);
+    updateSolarFlairs(dt);
+    drawSolarFlairs(ctx);
+    panzoom.end(ctx);
+    
     system.update(dt);
     system.draw(ctx);
     
@@ -461,9 +470,10 @@ class GameScene extends Scene {
     moveBullets(dt);
     moveExplosions(dt);
     
+    ship.resetStats();
     ship.move(dt, ctx);
-    ship.updateCollisions();
-    ship.updateStats();
+    ship.updateCollisions(dt);
+    ship.updateSounds();
     
     drawEnemies(ctx);
     ship.draw(ctx);

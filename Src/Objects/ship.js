@@ -58,7 +58,7 @@ class Ship extends GravityObject {
     this.speed = 8;
     this.turnSpeed = 2.4;
     this.control = { steeringAngle: 0, steerVel: 0, boost: false, fire:false };
-    this.stats = { distToSun: 0, temp: 0 };
+    this.stats = { distToSun: 0, temp: 0, burning: false, wasBurning: false };
     this.inputs = {};
     this.colliding = false;
     this.burning = false;
@@ -278,6 +278,7 @@ class Ship extends GravityObject {
     let dx = star.x - this.x;
     let dy = star.y - this.y;
     this.stats.distToSun = Math.max(d - star.r, 0);
+    this.stats.temp += 100 / ((this.stats.distToSun + 50) * 10 + 100);
 
     // Damage from sun
     let damage = Math.max(star.r - d, 0) / 4;
@@ -286,19 +287,13 @@ class Ship extends GravityObject {
     this.damageTime -= dt;
     if (damage > 0 && this.damageTime <= 0) {
       this.damageTime = this.damageDelay;
-      ship.takeDamage(damage);
+      this.takeDamage(damage);
       hud.addCameraShake(damage * 2, 0.1);
     }
     
     // Burning sound
-    if (damage != this.burning) {
-      this.burning = damage ? true : false;
-      if (this.burning) {
-        let v = Math.min(damage / 50, 0.2);
-        htmlSounds.fadeSound(burningSound, v, 0.2);
-      } else {
-        htmlSounds.fadeSound(burningSound, 0.0, 0.2);
-      }
+    if (damage > 0) {
+      this.stats.burning = damage / 30;
     }
     
     // Boost
@@ -343,55 +338,126 @@ class Ship extends GravityObject {
       this.bulletTime = 0;
   }
   
-  updateCollisions() {
-    let collided = false;
-    let collidedAsteroid = null;
+  elasticCollision(collidedObj) {
+    // Conservation of momentum
+    const playerOldVx = this.vx;
+    const playerOldVy = this.vy;
+    const objectOldVx = collidedObj.vx;
+    const objectOldVy = collidedObj.vy;
+
+    // Calculate the direction between player and object
+    const playerToObject = [collidedObj.x - this.x, collidedObj.y - this.y];
+    const playerToObjectMag = Math.hypot(playerToObject[0], playerToObject[1]);
+    const playerToObjectNorm = [playerToObject[0] / playerToObjectMag, playerToObject[1] / playerToObjectMag];
+
+    // Project the velocities onto the collision normal
+    const playerNorm = this.vx * playerToObjectNorm[0] + this.vy * playerToObjectNorm[1];
+    const objectNorm = collidedObj.vx * playerToObjectNorm[0] + collidedObj.vy * playerToObjectNorm[1];
+
+    // Apply the conservation of momentum (elastic collision)
+    const combinedMass = this.m + collidedObj.m;
+    const playerNewNormX = (playerNorm * (this.m - collidedObj.m) + 2 * collidedObj.m * objectNorm) / combinedMass;
+    const objectNewNormX = (objectNorm * (collidedObj.m - this.m) + 2 * this.m * playerNorm) / combinedMass;
+
+    // Update velocities based on the new projected velocity in the normal direction
+    this.vx = playerNewNormX * playerToObjectNorm[0];
+    this.vy = playerNewNormX * playerToObjectNorm[1];
+
+    collidedObj.vx = objectNewNormX * playerToObjectNorm[0];
+    collidedObj.vy = objectNewNormX * playerToObjectNorm[1];
+
+    // Calculate the change in velocity (post-collision minus pre-collision)
+    const playerDeltaVx = playerNewNormX * playerToObjectNorm[0] - playerOldVx;
+    const playerDeltaVy = playerNewNormX * playerToObjectNorm[1] - playerOldVy;
+    const objectDeltaVx = objectNewNormX * playerToObjectNorm[0] - objectOldVx;
+    const objectDeltaVy = objectNewNormX * playerToObjectNorm[1] - objectOldVy;
+
+    // Compute damage
+    const playerDeltaVel = Math.hypot(playerDeltaVx, playerDeltaVy);
+    const objectDeltaVel = Math.hypot(objectDeltaVx, objectDeltaVy);
+
+    const playerDamageTaken = round(playerDeltaVel * 2) * 0.1;
+    const objectDamageTaken = round(objectDeltaVel * 1) * 0.1;
+
+    // Damage
+    this.takeDamage(playerDamageTaken);
+    collidedObj.takeDamage(objectDamageTaken, { owner: this });
     
+    // Sound
+    htmlSounds.playSound(collisionSound, playerDamageTaken / 10 * 0.2, true);
+
+    // Camera shake
+    const amount = playerDamageTaken / 2;
+    hud.addCameraShake(amount, 5);
+  }
+
+  updateCollisions(dt) {
+    let collided = false;
+    let collidedObj = null;
+    
+    // Asteroid collision
     for (let asteroid of asteroids) {
       if (!this.collides(asteroid)) continue;
       collided = true;
-      collidedAsteroid = asteroid;
+      collidedObj = asteroid;
       break;
     }
     
-    if (collided) {
-      hud.addCameraShake(20, 5);
+    // Enemy collision
+    for (let enemy of enemies) {
+      if (!this.collides(enemy)) continue;
+      collided = true;
+      collidedObj = enemy;
+      break;
     }
-    
+
+    // Elastic collisions
     if (collided != this.colliding) {
       this.colliding = collided;
-      if (collidedAsteroid) {
-        let vx = collidedAsteroid.vx;
-        let vy = collidedAsteroid.vy;
-        let vx2 = this.vx;
-        let vy2 = this.vy;
-        this.vx += vx / 3 * collidedAsteroid.r / 10;
-        this.vy += vy / 3 * collidedAsteroid.r / 10;
-        collidedAsteroid.vx /= 2;
-        collidedAsteroid.vy /= 2;
-        if (collided) {
-          let s = Math.sqrt((vx2 - vx) ** 2 + (vx2 - vy) ** 2);
-          let damage = s / 10 * collidedAsteroid.r / 10;
-          damage = round(damage * 10) / 10;
-          
-          // Damage
-          this.takeDamage(damage);
-          const asteroidDamage = damage / collidedAsteroid.scaleReward(1);
-          collidedAsteroid.takeDamage(asteroidDamage, { owner: this });
-          
-          // Speed of impact;
-          let v = Math.min(damage / 10, 0.5);  
-          
-          // Sound
-          htmlSounds.playSound(collisionSound, damage / 10 * 0.2, true);
-          // sounds.playRandomly(collisionSound, damage / 10 * 0.2);
-        }
+      if (collidedObj) this.elasticCollision(collidedObj);
+    }
+
+    // Damage from solar flair
+    let solarFlair = null;
+    for (let flair of solarFlairs) {
+      if (!this.collides(flair)) continue;
+      solarFlair = flair;
+      break;
+    }
+
+    if (solarFlair) {
+      const damage = solarFlair.getDamage();
+      this.damageTime -= dt;
+      if (damage > 0 && this.damageTime <= 0) {
+        this.damageTime = this.damageDelay * 2;
+        this.takeDamage(damage);
+        hud.addCameraShake(damage * 2, 0.1);
       }
+      
+      // Burning sound
+      this.stats.burning += 0.5;
+      this.stats.temp += 0.2;
     }
   }
   
-  updateStats() {
-    this.stats.temp = 100 / ((this.stats.distToSun + 50) * 10 + 100);
+  updateSounds() {
+    // Sounds
+    if (this.stats.burning != this.stats.wasBurning) {
+      if (this.stats.burning) {
+        const volume = this.stats.burning;
+        htmlSounds.fadeSound(burningSound, volume, 0.1);
+      } else {
+        htmlSounds.fadeSound(burningSound, 0.0, 0.5);
+      }
+    }
+  }
+
+  resetStats() {
+    // this.stats.temp = 100 / ((this.stats.distToSun + 50) * 10 + 100);
+    this.stats.wasBurning = this.stats.burning;
+    this.stats.distToSun = 0;
+    this.stats.temp = 0;
+    this.stats.burning = 0;
   }
   
   alignCamera() {

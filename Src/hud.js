@@ -300,7 +300,7 @@ class ScoreText {
     this.score = 0;
     this.scoreEarned = 0;
     this.t = 0;
-    this.combo = 1;
+    this.combo = 0;
     this.comboDuration = 5;
     this.comboTimer = this.comboDuration;
   }
@@ -309,9 +309,9 @@ class ScoreText {
     if (this.score === score) return;
     
     if (score > this.score) {
-      this.scoreEarned = Math.round((score - this.score) * this.combo);
+      this.scoreEarned = Math.round((score - this.score) * (1 + this.combo * 0.25));
       score = this.score + this.scoreEarned;
-      this.combo += 0.25;
+      this.combo += 1;
       this.comboTimer = 0;
     }
 
@@ -324,7 +324,7 @@ class ScoreText {
     this.scoreEarned = 0;
     this.t = 0;
     this.comboTimer = this.comboDuration;
-    this.combo = 1;
+    this.combo = 0;
     this.comboTextValue = this.combo;
   }
 
@@ -333,7 +333,7 @@ class ScoreText {
     this.comboTimer += dt;
 
     if (this.comboTimer > this.comboDuration) {
-      this.combo = 1;
+      this.combo = 0;
     }
   }
 
@@ -364,7 +364,7 @@ class ScoreText {
     push();
     translate(x + textWidth(comboText), y + 35 + 15);
     scale(comboScale);
-    text("x" + this.combo, 0, -15);
+    text("×" + (this.combo * 0.25 + 1), 0, -15);
     pop();
 
     // Score earned

@@ -22,6 +22,7 @@ class Enemy extends Ship {
     this.playerRange = 150;
     this.topSpeed = 100;
     this.slainByPlayer = false;
+    this.worth = 20;
 
     // Bullet attributes
     this.bDelay = 2;
@@ -46,7 +47,7 @@ class Enemy extends Ship {
     spawnExplosion(this.x, this.y, this);
     if (damageSource && damageSource instanceof Bullet && damageSource.owner.name == "ship") {
       this.slainByPlayer = true;
-      hud.addScore(25);
+      hud.addScore(this.worth);
       if (damageSource && damageSource.owner)
         this.grantEffect(damageSource.owner);
     }
@@ -243,6 +244,7 @@ class BlackEnemy extends Enemy {
     this.bulletType = "explosive";
     this.sprite = blackEnemySprite;
     this.setHealth(25, 25);
+    this.worth = 30;
 
     // Boost attributes
     this.oldExaustCol = {
@@ -295,6 +297,7 @@ class SpeedEnemy extends Enemy {
     this.speed = 80;
     this.topSpeed = 300;
     this.setHealth(20, 20);
+    this.worth = 25;
     
     // Bullet attributes
     this.bDelay = 1;
@@ -324,6 +327,7 @@ class HomingEnemy extends Enemy {
     this.bulletType = "homing";
     this.sprite = homingEnemySprite;
     this.setHealth(20, 20);
+    this.worth = 25;
 
     // Bullet attributes
     this.bDelay = 1;
@@ -350,6 +354,7 @@ class MegaEnemy extends HomingEnemy {
     this.range = 250;
     this.playerRange = 100;
     this.speed = 80;
+    this.worth = 35;
 
     // Bullet attributes
     this.bDelay = 1;
@@ -489,7 +494,7 @@ function getRandomEnemyIndex() {
 function upgradeEnemyAt(enemyIndex) {
   const enemy = enemies[enemyIndex];
   const enemyType = enemy.type;
-  const upgradePath = ["normal", "speed", "homing", "mega", "black"];
+  const upgradePath = ["normal", "speed", "homing", "black", "mega"];
   const newIndex = upgradePath.indexOf(enemyType) + 1;
 
   if (newIndex >= upgradePath.length) return false;

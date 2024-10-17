@@ -320,7 +320,7 @@ class SolarStorm extends WorldEvent {
     const dot = starTangentX * shipVX + starTangentY * shipVY;
     const dir = dot < 0 ? -1 : 1;
     const rot = Math.atan2(starShipY, starShipX) + HALF_PI + PI * dir * 0.2;
-    const rotVel = -0.15 * dir;
+    const rotVel = -0.175 * dir;
 
     this.solarFlair = spawnSolarFlair(this.star, rot, rotVel, this.solarTime);
 

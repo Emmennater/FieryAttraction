@@ -215,8 +215,8 @@ function addEffect(Effect, target, dat, sender) {
         const hasSameLevel = effect.level === (dat.level || 1);
         const hasSameEffect = effect.constructor === Effect;
         if (hasSameTarget && hasSameLevel && hasSameEffect) {
-            effect.duration += dat.duration;
             effect.timeRemaining += dat.duration;
+            effect.duration = effect.timeRemaining;
             return effect;
         }
     }

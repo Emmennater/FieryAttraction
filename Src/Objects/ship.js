@@ -107,8 +107,9 @@ class Ship extends GravityObject {
   
   applyEffect(...args) {
     const effect = super.applyEffect(...args);
+    const duration = args[1].duration;
     if (this.name == "ship") {
-      spawnBonusEffect(`+${effect.duration} ${effect.getText()}`, ship.x, ship.y, effect.color, 2);
+      spawnBonusEffect(`+${duration} ${effect.getText()}`, ship.x, ship.y, effect.color, 2);
     }
   }
 

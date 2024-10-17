@@ -19,9 +19,10 @@ function preload() {
   blueAsteroidSprite = loadImage("Assets/speed-asteroid.png");
   fuelAsteroidSprite = loadImage("Assets/fuel-asteroid-sprite.png");
   healthAsteroidSprite = loadImage("Assets/health-asteroid-sprite.png");
+  antiHealthAsteroidSprite = loadImage("Assets/anti-health-asteroid-sprite.png");
   ammoAsteroidSprite = loadImage("Assets/ammo-asteroid-sprite.png");
-  explosionSprite = loadImage("Assets/explosion.gif");
   explosiveAsteroidSprite = loadImage("Assets/explosive-asteroid.png");``
+  explosionSprite = loadImage("Assets/explosion.gif");
   aimArcSprite = loadImage("Assets/aim-arc.png");
   jetEnchantmentSprite = loadImage("Assets/jet-enchantment.png");
   solarFlairSprite = loadImage("Assets/solar-flair3.png");

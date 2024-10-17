@@ -211,6 +211,24 @@ class HealthAsteroid extends Asteroid {
   }
 }
 
+class AntiHealthAsteroid extends Asteroid {
+  constructor(x, y, r, vx, vy) {
+    super(x, y, r, vx, vy);
+    this.type = "anti health";
+    this.sprite = antiHealthAsteroidSprite;
+  }
+
+  getScore() {
+    // Based on radius
+    return this.scaleReward(30);
+  }
+  
+  giveReward(object) {
+    super.giveReward(object);
+    object.addHealth(-this.scaleReward(20), this);
+  }
+}
+
 class AmmoAsteroid extends Asteroid {
   constructor(x, y, r, vx, vy) {
     super(x, y, r, vx, vy);
@@ -332,8 +350,7 @@ function initAsteroids() {
   if (noSpawns) return;
   
   // Test
-  // asteroids.push(new ExplosiveAsteroid(ship.x - 100, ship.y, ship.vx, ship.vy));
-  // const asteroid = createAsteroid("explosive", ship.x + 100, ship.y, ship.vx, ship.vy, 70);
+  // const asteroid = createAsteroid("anti health", ship.x + 100, ship.y, ship.vx, ship.vy, 30);
   // asteroids.push(asteroid);
 
   const SPAWN_RADIUS = 200;
@@ -421,6 +438,9 @@ function createAsteroid(type, x, y, vx, vy, r = null) {
     case "explosive":
       asteroid = new ExplosiveAsteroid(x, y, r, vx, vy);
       break;
+    case "anti health":
+      asteroid = new AntiHealthAsteroid(x, y, r, vx, vy);
+      break;
     default:
       asteroid = new Asteroid(x, y, r, vx, vy);
   }
@@ -441,9 +461,10 @@ function randomAsteroidType(baseType = "normal") {
     normal: 70,
     fuel: 10,
     ammo: 10,
-    health: 5,
+    health: 6,
     speed: 3,
     explosive: 2,
+    "anti health": 3
   };
 
   // Swap normal for base
@@ -473,7 +494,7 @@ function randomAsteroidType(baseType = "normal") {
 
 function trueRandomAsteroid() {
   let rand = Math.floor(Math.random() * 7);
-  return ["normal", "fuel", "ammo", "health", "speed", "explosive"][rand];
+  return ["normal", "fuel", "ammo", "health", "speed", "explosive", "anti health"][rand];
 }
 
 function clearAsteroids() {

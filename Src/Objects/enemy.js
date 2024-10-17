@@ -384,6 +384,12 @@ function initEnemies(count) {
   // const enemy = createEnemy("speed", ship.x, ship.y, 0, 0);
   // enemy.applyEffect(MultiShot, { duration: 10000, level: 1 });
   // enemies.push(enemy);
+
+  if (count == 4) {
+    spawnEnemy("speed");
+    count--;
+  }
+  
   for (let i = 0; i < count; i++)
     spawnEnemy();
 }

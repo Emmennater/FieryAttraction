@@ -62,6 +62,8 @@ class HUD {
     this.score = 0;
     this.scoreText.reset();
     this.temp = 0;
+    this.cameraShake.amount = 0;
+    this.cameraShake.speed = 0;
 
     for (const meter of this.meters) {
       meter.reset();

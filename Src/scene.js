@@ -527,6 +527,7 @@ class GameScene extends Scene {
 class GameOverScene extends Scene {
   init() {
     scenes.pauseButton.style.visibility = "hidden";
+    scenes.versionTag.style.visibility = "visible";
     htmlSounds.stopSound(rocketSound);
     htmlSounds.removeSoundFromQueue(burningSound);
     htmlSounds.fadeSound(burningSound, 0, 0.2);

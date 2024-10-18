@@ -336,6 +336,7 @@ class SolarStorm extends WorldEvent {
   }
 
   stop() {
-    this.solarFlair.destroy();
+    if (this.solarFlair && !this.solarFlair.destroyed)
+      this.solarFlair.destroy();
   }
 }

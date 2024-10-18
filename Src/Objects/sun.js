@@ -183,6 +183,8 @@ class StarSystem {
 
 class TwoBodyStarSystem extends StarSystem {
   constructor() {
+    super();
+
     this.stars = [
       new Sun(0, +500, 300),
       new Sun(0, -500, 300),

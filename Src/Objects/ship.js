@@ -242,20 +242,17 @@ class Ship extends GravityObject {
   }
   
   addFuel(amount, sender) {
-    this.fuel += amount;
-    this.fuel = Math.min(this.fuel, 50);
+    this.fuel = constrain(this.fuel + amount, 0, 50);
     spawnBonusEffect(`+${amount} fuel`, ship.x, ship.y, color(255, 0, 0), 2);
   }
   
   addAmmo(amount, sender) {
-    this.ammo += amount;
-    this.ammo = Math.min(this.ammo, 200);
+    this.ammo = constrain(this.ammo + amount, 0, 200);
     spawnBonusEffect(`+${amount} ammo`, ship.x, ship.y, color(255, 120, 0), 2);
   }
   
   addHealth(amount, sender) {
-    this.health += amount;
-    this.health = Math.min(this.health, 100);
+    this.health = constrain(this.health + amount, 0, 100);
     spawnBonusEffect(`+${amount} health`, ship.x, ship.y, color(0, 255, 0), 2);
   }
 

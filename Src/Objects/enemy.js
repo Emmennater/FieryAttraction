@@ -48,8 +48,17 @@ class Enemy extends Ship {
     if (damageSource && damageSource instanceof Bullet && damageSource.owner.name == "ship") {
       this.slainByPlayer = true;
       hud.addScore(this.worth);
-      if (damageSource && damageSource.owner)
+      if (damageSource && damageSource.owner) {
         this.grantEffect(damageSource.owner);
+        
+        // If this enemy has an effect give it to the bullet owner
+        for (let effect of this.effects) {
+          const level = effect.level;
+          const Effect = effect.constructor;
+          const duration = randInt(0, 10) + this.worth;
+          damageSource.owner.applyEffect(Effect, { level, duration });
+        }
+      }
     }
   }
 
@@ -374,16 +383,17 @@ class MegaEnemy extends HomingEnemy {
   grantEffect(object) {
     Enemy.prototype.grantEffect.call(this, object);
     object.applyEffect(MegaRounds, {
-      duration: randInt(20, 40)
+      duration: randInt(30, 60)
     });
   }
 }
 
 function initEnemies(count) {
   if (noSpawns) return;
-  // const enemy = createEnemy("speed", ship.x, ship.y, 0, 0);
-  // enemy.applyEffect(MultiShot, { duration: 10000, level: 1 });
-  // enemies.push(enemy);
+  const a = atan2(ship.y, ship.x);
+  const enemy = createEnemy("speed", ship.x + cos(a) * 300, ship.y + sin(a) * 300, 0, 0);
+  enemy.applyEffect(MultiShot, { duration: 10000, level: 1 });
+  enemies.push(enemy);
 
   if (count == 4) {
     spawnEnemy("speed");
@@ -518,6 +528,7 @@ function upgradeEnemyAt(enemyIndex) {
   newEnemy.bTime = enemy.bTime;
   newEnemy.lastBullet = enemy.lastBullet;
   newEnemy.slainByPlayer = enemy.slainByPlayer;
+  newEnemy.destroyed = enemy.destroyed;
 
   // Replace old enemy with new one
   enemies[enemyIndex] = newEnemy;

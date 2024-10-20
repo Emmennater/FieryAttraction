@@ -415,6 +415,7 @@ class GameScene extends Scene {
     // Set ship angle at start
     ship.a = atan2(ship.vy, ship.vx);
   
+    clearAllEffects();
     clearAsteroids();
     initAsteroids();
 

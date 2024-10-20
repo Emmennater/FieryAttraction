@@ -280,11 +280,12 @@ class HomingBullet extends Bullet {
 class MegaBullet extends HomingBullet {
   constructor(dat) {
     super(dat);
-    this.consumes = 0.5;
+    this.level = dat.level || 1;
+    this.consumes = 0.5 / this.level ** 0.5;
     this.col = { r: 74, g: 66, b: 227 };
     this.homingVelocity = Math.sqrt(dat.vx ** 2 + dat.vy ** 2) * 4;
-    this.speed = 2;
-    this.delay = 0.2;
+    this.speed = 1.5 + this.level * 0.5;
+    this.delay = 0.2 / this.level ** 0.5;
     this.vx *= this.speed;
     this.vy *= this.speed;
     this.damage = 7.5;

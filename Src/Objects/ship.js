@@ -514,6 +514,7 @@ class Ship extends GravityObject {
     this.control.steeringAngle = 0;
     this.control.steerVel = 0;
     this.destroyed = false;
+    this.bulletType = Bullet;
   }
   
   drawBoost(ctx) {

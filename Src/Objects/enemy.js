@@ -319,7 +319,7 @@ class SpeedEnemy extends Enemy {
   grantEffect(object) {
     super.grantEffect(object);
     object.applyEffect(SpeedRounds, {
-      duration: randInt(40, 80)
+      duration: randInt(20, 40)
     });
   }
 }
@@ -378,7 +378,7 @@ class MegaEnemy extends HomingEnemy {
   grantEffect(object) {
     Enemy.prototype.grantEffect.call(this, object);
     object.applyEffect(MegaRounds, {
-      duration: randInt(30, 60)
+      duration: randInt(20, 40)
     });
   }
 }

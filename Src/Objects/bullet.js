@@ -450,6 +450,8 @@ function selectTarget(bullet, targets, fov, firingAngle, targetAliens = false) {
   return target;
 }
 
+DEFAULT_BULLET = { Type: Bullet, level: 1 };
+
 /*
 
 

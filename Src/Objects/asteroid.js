@@ -1,4 +1,6 @@
 
+const ASTEROID_QUEUE = [];
+
 const ASTEROID_RATIOS = {
   normal: 0.5,
   fuel: 0.2,
@@ -331,21 +333,26 @@ function destroyAllAsteroids() {
     asteroid.takeDamage(100);
 }
 
-function spawnAsteroid(type, spawnRadius = 600) {
-  // Player check
-  // const OPPOSITE_ANGLE = atan2(sun.y - ship.y, sun.x - ship.x);
-  // const ANGLE_OFFSET = PI * spawnArc * randSign();
-  // spawnAngle = OPPOSITE_ANGLE + Math.random() * ANGLE_OFFSET;
-  const { pos, angle } = system.getRandomSpawn(40, 400, spawnRadius, random(PI * 0.4, PI * 0.6));
-  const { x, y } = pos;
+function spawnAsteroid(type, spawnRadius = 600, delay = 0) {
+  ASTEROID_COUNTS[type]++;
+  
+  const spawnAsteroid = () => {
+    // Player check
+    // const OPPOSITE_ANGLE = atan2(sun.y - ship.y, sun.x - ship.x);
+    // const ANGLE_OFFSET = PI * spawnArc * randSign();
+    // spawnAngle = OPPOSITE_ANGLE + Math.random() * ANGLE_OFFSET;
+    const { pos, angle } = system.getRandomSpawn(40, 400, spawnRadius, random(PI * 0.4, PI * 0.6));
+    const { x, y } = pos;
+  
+    let asteroidSpeed = randInt(20, 60);
+    let vx = Math.cos(angle) * asteroidSpeed;
+    let vy = Math.sin(angle) * asteroidSpeed;
+    let asteroid = createAsteroid(type, x, y, vx, vy);
+    asteroids.push(asteroid);
+  }
 
-  let asteroidSpeed = randInt(20, 60);
-  let vx = Math.cos(angle) * asteroidSpeed;
-  let vy = Math.sin(angle) * asteroidSpeed;
-  let asteroid = createAsteroid(type, x, y, vx, vy);
-
-  ASTEROID_COUNTS[asteroid.type]++;
-  asteroids.push(asteroid);
+  if (delay == 0) spawnAsteroid();
+  else setTimeout(spawnAsteroid, delay * 1000);
 }
 
 function initAsteroids() {
@@ -393,9 +400,9 @@ function moveAsteroids(dt) {
         }
 
         // Replacement asteroids
-        spawnAsteroid(newType);
+        spawnAsteroid(newType, 600, random(30, 60));
         if (Math.random() < 0.5 && asteroids.length < CAP) {
-          spawnAsteroid(randomAsteroidType());
+          spawnAsteroid(randomAsteroidType(), 600, random(30, 60));
         }
       }
       

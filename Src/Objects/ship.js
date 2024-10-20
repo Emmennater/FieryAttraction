@@ -92,8 +92,8 @@ class Ship extends GravityObject {
     this.bDelay = 20 / 60;
     this.bCol = { r: 60, g: 255, b: 80 };
     this.bSpeed = 120;
-    this.bulletType = Bullet;
-    this.bulletLevel = 1;
+    this.bulletType = DEFAULT_BULLET.Type;
+    this.bulletLevel = DEFAULT_BULLET.level;
     this.multishot = 1;
     this.lastBullet = null;
 
@@ -514,7 +514,8 @@ class Ship extends GravityObject {
     this.control.steeringAngle = 0;
     this.control.steerVel = 0;
     this.destroyed = false;
-    this.bulletType = Bullet;
+    this.bulletType = DEFAULT_BULLET.Type;
+    this.bulletLevel = DEFAULT_BULLET.level;
   }
   
   drawBoost(ctx) {

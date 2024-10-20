@@ -76,8 +76,8 @@ class CustomRounds extends Effect {
     this.name = "custom";
     this.category = "bullet";
     this.bulletType = "custom";
-    this.oldBulletType = Bullet;
-    this.oldBulletLevel = 1;
+    this.oldBulletType = DEFAULT_BULLET.Type;
+    this.oldBulletLevel = DEFAULT_BULLET.level;
     this.color = color(30, 180, 200);
   }
 

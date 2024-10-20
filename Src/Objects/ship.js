@@ -67,7 +67,6 @@ class Ship extends GravityObject {
     this.sprite = rocketSprite;
     this.alpha = 255;
     this.angle = 0;
-    this.oldAngle = 0;
     this.speedMult = 1;
     this.speedMultTime = 0;
     this.maxSpeed = 100;
@@ -93,7 +92,8 @@ class Ship extends GravityObject {
     this.bDelay = 20 / 60;
     this.bCol = { r: 60, g: 255, b: 80 };
     this.bSpeed = 120;
-    this.bulletType = "normal";
+    this.bulletType = Bullet;
+    this.bulletLevel = 1;
     this.multishot = 1;
     this.lastBullet = null;
 
@@ -229,10 +229,11 @@ class Ship extends GravityObject {
       
       bullet = spawnBullet({
         x, y, vx, vy,
-        owner:this,
-        type:this.bulletType,
-        damageMult:this.damage,
-        bCol:this.bCol
+        owner: this,
+        Type: this.bulletType,
+        level: this.bulletLevel,
+        damageMult: this.damage,
+        bCol: this.bCol
       });
     }
 
@@ -295,17 +296,18 @@ class Ship extends GravityObject {
     }
     
     // Boost
-    const shipAngle = this.a + this.control.steeringAngle - PI;
+    const shipAngle = this.a + this.control.steeringAngle;
     if (this.control.boost) {
       let speedIncrease = 1;
       
       // If the ship is moving slow in the direction of the player, increase speed
       // (increased maneuverability)
-      const projectedVelocity = Math.max(0, -(this.vx * cos(shipAngle) + this.vy * sin(shipAngle)));
+      const projectedVelocity = Math.max(0, this.vx * cos(shipAngle) + this.vy * sin(shipAngle));
       speedIncrease = Math.max(1, 2 / (projectedVelocity * 0.1 + 1));
 
-      this.vx -= cos(shipAngle) * this.speed * this.speedMult * speedIncrease * dt;
-      this.vy -= sin(shipAngle) * this.speed * this.speedMult * speedIncrease * dt;
+      this.vx += cos(shipAngle) * this.speed * this.speedMult * speedIncrease * dt;
+      this.vy += sin(shipAngle) * this.speed * this.speedMult * speedIncrease * dt;
+      
       hud.addCameraShake(5, 10);
     }
     
@@ -516,15 +518,11 @@ class Ship extends GravityObject {
   
   drawBoost(ctx) {
     let shipTurnRate = (this.control.boost) ? 0.01 : 0.02;
-    let oldAngle = this.a;
-    let newAngle = atan2(this.vy, this.vx);
-    this.oldAngle = newAngle;
-    oldAngle = ((oldAngle % TWO_PI) + TWO_PI) % TWO_PI;
-    newAngle = ((newAngle % TWO_PI) + TWO_PI) % TWO_PI;
+    let oldAngle = fixAngle(this.a);
+    let newAngle = fixAngle(atan2(this.vy, this.vx));
     let diff = smallestAngleDifference(oldAngle, newAngle);
-    // this.a += (newAngle - oldAngle) * shipTurnRate;
     this.a += diff * shipTurnRate;
-    this.a = ((this.a % TWO_PI) + TWO_PI) % TWO_PI    
+    this.a = fixAngle(this.a);  
 
     let shipAngle = this.a + this.control.steeringAngle - PI;
     let exaustDist = this.s * 0.6;

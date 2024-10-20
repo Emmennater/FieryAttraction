@@ -68,3 +68,7 @@ function randInt(min, max) {
 function randSign() {
   return Math.random() < 0.5 ? -1 : 1;
 }
+
+function fixAngle(angle) {
+  return ((angle % TWO_PI) + TWO_PI) % TWO_PI;
+}

@@ -20,6 +20,7 @@ class Bullet extends GravityObject {
     this.col = dat.bCol || { r: 255, g: 255, b: 255 };
     this.damageMult = dat.damageMult || 1;
     this.time = 4 / (this.dat.decay || 1);
+    this.spawnTime = 0;
   }
   
   transferMomentumTo(object) {
@@ -40,7 +41,7 @@ class Bullet extends GravityObject {
       }
     }
     
-    if (this.owner.name == "enemy" || NO_OWNER) {
+    if (NO_OWNER || this.owner.name == "enemy") {
       if (ship.containsPoint(this.x, this.y)) {
         this.destroy();
         ship.takeDamage(this.damage * this.damageMult, this);
@@ -51,7 +52,7 @@ class Bullet extends GravityObject {
       }
     }
     
-    if (this.owner.name == "ship" || NO_OWNER) {
+    if (NO_OWNER || this.owner.name == "ship") {
       // Enemies
       for (let enemy of enemies) {
         if (enemy.containsPoint(this.x, this.y)) {
@@ -68,6 +69,7 @@ class Bullet extends GravityObject {
   
   move(dt) {
     this.time -= dt;
+    this.spawnTime += dt;
     if (this.time < 0) {
       this.destroy();
     }
@@ -103,22 +105,26 @@ class Bullet extends GravityObject {
 class SpeedBullet extends Bullet {
   constructor(dat) {
     super(dat);
+    this.level = dat.level || 1;
     this.col = { r: 68, g: 223, b: 235 };
-    this.speed = 2;
-    this.delay = 0.2;
+    this.speed = 1.5 + this.level * 0.5;
+    this.delay = 0.2 / this.level ** 0.5;
     this.vx *= this.speed;
     this.vy *= this.speed;
     this.damage = 5;
-    this.consumes = 0.5;
+    this.consumes = 0.5 / this.level ** 0.5;
   }
 }
 
 class HomingBullet extends Bullet {
   constructor(dat) {
     super(dat);
+    this.level = dat.level || 1;
     this.col = { r: 183, g: 45, b: 247 };
-    this.homingVelocity = Math.sqrt(dat.vx ** 2 + dat.vy ** 2) * 1.5;
-    this.homingBlacklist = [ HomingEnemy, MegaEnemy, BlackEnemy ];
+    this.homingVelocity = Math.sqrt(dat.vx ** 2 + dat.vy ** 2) * (1.25 + this.level * 0.25);
+    this.homingEnemyBlacklist = [ BlackEnemy ];
+    this.homingBulletBlacklist = [ HomingBullet, MegaBullet ];
+    this.canHomeOnTarget = true;
     this.pickTarget();
   }
 
@@ -160,6 +166,27 @@ class HomingBullet extends Bullet {
     return selectedTarget;
   }
 
+  validateHomingTarget() {
+    if (this.target == null) return;
+
+    // Homing enemy blacklist
+    this.canHomeOnTarget = true;
+    for (let Class of this.homingEnemyBlacklist) {
+      if (this.target.constructor == Class) {
+        this.canHomeOnTarget = false;
+        break;
+      }
+    }
+
+    // Homing bullet blacklist
+    for (let Class of this.homingBulletBlacklist) {
+      if (this.target.bulletType == Class) {
+        this.canHomeOnTarget = false;
+        break;
+      }
+    }
+  }
+
   homeOnTarget(dt) {
     // If owner is destroyed stop homing
     if (this.owner.destroyed) {
@@ -172,29 +199,27 @@ class HomingBullet extends Bullet {
       return;
     }
 
-    // Homing blacklist
-    let homeOnTarget = true;
-    for (let Class of this.homingBlacklist) {
-      if (this.target instanceof Class) {
-        homeOnTarget = false;
-        break;
-      }
-    }
+    this.validateHomingTarget();
 
     // Can't home on target
-    if (!homeOnTarget) {
-      return;
-    }
+    if (!this.canHomeOnTarget) return;
     
     const targetX = this.target.x;
     const targetY = this.target.y;
     let vx = this.vx;
     let vy = this.vy;
     let velocity = Math.sqrt(vx ** 2 + vy ** 2);
-    let currentA = atan2(vy, vx);
-    let targetA = atan2(targetY - this.y, targetX - this.x);
-    currentA = ((currentA % TWO_PI) + TWO_PI) % TWO_PI;
-    targetA = ((targetA % TWO_PI) + TWO_PI) % TWO_PI;
+    let currentA = fixAngle(atan2(vy, vx));
+    let targetA;
+
+    if (this.level < 2) {
+      // Home on targets position
+      targetA = fixAngle(atan2(targetY - this.y, targetX - this.x));
+    } else {
+      // Home on targets future position
+      targetA = getInterceptAngle(this, this.target, velocity);
+    }
+    
     let deltaA = smallestAngleDifference(currentA, targetA);
 
     // Calculating the maximum turning angle
@@ -221,15 +246,6 @@ class HomingBullet extends Bullet {
   drawHomingCirlce(ctx) {
     if (!this.target) return;
 
-    // Homing blacklist
-    let homeOnTarget = true;
-    for (let Class of this.homingBlacklist) {
-      if (this.target instanceof Class) {
-        homeOnTarget = false;
-        break;
-      }
-    }
-
     let radius = 20;
     if (this.target instanceof Asteroid) {
       radius = this.target.r + 5;
@@ -245,7 +261,7 @@ class HomingBullet extends Bullet {
     CTX.ellipse(targetX, targetY, radius);
     
     // If can't homing on target draw a line through the circle (not sign)
-    if (!homeOnTarget) {
+    if (!this.canHomeOnTarget) {
       const LINE_ANGLE = ship.a - PI * 0.25;
       const x1 = targetX + cos(LINE_ANGLE) * 10;
       const y1 = targetY + sin(LINE_ANGLE) * 10;
@@ -272,7 +288,8 @@ class MegaBullet extends HomingBullet {
     this.vx *= this.speed;
     this.vy *= this.speed;
     this.damage = 7.5;
-    this.homingBlacklist = [ MegaEnemy, BlackEnemy ];
+    this.homingEnemyBlacklist = [ BlackEnemy ];
+    this.homingBulletBlacklist = [ MegaBullet ];
   }
 
   pickTarget() {
@@ -295,7 +312,8 @@ class MegaBullet extends HomingBullet {
 class ExplosiveBullet extends Bullet {
   constructor(dat) {
     super(dat);
-    this.consumes = 2;
+    this.level = dat.level ?? 1;
+    this.consumes = 2 * this.level ** 2;
     this.col = { r: 255, g: 115, b: 0 };
     this.delay = 0.4;
     this.damage = 30;
@@ -303,23 +321,78 @@ class ExplosiveBullet extends Bullet {
     this.time /= 1.5;
   }
 
+  explode() {
+    if (this.level < 2) return;
+
+    const nBullets = 5;
+    const x = this.x;
+    const y = this.y;
+
+    // Spawn explosive bullets
+    const BULLET_SPEED = 50;
+    const ANGLE_GAP = TWO_PI / nBullets;
+    for (let i = 0; i < nBullets; i++) {
+      let a = ANGLE_GAP * i + Math.random() * ANGLE_GAP;
+      const vx = Math.cos(a) * BULLET_SPEED + this.vx;
+      const vy = Math.sin(a) * BULLET_SPEED + this.vy;
+      const bullet = spawnBullet({
+        x, y, vx, vy,
+        owner: this.owner,
+        Type: ExplosiveBullet,
+        damageMult: this.damageMult,
+        level: this.level - 1,
+      });
+    }
+
+    if (!this.destroyed) this.destroy();
+  }
+
+  checkForHit() {
+    super.checkForHit();
+    
+    const SPAWN_TIME = this.spawnTime;
+
+    if (this.destroyed || this.level < 2 || SPAWN_TIME < 0.3) return;
+
+    // Check if bullet is in range of an enemy
+    const enemyExplodeRange = (this.level - 1) * 100;
+    for (let object of [...enemies, ship]) {
+      if (object === this.owner) continue;     
+
+      const d = Math.hypot(object.x - this.x, object.y - this.y);
+      
+      if (d < enemyExplodeRange) {
+        this.explode();
+      }
+    }
+
+    // Check if bullet is in range of an asteroid
+    const asteroidExplodeRange = 30;
+    for (let object of asteroids) {
+      if (object === this.owner) continue;     
+
+      const d = Math.hypot(object.x - this.x, object.y - this.y);
+      
+      if (d < asteroidExplodeRange) {
+        this.explode();
+      }
+    }
+  }
+
   onDestroy() {
     super.onDestroy();
 
     // Spawn explosion
-    spawnExplosion(this.x, this.y, null, 0.05, 10);
+    if (this.time > 0) {
+      spawnExplosion(this.x, this.y);
+      hud.addCameraShake(10, 10);
+    }
   }
 }
 
 function spawnBullet(dat) {
-  let bullet = null;
-  switch (dat.type) {
-    case "homing": bullet = new HomingBullet(dat); break;
-    case "speed": bullet = new SpeedBullet(dat); break;
-    case "mega": bullet = new MegaBullet(dat); break;
-    case "explosive": bullet = new ExplosiveBullet(dat); break;
-    default: bullet = new Bullet(dat); break;
-  }
+  const BulletType = dat.Type || Bullet;
+  let bullet = new BulletType(dat);
   bullets.push(bullet);
   return bullet;
 }

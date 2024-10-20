@@ -146,9 +146,17 @@ class HUD {
     textAlign(CENTER, CENTER);
     textFont("monospace");
     textSize(16);
+
+    // Get max effect text width
+    let maxEffectWidth = 0;
+    for (let i = 0; i < ship.effects.length; ++i) {
+      const effect = ship.effects[i];
+      maxEffectWidth = max(maxEffectWidth, textWidth(effect.getText()));
+    }
+
     const effectOffX = 10;
     const effectOffY = 86; // 46
-    const effectW = width * 0.1;
+    const effectW = max(width * 0.1, maxEffectWidth + 30); // width * 0.1;
     const effectH = 20;
     const effectGap = 6;
     for (let i = 0; i < ship.effects.length; ++i) {

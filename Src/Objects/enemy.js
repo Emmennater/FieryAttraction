@@ -16,7 +16,7 @@ class Enemy extends Ship {
     this.setHealth(15, 15);
     this.speed = 10;
     this.sprite = enemySprite;
-    this.bulletType = "normal";
+    this.bulletType = Bullet;
     this.damage = 2 / 5;
     this.range = 200;
     this.playerRange = 150;
@@ -45,7 +45,7 @@ class Enemy extends Ship {
 
   onDestroy(damageSource) {
     spawnExplosion(this.x, this.y, this);
-    if (damageSource && damageSource instanceof Bullet && damageSource.owner.name == "ship") {
+    if (damageSource && damageSource instanceof Bullet && damageSource.owner && damageSource.owner.name == "ship") {
       this.slainByPlayer = true;
       hud.addScore(this.worth);
       if (damageSource && damageSource.owner) {
@@ -67,23 +67,12 @@ class Enemy extends Ship {
     // Variables
     let bSpeedMult = this.lastBullet ? this.lastBullet.speed : 1;
     
-    // Calculating projectile info
-    let angleToTarget = atan2(ship.y - this.y, ship.x - this.x);
-    let angleOfTarget = atan2(ship.vy, ship.vx);
-    angleToTarget = ((angleToTarget % TWO_PI) + TWO_PI) % TWO_PI;
-    angleOfTarget = ((angleOfTarget % TWO_PI) + TWO_PI) % TWO_PI;
-    let targetSpeed = Math.sqrt(ship.vx ** 2 + ship.vy ** 2);
-    let bulletSpeed = this.bSpeed * bSpeedMult;
+    const finalTargetAngle = getInterceptAngle(this, ship, bSpeedMult * this.bSpeed);
+    const intercepts = !isNaN(finalTargetAngle);
 
-    // Calculating target angle
-    let B = angleOfTarget - angleToTarget;
-    let A = asin(sin(B) * targetSpeed / bulletSpeed);
-    let finalTargetAngle = angleToTarget + A;
-
-    this.steerTargetAngle(dt, finalTargetAngle - this.a);
-    
-    const angleFromTarget = smallestAngleDifference(this.control.steeringAngle, finalTargetAngle - this.a);
-    const angleCloseToTarget = Math.abs(angleFromTarget) < 0.4;
+    if (intercepts) {
+      this.steerTargetAngle(dt, finalTargetAngle - this.a);
+    }
     
     // Accelerate towards player
     const distToPlayer = dist(this.x, this.y, ship.x, ship.y);
@@ -93,7 +82,13 @@ class Enemy extends Ship {
       this.vx += cos(this.a + this.control.steeringAngle) * this.speed * dt;
       this.vy += sin(this.a + this.control.steeringAngle) * this.speed * dt;
     }
+    
+    // Return if no intercepts
+    if (!intercepts) return;
 
+    const angleFromTarget = smallestAngleDifference(this.control.steeringAngle, finalTargetAngle - this.a);
+    const angleCloseToTarget = Math.abs(angleFromTarget) < 0.4;
+    
     this.bTime -= dt;
     if (this.bTime > 0 || !angleCloseToTarget) return;
 
@@ -135,19 +130,19 @@ class Enemy extends Ship {
         y = lerp(rightWingY, leftWingY, t);
       }
 
-      let vx = this.vx + cos(a) * this.bSpeed;
-      let vy = this.vy + sin(a) * this.bSpeed;
+      let vx = cos(a) * this.bSpeed; // + this.vx
+      let vy = sin(a) * this.bSpeed; // + this.vy
       
       // Shoot bullet
       bullet = spawnBullet({
-        x:this.x, y:this.y, vx, vy,
-        owner:this,
-        type:this.bulletType,
-        damageMult:this.damage,
-        bCol:this.bCol,
-        gravity:this.bGravity,
-        decay:this.bDecay,
-        impactForce:this.bImpactForce
+        x: this.x, y: this.y, vx, vy,
+        owner: this,
+        Type: this.bulletType,
+        damageMult: this.damage,
+        bCol: this.bCol,
+        gravity: this.bGravity,
+        decay: this.bDecay,
+        impactForce: this.bImpactForce
       });
     }
 
@@ -250,7 +245,7 @@ class BlackEnemy extends Enemy {
   constructor(x, y, vx, vy) {
     super(x, y, vx, vy);
     this.type = "black";
-    this.bulletType = "explosive";
+    this.bulletType = ExplosiveBullet;
     this.sprite = blackEnemySprite;
     this.setHealth(25, 25);
     this.worth = 30;
@@ -298,7 +293,7 @@ class SpeedEnemy extends Enemy {
   constructor(x, y, vx, vy) {
     super(x, y, vx, vy);
     this.type = "speed";
-    this.bulletType = "speed";
+    this.bulletType = SpeedBullet;
     this.sprite = speedEnemySprite;
     this.revive = false;
     this.range = 200;
@@ -333,7 +328,7 @@ class HomingEnemy extends Enemy {
   constructor(x, y, vx, vy) {
     super(x, y, vx, vy);
     this.type = "homing";
-    this.bulletType = "homing";
+    this.bulletType = HomingBullet;
     this.sprite = homingEnemySprite;
     this.setHealth(20, 20);
     this.worth = 25;
@@ -358,7 +353,7 @@ class MegaEnemy extends HomingEnemy {
   constructor(x, y, vx, vy) {
     super(x, y, vx, vy);
     this.type = "mega";
-    this.bulletType = "mega";
+    this.bulletType = MegaBullet;
     this.setHealth(25, 25);
     this.range = 250;
     this.playerRange = 100;
@@ -390,10 +385,10 @@ class MegaEnemy extends HomingEnemy {
 
 function initEnemies(count) {
   if (noSpawns) return;
-  const a = atan2(ship.y, ship.x);
-  const enemy = createEnemy("speed", ship.x + cos(a) * 300, ship.y + sin(a) * 300, 0, 0);
-  enemy.applyEffect(MultiShot, { duration: 10000, level: 1 });
-  enemies.push(enemy);
+  // const a = atan2(ship.y, ship.x);
+  // const enemy = createEnemy("homing", ship.x + cos(a) * 300, ship.y + sin(a) * 300, 0, 0);
+  // enemy.applyEffect(MultiShot, { duration: 10000, level: 1 });
+  // enemies.push(enemy);
 
   if (count == 4) {
     spawnEnemy("speed");
@@ -437,7 +432,7 @@ function spawnEnemy(type = "normal") {
   const effects = [SuperSpeed, HomingRounds, SpeedRounds, MegaRounds, ExplosiveRounds, MultiShot];
   if (Math.random() < 0.03) {
     let RandomEffect = effects[Math.floor(Math.random() * effects.length)];
-    const level = Math.ceil(Math.sqrt(Math.random() * 9));
+    const level = Math.ceil((Math.random() * 5) ** 0.5);
     enemy.applyEffect(RandomEffect, { duration: 100000000, level });
   }
 

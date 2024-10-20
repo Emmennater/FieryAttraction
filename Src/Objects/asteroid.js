@@ -82,7 +82,7 @@ class Asteroid extends GravityObject {
     
     spawnExplosion(this.x, this.y, null, this.r / 40 * 0.2, this.r);
     
-    const ownerIsJet = bullet && (bullet.owner.name == "ship" || bullet.owner.name == "enemy");
+    const ownerIsJet = bullet && bullet.owner && (bullet.owner.name == "ship" || bullet.owner.name == "enemy");
     if (ownerIsJet) this.giveReward(bullet.owner);
   }
 
@@ -285,7 +285,7 @@ class ExplosiveAsteroid extends Asteroid {
 
   giveReward(object) {
     super.giveReward(object);
-    const level = Math.ceil(this.scaleReward(1) ** 0.7 * 0.7);
+    const level = constrain(Math.floor(this.scaleReward(1) ** 0.7), 1, 3);
     object.applyEffect(MultiShot, {
       duration: this.scaleReward(15),
       level
@@ -300,7 +300,8 @@ class ExplosiveAsteroid extends Asteroid {
     // Shake screen
     hud.addCameraShake(10, 10);
 
-    const nBullets = this.scaleReward(8);
+    const bulletLevel = constrain(Math.floor(this.scaleReward(1) ** 0.7), 1, 3);
+    const nBullets = 5; // this.scaleReward(8);
     const x = this.x;
     const y = this.y;
 
@@ -316,9 +317,10 @@ class ExplosiveAsteroid extends Asteroid {
       const vy = Math.sin(a) * vel;
       const bullet = spawnBullet({
         x: x2, y: y2, vx, vy,
-        owner: OWNER,
-        type: "explosive",
-        damageMult: 1.5
+        owner: null,
+        Type: ExplosiveBullet,
+        damageMult: 1.5,
+        level: bulletLevel
       });
     }
   }
@@ -350,7 +352,7 @@ function initAsteroids() {
   if (noSpawns) return;
   
   // Test
-  // const asteroid = createAsteroid("anti health", ship.x + 100, ship.y, ship.vx, ship.vy, 30);
+  // const asteroid = createAsteroid("explosive", ship.x + 100, ship.y, ship.vx, ship.vy, 20);
   // asteroids.push(asteroid);
 
   const SPAWN_RADIUS = 200;

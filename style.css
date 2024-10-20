@@ -118,7 +118,7 @@ button:active {
 .pause {
   position: fixed;
   top: 30px;
-  left: 16px;
+  right: 16px;
   font-size: 20px;
   padding: 2px 8px;
   min-height: auto;

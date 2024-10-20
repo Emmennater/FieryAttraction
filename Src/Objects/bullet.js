@@ -313,7 +313,7 @@ class ExplosiveBullet extends Bullet {
   constructor(dat) {
     super(dat);
     this.level = dat.level ?? 1;
-    this.consumes = 2 * this.level ** 2;
+    this.consumes = this.level;
     this.col = { r: 255, g: 115, b: 0 };
     this.delay = 0.4;
     this.damage = 30;

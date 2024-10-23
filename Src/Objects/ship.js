@@ -253,8 +253,9 @@ class Ship extends GravityObject {
   }
   
   addHealth(amount, sender) {
+    const sign = amount > 0 ? "+" : "-";
     this.health = constrain(this.health + amount, 0, 100);
-    spawnBonusEffect(`+${amount} health`, ship.x, ship.y, color(0, 255, 0), 2);
+    spawnBonusEffect(`${sign}${Math.abs(amount)} health`, ship.x, ship.y, color(0, 255, 0), 2);
   }
 
   updateMesh() {
@@ -339,38 +340,18 @@ class Ship extends GravityObject {
   }
   
   elasticCollision(collidedObj) {
-    // Conservation of momentum
-    const playerOldVx = this.vx;
-    const playerOldVy = this.vy;
-    const objectOldVx = collidedObj.vx;
-    const objectOldVy = collidedObj.vy;
+    const playerInitVx = this.vx;
+    const playerInitVy = this.vy;
+    const objectInitVx = collidedObj.vx;
+    const objectInitVy = collidedObj.vy;
 
-    // Calculate the direction between player and object
-    const playerToObject = [collidedObj.x - this.x, collidedObj.y - this.y];
-    const playerToObjectMag = Math.hypot(playerToObject[0], playerToObject[1]);
-    const playerToObjectNorm = [playerToObject[0] / playerToObjectMag, playerToObject[1] / playerToObjectMag];
-
-    // Project the velocities onto the collision normal
-    const playerNorm = this.vx * playerToObjectNorm[0] + this.vy * playerToObjectNorm[1];
-    const objectNorm = collidedObj.vx * playerToObjectNorm[0] + collidedObj.vy * playerToObjectNorm[1];
-
-    // Apply the conservation of momentum (elastic collision)
-    const combinedMass = this.m + collidedObj.m;
-    const playerNewNormX = (playerNorm * (this.m - collidedObj.m) + 2 * collidedObj.m * objectNorm) / combinedMass;
-    const objectNewNormX = (objectNorm * (collidedObj.m - this.m) + 2 * this.m * playerNorm) / combinedMass;
-
-    // Update velocities based on the new projected velocity in the normal direction
-    this.vx = playerNewNormX * playerToObjectNorm[0];
-    this.vy = playerNewNormX * playerToObjectNorm[1];
-
-    collidedObj.vx = objectNewNormX * playerToObjectNorm[0];
-    collidedObj.vy = objectNewNormX * playerToObjectNorm[1];
-
+    elasticCollision(this, collidedObj);
+    
     // Calculate the change in velocity (post-collision minus pre-collision)
-    const playerDeltaVx = playerNewNormX * playerToObjectNorm[0] - playerOldVx;
-    const playerDeltaVy = playerNewNormX * playerToObjectNorm[1] - playerOldVy;
-    const objectDeltaVx = objectNewNormX * playerToObjectNorm[0] - objectOldVx;
-    const objectDeltaVy = objectNewNormX * playerToObjectNorm[1] - objectOldVy;
+    const playerDeltaVx = playerInitVx - this.vx;
+    const playerDeltaVy = playerInitVy - this.vy;
+    const objectDeltaVx = objectInitVx - collidedObj.vx;
+    const objectDeltaVy = objectInitVy - collidedObj.vy;
 
     // Compute damage
     const playerDeltaVel = Math.hypot(playerDeltaVx, playerDeltaVy);

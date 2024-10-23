@@ -7,22 +7,14 @@ class EventManager {
       const BASELINE_COUNT = 2;
       const MAX_ENEMIES = 15;
       const TARGET_COUNT = Math.floor(hud.score / 100) + BASELINE_COUNT;
-      const UPGRADE_COUNT = Math.floor(hud.score / 400) + 1;
+      // const UPGRADE_COUNT = Math.floor(hud.score / 400) + 1;
 
       // Replace enemies with stronger ones
       if (TARGET_COUNT >= MAX_ENEMIES) {
-        const idx = getRandomEnemyIndex();
-        upgradeEnemyAt(idx);
-        console.log(TARGET_COUNT, enemies.length)
+        upgradeRandomEnemy();
         return;
       } else {
         spawnEnemy();
-
-        // Upgrade spawned enemy
-        for (let i = 0; i < UPGRADE_COUNT; i++) {
-          const idx = enemies.length - 1;
-          upgradeEnemyAt(idx);
-        }
       }
     });
 

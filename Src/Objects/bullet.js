@@ -16,6 +16,7 @@ class Bullet extends GravityObject {
     this.py = dat.y;
     this.impactForce = dat.impactForce || 1;
     
+    this.m = 2000;
     this.owner = dat.owner;
     this.col = dat.bCol || { r: 255, g: 255, b: 255 };
     this.damageMult = dat.damageMult || 1;
@@ -24,8 +25,9 @@ class Bullet extends GravityObject {
   }
   
   transferMomentumTo(object) {
-    object.vx += this.vx / object.m * 400 * this.impactForce;
-    object.vy += this.vy / object.m * 400 * this.impactForce;
+    if (!object) return;
+    object.vx += this.vx * this.m / object.m * this.impactForce;
+    object.vy += this.vy * this.m / object.m * this.impactForce;
   }
 
   checkForHit() {
@@ -171,7 +173,8 @@ class HomingBullet extends Bullet {
 
     // Homing enemy blacklist
     this.canHomeOnTarget = true;
-    for (let Class of this.homingEnemyBlacklist) {
+    for (let i = this.level - 1; i < this.homingEnemyBlacklist.length; i++) {
+      let Class = this.homingEnemyBlacklist[i];
       if (this.target.constructor == Class) {
         this.canHomeOnTarget = false;
         break;
@@ -179,7 +182,8 @@ class HomingBullet extends Bullet {
     }
 
     // Homing bullet blacklist
-    for (let Class of this.homingBulletBlacklist) {
+    for (let i = this.level - 1; i < this.homingBulletBlacklist.length; i++) {
+      let Class = this.homingBulletBlacklist[i];
       if (this.target.bulletType == Class) {
         this.canHomeOnTarget = false;
         break;

@@ -2,6 +2,7 @@
 enemies = [];
 
 const enemyStrengthThresholds = { normal: 500, homing: 800, speed: 800, mega: 1000, black: 1000 };
+const ENEMY_TYPE_CAPS = { black: 3, mega: 5 };
 
 class Enemy extends Ship {
   constructor(x, y, vx, vy) {
@@ -45,7 +46,7 @@ class Enemy extends Ship {
 
   onDestroy(damageSource) {
     spawnExplosion(this.x, this.y, this);
-    if (damageSource && damageSource instanceof Bullet && damageSource.owner && damageSource.owner.name == "ship") {
+    if (damageSource && damageSource.owner && damageSource.owner.name == "ship") {
       this.slainByPlayer = true;
       hud.addScore(this.worth);
       if (damageSource && damageSource.owner) {
@@ -432,7 +433,7 @@ function spawnEnemy(type = "normal") {
   const effects = [SuperSpeed, HomingRounds, SpeedRounds, MegaRounds, ExplosiveRounds, MultiShot];
   if (Math.random() < 0.03) {
     let RandomEffect = effects[Math.floor(Math.random() * effects.length)];
-    const level = Math.ceil((Math.random() ** 0.5) * 3);
+    const level = Math.ceil((Math.random() ** 3) * 3);
     enemy.applyEffect(RandomEffect, { duration: 100000000, level });
   }
 
@@ -467,6 +468,10 @@ function drawEnemies(ctx) {
   }
 }
 
+function getEnemiesOfType(Type) {
+  return enemies.filter((enemy) => enemy.constructor === Type);
+}
+
 function randomEnemyType() {
   const difficulty = Math.floor(hud.score / 100);
 
@@ -475,8 +480,16 @@ function randomEnemyType() {
     speed: 10 + difficulty,
     homing: 5 + difficulty,
     mega: 2 + difficulty * 0.5,
-    black: 4 + difficulty
+    black: 3 + difficulty
   };
+
+  // Don't spawn enemies that reached the cap
+  for (let key in typeChances) {
+    const nEnemies = getEnemiesOfType(key).length;
+    if (nEnemies > ENEMY_TYPE_CAPS[key]) {
+      delete typeChances[key];
+    }
+  }
 
   // Calculate the total sum of all chances
   let totalChance = Object.values(typeChances).reduce((sum, chance) => sum + chance, 0);
@@ -511,6 +524,12 @@ function upgradeEnemyAt(enemyIndex) {
   if (newIndex >= upgradePath.length) return false;
 
   const nextType = upgradePath[newIndex];
+
+  // Check if the next type is at the cap
+  if (getEnemiesOfType(nextType).length >= ENEMY_TYPE_CAPS[nextType]) {
+    return false;
+  }
+
   const newEnemy = createEnemy(nextType);
 
   // Copy over the old enemy's properties
@@ -518,7 +537,7 @@ function upgradeEnemyAt(enemyIndex) {
   newEnemy.y = enemy.y;
   newEnemy.vx = enemy.vx;
   newEnemy.vy = enemy.vy;
-  newEnemy.health = enemy.health;
+  newEnemy.health = newEnemy.maxHealth - (enemy.maxHealth - enemy.health);
   newEnemy.control.steeringAngle = enemy.control.steeringAngle;
   newEnemy.bTime = enemy.bTime;
   newEnemy.lastBullet = enemy.lastBullet;
@@ -527,6 +546,18 @@ function upgradeEnemyAt(enemyIndex) {
 
   // Replace old enemy with new one
   enemies[enemyIndex] = newEnemy;
+
+  return true;
+}
+
+function upgradeRandomEnemy() {
+  const index = getRandomEnemyIndex();
+  const initIndex = index;
+
+  while (!upgradeEnemyAt(index)) {
+    index = (index + 1) % enemies.length;
+    if (index == initIndex) return false;
+  }
 
   return true;
 }

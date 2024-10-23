@@ -27,3 +27,32 @@ function getInterceptAngle(turret, target, bulletSpeed) {
     
     return A + angleToTarget;
 }
+
+function elasticCollision(objectA, objectB) {
+    // Conservation of momentum
+    const playerOldVx = objectA.vx;
+    const playerOldVy = objectA.vy;
+    const objectOldVx = objectB.vx;
+    const objectOldVy = objectB.vy;
+
+    // Calculate the direction between player and object
+    const playerToObject = [objectB.x - objectA.x, objectB.y - objectA.y];
+    const playerToObjectMag = Math.hypot(playerToObject[0], playerToObject[1]);
+    const playerToObjectNorm = [playerToObject[0] / playerToObjectMag, playerToObject[1] / playerToObjectMag];
+
+    // Project the velocities onto the collision normal
+    const playerNorm = objectA.vx * playerToObjectNorm[0] + objectA.vy * playerToObjectNorm[1];
+    const objectNorm = objectB.vx * playerToObjectNorm[0] + objectB.vy * playerToObjectNorm[1];
+
+    // Apply the conservation of momentum (elastic collision)
+    const combinedMass = objectA.m + objectB.m;
+    const playerNewNormX = (playerNorm * (objectA.m - objectB.m) + 2 * objectB.m * objectNorm) / combinedMass;
+    const objectNewNormX = (objectNorm * (objectB.m - objectA.m) + 2 * objectA.m * playerNorm) / combinedMass;
+
+    // Update velocities based on the new projected velocity in the normal direction
+    objectA.vx = playerNewNormX * playerToObjectNorm[0];
+    objectA.vy = playerNewNormX * playerToObjectNorm[1];
+
+    objectB.vx = objectNewNormX * playerToObjectNorm[0];
+    objectB.vy = objectNewNormX * playerToObjectNorm[1];
+}

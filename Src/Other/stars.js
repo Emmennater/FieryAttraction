@@ -12,8 +12,8 @@ class Stars {
     const CENTER = system.getCenter();
     const CX = CENTER.x;
     const CY = CENTER.y;
-    let radius = 800;
-    let SZ = max(width, height) / 2;
+    let radius = 400;
+    let SZ = 1800; // max(width, height) / 2;
     for (let i = 0; i < 200; ++i) {
       let a = Math.random() * TWO_PI;
       let d = Math.random() * SZ + radius;

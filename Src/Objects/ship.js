@@ -254,7 +254,7 @@ class Ship extends GravityObject {
   
   addHealth(amount, sender) {
     const sign = amount > 0 ? "+" : "-";
-    this.health = constrain(this.health + amount, 0, 100);
+    this.health = constrain(this.health + amount, 0, this.maxHealth);
     spawnBonusEffect(`${sign}${Math.abs(amount)} health`, ship.x, ship.y, color(0, 255, 0), 2);
   }
 

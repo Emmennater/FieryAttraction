@@ -154,8 +154,8 @@ class Enemy extends Ship {
     this.damage *= percent;
     this.bSpeed *= percent;
     this.speed *= percent;
-    this.topSpeed *= percent;
-    this.health *= percent;
+    // this.topSpeed *= percent;
+    // this.health *= percent;
     this.bImpactForce *= percent;
     this.range = Math.min(this.range * percent, 500); // Cap range at 500
   }

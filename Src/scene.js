@@ -8,7 +8,7 @@ class Scenes {
     this.messageTime = 300;
     this.impactMessageTime = this.messageTime;
     this.introSkipped = false;
-    this.highScore = false;
+    this.highScore = "none";
     this.gameOver = false;
     this.paused = false;
     
@@ -159,7 +159,7 @@ class TitleScene extends Scene {
     this.titleScreenShipDir = Math.random() < 0.1 ? -1 : 1;
     // this.ship.vx = SCL / 8;
     // this.ship.vy = 0;
-    scenes.highScore = false;
+    scenes.highScore = "none";
     scenes.gameOver = false;
 
     // Elements
@@ -232,7 +232,9 @@ class TitleScene extends Scene {
       textSize(MIN_SCL * 0.04);
       textFont("monospace");
       textAlign(LEFT, CENTER);
-      text("HIGH SCORE " + hud.topScore, 20, topScoreY);
+      text("HIGH SCORE " + hud.getHighscore(), 20, topScoreY);
+      text("DAILY HS " + hud.getDailyHighscore(), 20, topScoreY + MIN_SCL * 0.04 + 4);
+
 
       // Title
       textFont(futureFont);
@@ -537,6 +539,7 @@ class GameOverScene extends Scene {
     clearAllEffects();
     alarmSound.stop();
     if (scenes.paused) scenes.togglePause();
+    scenes.highScore = hud.updateHighscores();
   }
 
   run(dt, ctx) {
@@ -584,21 +587,15 @@ class GameOverScene extends Scene {
     textFont("monospace");
     text("SCORE " + hud.score, width / 2, height * 0.45);
 
-    // Top score
-    if (hud.score > hud.topScore) {
-      scenes.highScore = true;
-      hud.topScore = hud.score;
-      const version = document.getElementById("version").innerHTML.split(".");
-      storeItem("fiery-attraction-top-score-" + version[0] + "." + version[1], hud.topScore);
-    }
-
-    if (scenes.highScore) {
+    if (scenes.highScore !== "none") {
       let lightness = BLARE * 130 + 125;
       fill(lightness);
       textAlign(CENTER, CENTER);
       textSize(MIN_SCL * 0.06);
       textFont(arialBlack);
-      text("HIGH SCORE!", width / 2, height * 0.2);
+
+      let highScoreText = scenes.highScore === "high" ? "HIGH SCORE!" : "DAILY HIGH SCORE!";
+      text(highScoreText, width / 2, height * 0.2);
     }
 
     // Space to continue

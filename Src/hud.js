@@ -5,8 +5,6 @@ class HUD {
     this.temp = 0;
     this.score = 0;
     this.scoreText = new ScoreText();
-    const version = document.getElementById("version").innerHTML.split(".");
-    this.topScore = getItem("fiery-attraction-top-score-" + version[0] + "." + version[1]) || 0;
     this.guide = new Guide();
     this.radar = new Radar();
 
@@ -33,6 +31,12 @@ class HUD {
     fuelMeter.setColor(color(200, 40, 40, 200), color(200, 40, 40, 200));
   }
 
+  getDateString() {
+    const today = new Date();
+    const date = today.getFullYear() + "-" + (today.getMonth() + 1) + "-" + today.getDate();
+    return date;
+  }
+
   setMotionBlur(amt) {
     this.motionBlur = amt;
     storeItem("fiery-attraction-motion-blur", amt);
@@ -43,6 +47,43 @@ class HUD {
     this.cameraShake.speed = speed;
   }
   
+  getHighscore() {
+    const version = document.getElementById("version").innerHTML.split(".");
+    this.topScore = getItem("fiery-attraction-top-score-" + version[0] + "." + version[1]) || 0;
+    
+    return this.topScore;
+  }
+
+  getDailyHighscore() {
+    const version = document.getElementById("version").innerHTML.split(".");
+    const date = this.getDateString();
+    this.dailyTopScore = getItem("fiery-attraction-daily-top-score-" + version[0] + "." + version[1] + "-" + date) || 0;
+    
+    return this.dailyTopScore;
+  }
+
+  updateHighscores() {
+    const newHighscore = this.score > this.getHighscore();
+    const newDailyHighscore = this.score > this.getDailyHighscore();
+
+    if (newHighscore) {
+      const version = document.getElementById("version").innerHTML.split(".");
+      const versionText = version[0] + "." + version[1];
+      storeItem("fiery-attraction-top-score-" + versionText, this.score);
+    }
+    
+    if (newDailyHighscore) {
+      const version = document.getElementById("version").innerHTML.split(".");
+      const versionText = version[0] + "." + version[1];
+      const date = this.getDateString();
+      storeItem("fiery-attraction-daily-top-score-" + versionText + "-" + date, this.score);
+    }
+
+    const highScoreType = newHighscore ? "highscore" : newDailyHighscore ? "dailyHighscore" : "none";
+
+    return highScoreType;
+  }
+
   addScore(amount) {
     this.score += amount;
   }

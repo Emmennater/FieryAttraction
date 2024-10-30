@@ -551,7 +551,7 @@ function upgradeEnemyAt(enemyIndex) {
 }
 
 function upgradeRandomEnemy() {
-  const index = getRandomEnemyIndex();
+  let index = getRandomEnemyIndex();
   const initIndex = index;
 
   while (!upgradeEnemyAt(index)) {

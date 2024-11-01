@@ -594,7 +594,7 @@ class GameOverScene extends Scene {
       textSize(MIN_SCL * 0.06);
       textFont(arialBlack);
 
-      let highScoreText = scenes.highScore === "high" ? "HIGH SCORE!" : "DAILY HIGH SCORE!";
+      let highScoreText = scenes.highScore === "highscore" ? "HIGH SCORE!" : "DAILY HIGH SCORE!";
       text(highScoreText, width / 2, height * 0.2);
     }
 

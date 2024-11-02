@@ -498,6 +498,10 @@ class Ship extends GravityObject {
     this.bulletType = DEFAULT_BULLET.Type;
     this.bulletLevel = DEFAULT_BULLET.level;
   }
+
+  resurrect() {
+    this.addHealth(this.maxHealth / 2);
+  }
   
   drawBoost(ctx) {
     let shipTurnRate = (this.control.boost) ? 0.01 : 0.02;

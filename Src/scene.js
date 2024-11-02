@@ -102,14 +102,14 @@ class Scenes {
   
   runCutScene(dt) {
     if (this.nextScene != null) {
-      this.fade += 0.025;
+      this.fade += 0.025 / this.fadeTime;
     } else {
-      this.fade -= 0.025;
+      this.fade -= 0.025 / this.fadeTime;
       if (this.fade < 0)
         this.fade = 0;
     }
     
-    if (this.fade >= this.fadeTime) {
+    if (this.fade >= 1) {
       if (this.nextScene) {
         this.sceneTime = 0;
 
@@ -125,6 +125,10 @@ class Scenes {
     background(0, this.fade * 255);
   }
   
+  abortCutScene() {
+    this.nextScene = null;
+  }
+
   runCurrentScene(dt, ctx) {
     if (this.currentScene == null) return;
     this.sceneTime += dt;
@@ -500,8 +504,15 @@ class GameScene extends Scene {
       scenes.gameOver = true;
       spawnExplosion(ship.x, ship.y, ship, 0.3);
       setTimeout(() => {
-        scenes.cutSceneTo(scenes.gameOverScene, 1);
+        scenes.cutSceneTo(scenes.gameOverScene, 2);
       }, 500);
+    } else if (ship.health > 0 && scenes.nextScene == scenes.gameOverScene) {
+      // Resurrect ship
+      ship.resurrect();
+      hud.resurrectEffect();
+      htmlSounds.playSound(resurrectionSound, 1, true);
+      scenes.abortCutScene();
+      scenes.gameOver = false;
     }
     
     // Start of sound track

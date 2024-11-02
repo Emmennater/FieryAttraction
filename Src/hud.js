@@ -18,7 +18,9 @@ class HUD {
     motionBlurSlider.value = motionBlurValue === undefined ? 0.5 : motionBlurValue;
     this.setMotionBlur(parseFloat(motionBlurSlider.value));
 
+    // Effects
     this.cameraShake = { amount: 0, speed: 0 };
+    this.whiteFlash = 0;
 
     // Meters
     this.meters = [];
@@ -45,6 +47,10 @@ class HUD {
   addCameraShake(amount, speed) {
     this.cameraShake.amount = amount;
     this.cameraShake.speed = speed;
+  }
+
+  resurrectEffect() {
+    this.whiteFlash = 1;
   }
   
   getHighscore() {
@@ -132,15 +138,36 @@ class HUD {
     this.cameraShake.speed = lerp(this.cameraShake.speed, 0, 0.04);
     
     // Game window
+    const R = 255;
+    const G = 255;
+    const B = 255;
     CTX2.push();
     CTX2.translate(width/2, height/2);
     CTX2.scale(1 + shakeMult * (1.5 / SCALE));
     CTX2.translate(-width/2 + xoff, -height/2 + yoff);
-    CTX2.tint(255, ALPHA);
+    CTX2.tint(R, G, B, ALPHA);
     CTX2.imageMode(CORNER);
     CTX2.image(ctx, 0, 0, width, height);
     CTX2.pop();
     image(CTX2, 0, 0, width, height);
+
+    // White flash
+    if (this.whiteFlash > 0.01) {
+      this.whiteFlash -= 0.002;
+      this.whiteFlash = lerp(this.whiteFlash, 0, 0.01);
+      fill(240, 180, 0, this.whiteFlash * 100);
+      rect(0, 0, width, height);
+      
+      // Resurrect text
+      fill(240, 180, 0, this.whiteFlash * 255);
+      textAlign(CENTER, CENTER);
+      textSize(min(width, height) * 0.1);
+      textFont(arialBlack);
+      text("RESURRECTED", width / 2, height / 2);
+    } else {
+      this.whiteFlash = 0;
+    }
+
 
     // Events
     if (!scenes.paused)

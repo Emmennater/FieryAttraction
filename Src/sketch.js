@@ -55,6 +55,7 @@ function setup() {
   hitSound = document.getElementById("hit-sound");
   explodeSound = document.getElementById("explode-sound");
   sirenSound = document.getElementById("siren-sound");
+  resurrectionSound = document.getElementById("resurrection-sound");
   explosionSprite.pause();
   initSounds();
 

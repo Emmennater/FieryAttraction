@@ -504,7 +504,7 @@ class GameScene extends Scene {
       scenes.gameOver = true;
       spawnExplosion(ship.x, ship.y, ship, 0.3);
       setTimeout(() => {
-        scenes.cutSceneTo(scenes.gameOverScene, 2);
+        scenes.cutSceneTo(scenes.gameOverScene, 1);
       }, 500);
     } else if (ship.health > 0 && scenes.nextScene == scenes.gameOverScene) {
       // Resurrect ship

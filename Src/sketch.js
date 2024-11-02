@@ -104,7 +104,7 @@ function loadSprite(path, file) {
 }
 
 function getTheme() {
-  return "thanksgiving";
+  return festive ? "thanksgiving" : "normal";
 }
 
 function loadTheme(name) {

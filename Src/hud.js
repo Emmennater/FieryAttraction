@@ -111,6 +111,7 @@ class HUD {
     this.temp = 0;
     this.cameraShake.amount = 0;
     this.cameraShake.speed = 0;
+    this.whiteFlash = 0;
 
     for (const meter of this.meters) {
       meter.reset();

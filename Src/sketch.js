@@ -103,14 +103,20 @@ function loadSprite(path, file) {
   return loadImage(path + file);
 }
 
+function getTheme() {
+  return "thanksgiving";
+}
+
 function loadTheme(name) {
-  const occasian = "halloween";
+  const occasian = getTheme();
   const theme = name == "festive" ? occasian : "default";
   switch (theme) {
     case "christmas":
       sunSprite = loadImage("Assets/Festive/Christmas/hotsun.png");
       starSprite = loadImage("Assets/Festive/Christmas/star.webp");
-      bgCol = color(50, 110, 205);
+      rocketSprite = loadImage("Assets/Festive/Christmas/rocket.png");
+      bgCol = color(0);
+      // bgCol = color(50, 110, 205);
       break;
     case "halloween":
       sunSprite = loadImage("Assets/Festive/Halloween/hotsun.png");
@@ -119,6 +125,12 @@ function loadTheme(name) {
       speedEnemySprite = loadImage("Assets/Festive/Halloween/speed-enemy-jet.png");
       megaEnemySprite = loadImage("Assets/Festive/Halloween/mega-enemy-jet.png");
       starSprite = null;
+      bgCol = color(0);
+      break;
+    case "thanksgiving":
+      sunSprite = loadImage("Assets/Festive/Halloween/hotsun.png");
+      rocketSprite = loadImage("Assets/Festive/Christmas/rocket.png");
+      starSprite = loadImage("Assets/Festive/Christmas/star.webp");
       bgCol = color(0);
       break;
     default:

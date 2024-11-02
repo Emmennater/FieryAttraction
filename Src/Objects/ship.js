@@ -58,7 +58,7 @@ class Ship extends GravityObject {
     this.speed = 8;
     this.turnSpeed = 2.4;
     this.control = { steeringAngle: 0, steerVel: 0, boost: false, fire:false };
-    this.stats = { distToSun: 0, temp: 0, burning: false, wasBurning: false };
+    this.stats = { distToSun: 0, temp: 0, burning: false, wasBurning: false, bulletsShot: 0 };
     this.inputs = {};
     this.colliding = false;
     this.burning = false;
@@ -196,7 +196,7 @@ class Ship extends GravityObject {
     if (this.ammo <= 0) {
       this.bTime += this.bDelay * 2;
     }
-    
+
     const shipAngle = this.a + this.control.steeringAngle;
     const multishot = this.multishot;
     const spreadAngle = PI * 0.1;
@@ -227,13 +227,26 @@ class Ship extends GravityObject {
       let vx = this.vx + cos(a) * this.bSpeed;
       let vy = this.vy + sin(a) * this.bSpeed;
       
+      let bulletStyleCol = this.bCol;
+      const theme = getTheme();
+
+      if (theme == "christmas" || theme == "thanksgiving") {
+        bulletStyleCol = [
+          { r: 255, g: 100, b: 100 },
+          { r: 255, g: 255, b: 255 },
+          { r: 100, g: 255, b: 100 },
+          { r: 255, g: 255, b: 255 }
+        ][this.stats.bulletsShot % 4];
+      }
+
+      this.stats.bulletsShot++;
       bullet = spawnBullet({
         x, y, vx, vy,
         owner: this,
         Type: this.bulletType,
         level: this.bulletLevel,
         damageMult: this.damage,
-        bCol: this.bCol
+        bCol: bulletStyleCol
       });
     }
 
@@ -497,6 +510,7 @@ class Ship extends GravityObject {
     this.destroyed = false;
     this.bulletType = DEFAULT_BULLET.Type;
     this.bulletLevel = DEFAULT_BULLET.level;
+    this.stats.bulletsShot = 0;
   }
 
   resurrect() {

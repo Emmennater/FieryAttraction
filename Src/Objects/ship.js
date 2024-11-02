@@ -515,6 +515,7 @@ class Ship extends GravityObject {
 
   resurrect() {
     this.addHealth(this.maxHealth / 2);
+    this.destroyed = false;
   }
   
   drawBoost(ctx) {

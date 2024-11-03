@@ -514,7 +514,7 @@ class Ship extends GravityObject {
   }
 
   resurrect() {
-    this.addHealth(this.maxHealth / 2);
+    this.addHealth(this.maxHealth / 4);
     this.destroyed = false;
   }
   

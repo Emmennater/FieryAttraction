@@ -500,13 +500,13 @@ class GameScene extends Scene {
     mobile.draw();
 
     // Ship health
-    if (ship.health <= 0 && !scenes.gameOver) {
+    if (ship.destroyed && !scenes.gameOver) {
       scenes.gameOver = true;
       spawnExplosion(ship.x, ship.y, ship, 0.3);
       setTimeout(() => {
         scenes.cutSceneTo(scenes.gameOverScene, 1);
       }, 500);
-    } else if (ship.health > 0 && scenes.nextScene == scenes.gameOverScene) {
+    } else if (ship.health > 0 && ship.destroyed && scenes.nextScene == scenes.gameOverScene) {
       // Resurrect ship
       ship.resurrect();
       hud.resurrectEffect();

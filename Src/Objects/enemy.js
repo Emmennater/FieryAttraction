@@ -140,6 +140,7 @@ class Enemy extends Ship {
         owner: this,
         Type: this.bulletType,
         damageMult: this.damage,
+        level: this.bulletLevel,
         bCol: this.bCol,
         gravity: this.bGravity,
         decay: this.bDecay,

@@ -401,11 +401,19 @@ class SpaceEnemy extends Enemy {
 
     // Bullet attributes
     this.bStray = 20;
+    this.bDelay = 0.5;
 
     this.exaustCol = this.oldExaustCol = {
       min: { r: 30, g: 180, b: 200, a: 100 },
       add: { r: 40, g: 30, b: 50, a: 0 }
     };
+  }
+
+  grantEffect(object) {
+    super.grantEffect(object);
+    object.applyEffect(SpaceRounds, {
+      duration: randInt(30, 50)
+    });
   }
 }
 

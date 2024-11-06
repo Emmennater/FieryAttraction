@@ -124,7 +124,7 @@ class HomingBullet extends Bullet {
     super(dat);
     this.col = { r: 183, g: 45, b: 247 };
     this.homingVelocity = Math.sqrt(dat.vx ** 2 + dat.vy ** 2) * (1.25 + this.level * 0.25);
-    this.homingEnemyBlacklist = [ BlackEnemy ];
+    this.homingEnemyBlacklist = [ BlackEnemy, SpaceEnemy ];
     this.homingBulletBlacklist = [ HomingBullet, MegaBullet ];
     this.canHomeOnTarget = true;
     this.lockToAsteroids = true;
@@ -287,20 +287,27 @@ class SpaceBullet extends HomingBullet {
   constructor(dat) {
     super(dat);
     this.col = { r: 255, g: 0, b: 0 };
+    this.consumes = 0.3 / this.level ** 0.5;
     this.speed = 2 + this.level;
-    this.delay = 0.05 / this.level ** 0.5;
-    this.vx *= -this.speed;
-    this.vy *= -this.speed;
-    this.homingVelocity = Math.sqrt(dat.vx ** 2 + dat.vy ** 2) * 3;
+    this.delay = 0.1 / this.level ** 0.5;
+    this.vx *= this.speed;
+    this.vy *= this.speed;
+    this.homingVelocity = Math.sqrt(dat.vx ** 2 + dat.vy ** 2) * 4;
     this.lockToAsteroids = false;
     this.target = null;
-    this.time *= 10;
+    this.time *= 2;
 
     // Teleport
-    this.x += randSign() * randInt(500, 100);
-    this.y += randSign() * randInt(500, 100);
+    this.x += randSign() * randInt(200, 400);
+    this.y += randSign() * randInt(200, 400);
     this.px = this.x;
     this.py = this.y;
+
+    // Randomize velocity
+    const velocityAngle = Math.random() * TWO_PI;
+    const vel = Math.sqrt(this.vx ** 2 + this.vy ** 2);
+    this.vx = Math.cos(velocityAngle) * vel;
+    this.vy = Math.sin(velocityAngle) * vel;
 
     this.prevIdx = 0;
     this.previousPositions = [];
@@ -349,7 +356,7 @@ class MegaBullet extends HomingBullet {
     this.vx *= this.speed;
     this.vy *= this.speed;
     this.damage = 7.5;
-    this.homingEnemyBlacklist = [ BlackEnemy ];
+    this.homingEnemyBlacklist = [ BlackEnemy, SpaceEnemy ];
     this.homingBulletBlacklist = [ MegaBullet ];
   }
 

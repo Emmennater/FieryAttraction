@@ -140,6 +140,15 @@ class ExplosiveRounds extends CustomRounds {
   }
 }
 
+class SpaceRounds extends CustomRounds {
+  constructor(target, dat) {
+    super(target, dat);
+    this.name = "space rounds";
+    this.bulletType = SpaceBullet;
+    this.color = color(255);
+  }
+}
+
 class MultiShot extends Effect {
   constructor(target, dat) {
     super(target, dat);

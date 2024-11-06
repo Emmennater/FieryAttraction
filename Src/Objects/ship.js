@@ -355,16 +355,18 @@ class Ship extends GravityObject {
   elasticCollision(collidedObj) {
     const playerInitVx = this.vx;
     const playerInitVy = this.vy;
-    const objectInitVx = collidedObj.vx;
-    const objectInitVy = collidedObj.vy;
+    const objectInitVel = collidedObj.getVelocity();
+    const objectInitVx = objectInitVel.x;
+    const objectInitVy = objectInitVel.y;
 
     elasticCollision(this, collidedObj);
     
     // Calculate the change in velocity (post-collision minus pre-collision)
+    const objectFinalVel = collidedObj.getVelocity();
     const playerDeltaVx = playerInitVx - this.vx;
     const playerDeltaVy = playerInitVy - this.vy;
-    const objectDeltaVx = objectInitVx - collidedObj.vx;
-    const objectDeltaVy = objectInitVy - collidedObj.vy;
+    const objectDeltaVx = objectInitVx - objectFinalVel.x;
+    const objectDeltaVy = objectInitVy - objectFinalVel.y;
 
     // Compute damage
     const playerDeltaVel = Math.hypot(playerDeltaVx, playerDeltaVy);

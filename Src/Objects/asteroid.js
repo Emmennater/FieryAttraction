@@ -58,6 +58,23 @@ class Asteroid extends GravityObject {
     this.collisionMesh.updateTransform();
   }
   
+  getVelocity() {
+    let s = constrain(this.speedMultiplier, -1, 1);
+    return { x: this.vx * s, y: this.vy * s };
+  }
+
+  addVelocity(vx, vy) {
+    let s = constrain(this.speedMultiplier, -1, 1);
+    this.vx += vx * s;
+    this.vy += vy * s;
+  }
+
+  setVelocity(vx, vy) {
+    let s = constrain(this.speedMultiplier, -1, 1);
+    this.vx = vx * s;
+    this.vy = vy * s;
+  }
+
   drawRock(ctx) {
     ctx.push();
     ctx.translate(width/2, height/2);

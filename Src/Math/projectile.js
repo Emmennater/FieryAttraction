@@ -29,11 +29,8 @@ function getInterceptAngle(turret, target, bulletSpeed) {
 }
 
 function elasticCollision(objectA, objectB) {
-    // Conservation of momentum
-    const playerOldVx = objectA.vx;
-    const playerOldVy = objectA.vy;
-    const objectOldVx = objectB.vx;
-    const objectOldVy = objectB.vy;
+    const objectAVel = objectA.getVelocity();
+    const objectBVel = objectB.getVelocity();
 
     // Calculate the direction between player and object
     const playerToObject = [objectB.x - objectA.x, objectB.y - objectA.y];
@@ -41,8 +38,8 @@ function elasticCollision(objectA, objectB) {
     const playerToObjectNorm = [playerToObject[0] / playerToObjectMag, playerToObject[1] / playerToObjectMag];
 
     // Project the velocities onto the collision normal
-    const playerNorm = objectA.vx * playerToObjectNorm[0] + objectA.vy * playerToObjectNorm[1];
-    const objectNorm = objectB.vx * playerToObjectNorm[0] + objectB.vy * playerToObjectNorm[1];
+    const playerNorm = objectAVel.x * playerToObjectNorm[0] + objectAVel.y * playerToObjectNorm[1];
+    const objectNorm = objectBVel.x * playerToObjectNorm[0] + objectBVel.y * playerToObjectNorm[1];
 
     // Apply the conservation of momentum (elastic collision)
     const combinedMass = objectA.m + objectB.m;
@@ -50,9 +47,12 @@ function elasticCollision(objectA, objectB) {
     const objectNewNormX = (objectNorm * (objectB.m - objectA.m) + 2 * objectA.m * playerNorm) / combinedMass;
 
     // Update velocities based on the new projected velocity in the normal direction
-    objectA.vx = playerNewNormX * playerToObjectNorm[0];
-    objectA.vy = playerNewNormX * playerToObjectNorm[1];
+    const avx = playerNewNormX * playerToObjectNorm[0];
+    const avy = playerNewNormX * playerToObjectNorm[1];
 
-    objectB.vx = objectNewNormX * playerToObjectNorm[0];
-    objectB.vy = objectNewNormX * playerToObjectNorm[1];
+    const bvx = objectNewNormX * playerToObjectNorm[0];
+    const bvy = objectNewNormX * playerToObjectNorm[1];
+
+    objectA.setVelocity(avx, avy);
+    objectB.setVelocity(bvx, bvy);
 }

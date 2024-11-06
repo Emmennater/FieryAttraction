@@ -15,7 +15,8 @@ class Bullet extends GravityObject {
     this.px = dat.x;
     this.py = dat.y;
     this.impactForce = dat.impactForce || 1;
-    
+
+    this.level = dat.level || 1;
     this.m = 2000;
     this.owner = dat.owner;
     this.col = dat.bCol || { r: 255, g: 255, b: 255 };
@@ -26,8 +27,9 @@ class Bullet extends GravityObject {
   
   transferMomentumTo(object) {
     if (!object) return;
-    object.vx += this.vx * this.m / object.m * this.impactForce;
-    object.vy += this.vy * this.m / object.m * this.impactForce;
+    const vx = this.vx * this.m / object.m * this.impactForce;
+    const vy = this.vy * this.m / object.m * this.impactForce;
+    object.addVelocity(vx, vy);
   }
 
   checkForHit() {
@@ -88,7 +90,7 @@ class Bullet extends GravityObject {
     const ALPHA = Math.min(this.time * 120, 255);
     let vx = this.x - this.px;
     let vy = this.y - this.py;
-    
+
     // if (this.owner == "enemy") {
     //   ctx.stroke(255, 80, 60, ALPHA);
     // } else {
@@ -107,7 +109,6 @@ class Bullet extends GravityObject {
 class SpeedBullet extends Bullet {
   constructor(dat) {
     super(dat);
-    this.level = dat.level || 1;
     this.col = { r: 68, g: 223, b: 235 };
     this.speed = 1.5 + this.level * 0.5;
     this.delay = 0.2 / this.level ** 0.5;
@@ -121,12 +122,12 @@ class SpeedBullet extends Bullet {
 class HomingBullet extends Bullet {
   constructor(dat) {
     super(dat);
-    this.level = dat.level || 1;
     this.col = { r: 183, g: 45, b: 247 };
     this.homingVelocity = Math.sqrt(dat.vx ** 2 + dat.vy ** 2) * (1.25 + this.level * 0.25);
     this.homingEnemyBlacklist = [ BlackEnemy ];
     this.homingBulletBlacklist = [ HomingBullet, MegaBullet ];
     this.canHomeOnTarget = true;
+    this.lockToAsteroids = true;
     this.pickTarget();
   }
 
@@ -140,7 +141,8 @@ class HomingBullet extends Bullet {
         this.target = this.selectTarget(targets);
         break;
       case "enemy":
-        targets = asteroids.concat([ship]);
+        targets = [ship];
+        if (this.lockToAsteroids) targets = targets.concat(asteroids);
         this.target = this.selectTarget(targets);
         break;
     }
@@ -281,10 +283,64 @@ class HomingBullet extends Bullet {
   }
 }
 
+class SpaceBullet extends HomingBullet {
+  constructor(dat) {
+    super(dat);
+    this.col = { r: 255, g: 0, b: 0 };
+    this.speed = 2 + this.level;
+    this.delay = 0.05 / this.level ** 0.5;
+    this.vx *= -this.speed;
+    this.vy *= -this.speed;
+    this.homingVelocity = Math.sqrt(dat.vx ** 2 + dat.vy ** 2) * 3;
+    this.lockToAsteroids = false;
+    this.target = null;
+    this.time *= 10;
+
+    // Teleport
+    this.x += randSign() * randInt(500, 100);
+    this.y += randSign() * randInt(500, 100);
+    this.px = this.x;
+    this.py = this.y;
+
+    this.prevIdx = 0;
+    this.previousPositions = [];
+  }
+
+  draw(ctx) {
+    const ALPHA = Math.min(this.time * 120, 255);
+    let vx = this.x - this.px;
+    let vy = this.y - this.py;
+
+    // if (this.owner == "enemy") {
+    //   ctx.stroke(255, 80, 60, ALPHA);
+    // } else {
+    //   ctx.stroke(60, 255, 80, ALPHA);
+    // }
+    
+    // ctx.stroke(this.col.r, this.col.g, this.col.b, ALPHA);
+    ctx.strokeWeight(this.r);
+    // ctx.line(this.x - vx * 3, this.y - vy * 3, this.x, this.y);
+    
+    this.previousPositions[this.prevIdx] = { x: this.x, y: this.y };
+
+    let j = 0;
+    for (let i = this.prevIdx + 1; i != this.prevIdx; i = (i + 1) % 10) {
+      let p1 = this.previousPositions[i];
+      let p2 = this.previousPositions[(i + 1) % 10];
+      if (!p1 || !p2) continue;
+      ++j;
+
+      ctx.stroke(255, 255, 255, 255 * j / 10);
+      ctx.line(p1.x, p1.y, p2.x, p2.y);
+    }
+
+    this.prevIdx = (this.prevIdx + 1) % 10;
+  }
+}
+
 class MegaBullet extends HomingBullet {
   constructor(dat) {
     super(dat);
-    this.level = dat.level || 1;
     this.consumes = 0.5 / this.level ** 0.5;
     this.col = { r: 74, g: 66, b: 227 };
     this.homingVelocity = Math.sqrt(dat.vx ** 2 + dat.vy ** 2) * 4;

@@ -1,7 +1,7 @@
 
 enemies = [];
 
-const enemyStrengthThresholds = { normal: 500, homing: 800, speed: 800, mega: 1000, black: 1000 };
+const enemyStrengthThresholds = { normal: 500, homing: 800, speed: 800, mega: 1000, black: 1000, space: 1200 };
 const ENEMY_TYPE_CAPS = { black: 3, mega: 5 };
 
 class Enemy extends Ship {
@@ -35,6 +35,7 @@ class Enemy extends Ship {
     this.bCol = { r:255, g:80, b:60 };
     this.bStray = 0.6; // 0.2
     this.lastBullet = null;
+    this.maxTargetAngleError = 0.4;
   }
 
   grantEffect(object) {
@@ -88,7 +89,7 @@ class Enemy extends Ship {
     if (!intercepts) return;
 
     const angleFromTarget = smallestAngleDifference(this.control.steeringAngle, finalTargetAngle - this.a);
-    const angleCloseToTarget = Math.abs(angleFromTarget) < 0.4;
+    const angleCloseToTarget = Math.abs(angleFromTarget) < this.maxTargetAngleError;
     
     this.bTime -= dt;
     if (this.bTime > 0 || !angleCloseToTarget) return;
@@ -336,6 +337,7 @@ class HomingEnemy extends Enemy {
     this.worth = 25;
 
     // Bullet attributes
+    this.bImpactForce = 1;
     this.bDelay = 1;
     this.bSpeed = 200;
     this.bGravity = 0.0;
@@ -385,10 +387,32 @@ class MegaEnemy extends HomingEnemy {
   }
 }
 
+class SpaceEnemy extends Enemy {
+  constructor(x, y, vx, vy) {
+    super(x, y, vx, vy);
+    this.type = "space";
+    this.bulletType = SpaceBullet;
+    this.sprite = spaceEnemySprite;
+    this.setHealth(25, 25);
+    this.worth = 35;
+    this.speed = 80;
+    this.topSpeed = 300;
+    this.maxTargetAngleError = PI;
+
+    // Bullet attributes
+    this.bStray = 20;
+
+    this.exaustCol = this.oldExaustCol = {
+      min: { r: 30, g: 180, b: 200, a: 100 },
+      add: { r: 40, g: 30, b: 50, a: 0 }
+    };
+  }
+}
+
 function initEnemies(count) {
   if (noSpawns) return;
   // const a = atan2(ship.y, ship.x);
-  // const enemy = createEnemy("homing", ship.x + cos(a) * 300, ship.y + sin(a) * 300, 0, 0);
+  // const enemy = createEnemy("space", ship.x + cos(a) * 300, ship.y + sin(a) * 300, 0, 0);
   // enemy.applyEffect(MultiShot, { duration: 10000, level: 1 });
   // enemies.push(enemy);
 
@@ -409,6 +433,7 @@ function createEnemy(type, x = 0, y = 0, vx = 0, vy = 0) {
     case "speed": enemy = new SpeedEnemy(x, y, vx, vy); break;
     case "mega": enemy = new MegaEnemy(x, y, vx, vy); break;
     case "black": enemy = new BlackEnemy(x, y, vx, vy); break;
+    case "space": enemy = new SpaceEnemy(x, y, vx, vy); break;
     default: enemy = new Enemy(x, y, vx, vy);
   }
 
@@ -480,6 +505,7 @@ function randomEnemyType() {
     normal: 75,
     speed: 10 + difficulty,
     homing: 5 + difficulty,
+    space: 1 + difficulty * 0.5,
     mega: 2 + difficulty * 0.5,
     black: 3 + difficulty
   };
@@ -519,7 +545,7 @@ function getRandomEnemyIndex() {
 function upgradeEnemyAt(enemyIndex) {
   const enemy = enemies[enemyIndex];
   const enemyType = enemy.type;
-  const upgradePath = ["normal", "speed", "homing", "black", "mega"];
+  const upgradePath = ["normal", "speed", "homing", "black", "mega", "space"];
   const newIndex = upgradePath.indexOf(enemyType) + 1;
 
   if (newIndex >= upgradePath.length) return false;

@@ -217,9 +217,17 @@ class SpinStorm extends WorldEvent {
     super();
     this.title = "SPIN STORM";
     this.time = 0;
+    this.star = system.getRandomStar();
+    // this.reversed = Math.random() < 0.2;
+    this.reversed = true; // for testing
     this.strength = 3;
     this.sunRotationSpeed = 0.01;
-    this.star = system.getRandomStar();
+  
+    // If reversed reverse title
+    if (this.reversed) {
+      this.strength *= -1;
+      this.title = (this.title.split(' ')).reverse().join(' ');
+    }
   }
 
   start(dt) {
@@ -228,11 +236,12 @@ class SpinStorm extends WorldEvent {
       return;
 
     const time = Math.min((this.stageTime - 5) * 0.1, 1);
-    const multiplier = lerp(1, this.strength, time);
+    const multiplier = lerp(1, this.strength, this.reversed ? time ** 4 : time);
+    const asteroidMultiplier = lerp(1, this.strength, time);
 
     // Set asteroid speed multiplier
     for (let asteroid of asteroids) {
-      asteroid.speedMultiplier = multiplier;
+      asteroid.speedMultiplier = asteroidMultiplier;
     }
 
     // Rotate sun and stars
@@ -243,7 +252,6 @@ class SpinStorm extends WorldEvent {
   }
 
   middle(dt) {
-
     // Rotate sun and stars
     this.star.rot += this.sunRotationSpeed * this.strength;
     stars.rot += this.sunRotationSpeed * this.strength;
@@ -254,11 +262,12 @@ class SpinStorm extends WorldEvent {
   end(dt) {
     // Die down to default speed
     const time = Math.min(this.stageTime * 0.1, 1);
-    const multiplier = lerp(this.strength, 1, time);
+    const multiplier = lerp(this.strength, 1, this.reversed ? time ** 0.25 : time);
+    const asteroidMultiplier = lerp(this.strength, 1, time);
 
     // Set asteroid speed multiplier
     for (let asteroid of asteroids) {
-      asteroid.speedMultiplier = multiplier;
+      asteroid.speedMultiplier = asteroidMultiplier;
     }
 
     // Rotate sun and stars

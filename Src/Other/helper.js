@@ -72,3 +72,13 @@ function randSign() {
 function fixAngle(angle) {
   return ((angle % TWO_PI) + TWO_PI) % TWO_PI;
 }
+
+function stepTo(a, b, step) {
+  if (a == b) return a;
+
+  step = Math.sign(b - a) * step;
+  if (b > a && a + step > b) return b;
+  if (b < a && a + step < b) return b;
+
+  return a + step;
+}

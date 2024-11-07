@@ -286,8 +286,8 @@ class HomingBullet extends Bullet {
 class SpaceBullet extends HomingBullet {
   constructor(dat) {
     super(dat);
-    this.col = { r: 255, g: 0, b: 0 };
-    this.consumes = 0.3 / this.level ** 0.5;
+    this.col = { r: 255, g: 255, b: 255 };
+    this.consumes = 0.4 / this.level ** 0.5;
     this.speed = 2 + this.level;
     this.delay = 0.1 / this.level ** 0.5;
     this.vx *= this.speed;
@@ -298,35 +298,32 @@ class SpaceBullet extends HomingBullet {
     this.time *= 2;
 
     // Teleport
-    this.x += randSign() * randInt(200, 400);
-    this.y += randSign() * randInt(200, 400);
+    const spawnRadius = dat.spawnRadius || 10;
+    this.x += randSign() * randInt(spawnRadius, spawnRadius * 2);
+    this.y += randSign() * randInt(spawnRadius, spawnRadius * 2);
     this.px = this.x;
     this.py = this.y;
-
+    
     // Randomize velocity
-    const velocityAngle = Math.random() * TWO_PI;
+    const currentAngle = Math.atan2(this.vy, this.vx);
+    const velocityAngle = (Math.random() * 2 - 1) * (PI * spawnRadius / 200) + currentAngle;
     const vel = Math.sqrt(this.vx ** 2 + this.vy ** 2);
     this.vx = Math.cos(velocityAngle) * vel;
     this.vy = Math.sin(velocityAngle) * vel;
 
     this.prevIdx = 0;
     this.previousPositions = [];
+
+    this.homingEnemyBlacklist = [ BlackEnemy, SpaceEnemy ];
+    this.homingBulletBlacklist = [ MegaBullet, SpaceBullet ];
   }
 
   draw(ctx) {
     const ALPHA = Math.min(this.time * 120, 255);
     let vx = this.x - this.px;
     let vy = this.y - this.py;
-
-    // if (this.owner == "enemy") {
-    //   ctx.stroke(255, 80, 60, ALPHA);
-    // } else {
-    //   ctx.stroke(60, 255, 80, ALPHA);
-    // }
     
-    // ctx.stroke(this.col.r, this.col.g, this.col.b, ALPHA);
     ctx.strokeWeight(this.r);
-    // ctx.line(this.x - vx * 3, this.y - vy * 3, this.x, this.y);
     
     this.previousPositions[this.prevIdx] = { x: this.x, y: this.y };
 
@@ -337,7 +334,7 @@ class SpaceBullet extends HomingBullet {
       if (!p1 || !p2) continue;
       ++j;
 
-      ctx.stroke(255, 255, 255, 255 * j / 10);
+      ctx.stroke(this.col.r, this.col.g, this.col.b, 255 * j / 10);
       ctx.line(p1.x, p1.y, p2.x, p2.y);
     }
 

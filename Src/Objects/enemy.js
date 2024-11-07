@@ -64,6 +64,11 @@ class Enemy extends Ship {
     }
   }
 
+  spawnBullet(dat) {
+    const bullet = spawnBullet(dat);
+    return bullet;
+  }
+
   fireAtPlayer(dirOffset, dt, closeToStar) {
     
     // Variables
@@ -136,7 +141,7 @@ class Enemy extends Ship {
       let vy = sin(a) * this.bSpeed; // + this.vy
       
       // Shoot bullet
-      bullet = spawnBullet({
+      bullet = this.spawnBullet({
         x: this.x, y: this.y, vx, vy,
         owner: this,
         Type: this.bulletType,
@@ -401,26 +406,93 @@ class SpaceEnemy extends Enemy {
 
     // Bullet attributes
     this.bStray = 20;
-    this.bDelay = 0.5;
 
     this.exaustCol = this.oldExaustCol = {
       min: { r: 30, g: 180, b: 200, a: 100 },
       add: { r: 40, g: 30, b: 50, a: 0 }
     };
+
+    this.tpDelay = 5;
+    this.timeSinceTeleport = Infinity;
+    this.teleported = false;
+    this.tpTime = 2;
+  }
+
+  move(dt) {
+    super.move(dt);
+
+    this.timeSinceTeleport += dt;
+
+    const distToPlayer = dist(this.x, this.y, ship.x, ship.y);
+    if (distToPlayer < this.range * 1.5) this.attemptRTP();
+
+    if (!this.destroyed) {
+      if (this.timeSinceTeleport > this.tpTime && !this.teleported) this.teleport(this.getRandomTeleport());
+    }
+  }
+
+  getRandomOffset() {
+    let x = randSign() * randInt(50, 100) + ship.x;
+    let y = randSign() * randInt(50, 100) + ship.y;
+
+    return { x, y };
+  }
+
+  getRandomTeleport() {
+    // Find a safe spot to teleport
+    let { x, y } = this.getRandomOffset();
+    let { star, dist } = system.getClosestStar(x, y);
+    let iterations = 0;
+
+    while (dist < star.r + 50) {
+      if (iterations++ > 10) return false;
+      ({ x, y } = this.getRandomOffset());
+      ({ star, dist } = system.getClosestStar(x, y));  
+    }
+
+    return { x, y };
+  }
+
+  attemptRTP() {
+    if (this.timeSinceTeleport < this.tpDelay) return;
+    this.timeSinceTeleport = 0;
+    this.teleported = false;
+  }
+
+  teleport(loc) {
+    if (loc === false) return;
+    this.x = loc.x;
+    this.y = loc.y;
+    this.teleported = true;
   }
 
   grantEffect(object) {
     super.grantEffect(object);
     object.applyEffect(SpaceRounds, {
-      duration: randInt(30, 50)
+      duration: randInt(20, 40)
     });
+  }
+
+  fireAtPlayer(...args) {
+    if (!this.teleported) return;
+    super.fireAtPlayer(...args);
+  }
+
+  spawnBullet(dat) {
+    dat.spawnRadius = 200;
+    return super.spawnBullet(dat);
+  }
+
+  draw(ctx) {
+    const opacity = constrain(1 - this.timeSinceTeleport / this.tpTime, 0, 1) + constrain(this.timeSinceTeleport - this.tpTime, 0, 1);
+    super.draw(ctx, opacity);
   }
 }
 
 function initEnemies(count) {
   if (noSpawns) return;
   // const a = atan2(ship.y, ship.x);
-  // const enemy = createEnemy("space", ship.x + cos(a) * 300, ship.y + sin(a) * 300, 0, 0);
+  // const enemy = createEnemy("space", ship.x + cos(a) * 150, ship.y + sin(a) * 150, 0, 0);
   // enemy.applyEffect(MultiShot, { duration: 10000, level: 1 });
   // enemies.push(enemy);
 
@@ -448,9 +520,13 @@ function createEnemy(type, x = 0, y = 0, vx = 0, vy = 0) {
   return enemy;
 }
 
-function spawnEnemy(type = "normal") {
+function spawnEnemy(type = "normal", respawned = false) {
   const { pos, angle } = system.getRandomSpawn(100, 200, 600);
   const { x, y } = pos;
+
+  if (type == "space" && !respawned) {
+    hud.displayMessage("Something is coming from space...");
+  }
 
   let speed = randInt(20, 40);
   let vx = Math.cos(angle) * speed;
@@ -479,8 +555,9 @@ function destroyEnemy(enemy, i = enemies.indexOf(enemy)) {
   enemies.splice(i, 1);
 
   // Respawn (same type if not killed by player)
-  let type = (!enemy.slainByPlayer) ? enemy.type : randomEnemyType();
-  spawnEnemy(type);
+  const respawned = !enemy.slainByPlayer;
+  let type = !enemy.slainByPlayer ? enemy.type : randomEnemyType();
+  spawnEnemy(type, respawned);
 }
 
 function moveEnemies(dt) {

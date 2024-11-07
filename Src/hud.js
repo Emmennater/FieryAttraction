@@ -5,6 +5,7 @@ class HUD {
     this.temp = 0;
     this.score = 0;
     this.scoreText = new ScoreText();
+    this.messageBar = new MessageBar();
     this.guide = new Guide();
     this.radar = new Radar();
 
@@ -118,6 +119,10 @@ class HUD {
     }
   }
 
+  displayMessage(msg, dat) {
+    this.messageBar.displayMessage(msg, dat);
+  }
+
   draw(dt, ctx) {
     // Camera transformations
     const SCALE = max(width, height);
@@ -169,7 +174,6 @@ class HUD {
       this.whiteFlash = 0;
     }
 
-
     // Events
     if (!scenes.paused)
       scenes.runEvents(dt, ctx);
@@ -205,6 +209,10 @@ class HUD {
       meter.update(dt);
       meter.draw();
     }
+
+    // Message bar
+    this.messageBar.update(dt);
+    this.messageBar.draw();
 
     // Score
     this.scoreText.setScore(this.score);
@@ -458,6 +466,45 @@ class ScoreText {
       scale(s);
       text(earnedText, 0, -15);
       pop();
+    }
+  }
+}
+
+class MessageBar {
+  constructor() {
+    this.messages = [];
+  }
+
+  displayMessage(msg, dat = {}, duration = 8) {
+    this.messages.push({ msg, dat, t:0, duration });
+  }
+
+  update(dt) {
+    for (let i = this.messages.length - 1; i >= 0; i--) {
+      const m = this.messages[i];
+      m.t += dt;
+      if (m.t > m.duration) {
+        this.messages.splice(i, 1);
+      }
+    }
+  }
+
+  draw() {
+    const X = width / 2;
+    const Y = 50;
+    const S = 30;
+
+    textAlign(CENTER, CENTER);
+    textSize(S);
+    noStroke();
+    textFont("monospace");
+    
+    for (let i = 0; i < this.messages.length; i++) {
+      const m = this.messages[i];
+      const col = m.dat.col || color(255);
+      const alpha = constrain((m.duration - m.t) * 0.75, 0, 1) * constrain(m.t, 0, 1) * 255;
+      fill(colorAlpha(col, alpha));
+      text(m.msg, X, Y + (i + 1) * S);
     }
   }
 }

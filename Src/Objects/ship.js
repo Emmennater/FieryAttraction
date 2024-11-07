@@ -23,7 +23,7 @@ class Trail extends GameObject {
     }
   }
   
-  draw(ctx) {
+  draw(ctx, opacity) {
     ctx.noStroke();
     
     // noFill();
@@ -34,7 +34,7 @@ class Trail extends GameObject {
       // vertex(pt.x, pt.y);
       pt.x += pt.vx;
       pt.y += pt.vy;
-      ctx.fill(pt.col, pt.a);
+      ctx.fill(pt.col, pt.a * opacity);
       ctx.circle(pt.x, pt.y, pt.r);
       pt.a -= 0.5;
       pt.r *= 0.99;
@@ -231,12 +231,12 @@ class Ship extends GravityObject {
       const theme = getTheme();
 
       if (theme == "christmas" || theme == "thanksgiving") {
-        bulletStyleCol = [
-          { r: 255, g: 100, b: 100 },
-          { r: 255, g: 255, b: 255 },
-          { r: 100, g: 255, b: 100 },
-          { r: 255, g: 255, b: 255 }
-        ][this.stats.bulletsShot % 4];
+        // bulletStyleCol = [
+        //   { r: 255, g: 100, b: 100 },
+        //   { r: 255, g: 255, b: 255 },
+        //   { r: 100, g: 255, b: 100 },
+        //   { r: 255, g: 255, b: 255 }
+        // ][this.stats.bulletsShot % 4];
       }
 
       this.stats.bulletsShot++;
@@ -520,7 +520,7 @@ class Ship extends GravityObject {
     this.destroyed = false;
   }
   
-  drawBoost(ctx) {
+  drawBoost(ctx, opacity) {
     let shipTurnRate = (this.control.boost) ? 0.01 : 0.02;
     let oldAngle = fixAngle(this.a);
     let newAngle = fixAngle(atan2(this.vy, this.vx));
@@ -555,7 +555,7 @@ class Ship extends GravityObject {
           this.exaustCol.min.r + this.exaustCol.add.r * Math.random(),
           this.exaustCol.min.g + this.exaustCol.add.g * Math.random(),
           this.exaustCol.min.b + this.exaustCol.add.b * Math.random(),
-          this.exaustCol.min.a + this.exaustCol.add.a * Math.random()
+          (this.exaustCol.min.a + this.exaustCol.add.a * Math.random()) * opacity
         );
         let aoff = noise(i + frameCount) * 0.4 - 0.2;
         let len = this.s * (Math.random() * 1 + 1);
@@ -569,17 +569,19 @@ class Ship extends GravityObject {
     }
   }
   
-  draw(ctx) {
-    this.drawBoost(ctx);
-    this.trail.draw(ctx);
+  draw(ctx, opacity = 1) {
+    this.drawBoost(ctx, opacity);
+    this.trail.draw(ctx, opacity);
     
     const SIZE = 1.4;
     const aspect = rocketSprite.height / rocketSprite.width;
-    
+
     if (this.health <= 0)
       this.alpha = Math.max(this.alpha - 8, 0);
     else
       this.alpha = 255;
+
+    const ALPHA = this.alpha * opacity;
 
     ctx.push();
     ctx.translate(this.x, this.y);
@@ -587,15 +589,15 @@ class Ship extends GravityObject {
     ctx.translate(0, -this.s / 4);
     ctx.imageMode(CENTER);
     
-    if (this.alpha != 255)
-      ctx.tint(255, this.alpha);
+    if (ALPHA != 255)
+      ctx.tint(255, ALPHA);
     
     ctx.image(this.sprite, 0, 0, this.s * SIZE, this.s * aspect * SIZE);
 
     if (this.effects.length > 0)
       ctx.image(jetEnchantmentSprite, 0, 0, this.s * SIZE, this.s * aspect * SIZE);
 
-    if (this.alpha != 255)
+    if (ALPHA != 255)
       ctx.noTint();
     
     ctx.pop();

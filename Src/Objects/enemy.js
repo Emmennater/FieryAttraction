@@ -364,11 +364,11 @@ class MegaEnemy extends HomingEnemy {
     super(x, y, vx, vy, 15);
     this.type = "mega";
     this.bulletType = MegaBullet;
-    this.setHealth(25, 25);
+    this.setHealth(35, 35);
     this.range = 250;
     this.playerRange = 100;
-    this.speed = 80;
-    this.worth = 35;
+    this.speed = 100;
+    this.worth = 40;
 
     // Bullet attributes
     this.bDelay = 1;
@@ -399,8 +399,8 @@ class HurricaneEnemy extends Enemy {
     this.type = "hurricane";
     this.bulletType = HurricaneBullet;
     this.sprite = hurricaneEnemySprite;
-    this.setHealth(35, 35);
-    this.worth = 35;
+    this.setHealth(50, 50);
+    this.worth = 50;
     this.speed = 80;
     this.topSpeed = 300;
     this.maxTargetAngleError = PI;
@@ -417,6 +417,13 @@ class HurricaneEnemy extends Enemy {
     this.timeSinceTeleport = Infinity;
     this.teleported = true;
     this.tpTime = 2;
+  }
+
+  takeDamage(damage, damageSource) {
+    super.takeDamage(damage, damageSource);
+    if (damageSource instanceof Bullet && damageSource.owner === ship) {
+      this.attemptRTP();
+    }
   }
 
   move(dt) {

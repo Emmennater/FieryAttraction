@@ -124,7 +124,7 @@ class HomingBullet extends Bullet {
     super(dat);
     this.col = { r: 183, g: 45, b: 247 };
     this.homingVelocity = Math.sqrt(dat.vx ** 2 + dat.vy ** 2) * (1.25 + this.level * 0.25);
-    this.homingEnemyBlacklist = [ BlackEnemy, SpaceEnemy ];
+    this.homingEnemyBlacklist = [ BlackEnemy, HurricaneEnemy ];
     this.homingBulletBlacklist = [ HomingBullet, MegaBullet ];
     this.canHomeOnTarget = true;
     this.lockToAsteroids = true;
@@ -283,7 +283,7 @@ class HomingBullet extends Bullet {
   }
 }
 
-class SpaceBullet extends HomingBullet {
+class HurricaneBullet extends HomingBullet {
   constructor(dat) {
     super(dat);
     this.col = { r: 255, g: 255, b: 255 };
@@ -314,8 +314,8 @@ class SpaceBullet extends HomingBullet {
     this.prevIdx = 0;
     this.previousPositions = [];
 
-    this.homingEnemyBlacklist = [ BlackEnemy, SpaceEnemy ];
-    this.homingBulletBlacklist = [ MegaBullet, SpaceBullet ];
+    this.homingEnemyBlacklist = [ BlackEnemy, HurricaneEnemy ];
+    this.homingBulletBlacklist = [ MegaBullet, HurricaneBullet ];
   }
 
   draw(ctx) {
@@ -353,7 +353,7 @@ class MegaBullet extends HomingBullet {
     this.vx *= this.speed;
     this.vy *= this.speed;
     this.damage = 7.5;
-    this.homingEnemyBlacklist = [ BlackEnemy, SpaceEnemy ];
+    this.homingEnemyBlacklist = [ BlackEnemy, HurricaneEnemy ];
     this.homingBulletBlacklist = [ MegaBullet ];
   }
 

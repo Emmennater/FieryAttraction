@@ -140,12 +140,12 @@ class ExplosiveRounds extends CustomRounds {
   }
 }
 
-class SpaceRounds extends CustomRounds {
+class HurricaneRounds extends CustomRounds {
   constructor(target, dat) {
     super(target, dat);
-    this.name = "space rounds";
-    this.bulletType = SpaceBullet;
-    this.color = color(255);
+    this.name = "hurricane rounds";
+    this.bulletType = HurricaneBullet;
+    this.color = color(50);
   }
 }
 

@@ -1,13 +1,13 @@
 
 enemies = [];
 
-const enemySpawnThresholds = { normal: 0, homing: 100, speed: 100, mega: 250, black: 300, space: 300 };
-const enemyStrengthThresholds = { normal: 500, homing: 800, speed: 800, mega: 1000, black: 1000, space: 1200 };
+const enemySpawnThresholds = { normal: 0, homing: 100, speed: 100, mega: 250, black: 300, hurricane: 300 };
+const enemyStrengthThresholds = { normal: 500, homing: 800, speed: 800, mega: 1000, black: 1000, hurricane: 1200 };
 const ENEMY_TYPE_CAPS = { black: 3, mega: 5 };
 
 class Enemy extends Ship {
-  constructor(x, y, vx, vy) {
-    super(x, y);
+  constructor(x, y, vx, vy, s = 10) {
+    super(x, y, s);
     this.name = "enemy";
     this.type = "normal";
     this.x = x;
@@ -361,7 +361,7 @@ class HomingEnemy extends Enemy {
 
 class MegaEnemy extends HomingEnemy {
   constructor(x, y, vx, vy) {
-    super(x, y, vx, vy);
+    super(x, y, vx, vy, s);
     this.type = "mega";
     this.bulletType = MegaBullet;
     this.setHealth(25, 25);
@@ -393,13 +393,13 @@ class MegaEnemy extends HomingEnemy {
   }
 }
 
-class SpaceEnemy extends Enemy {
+class HurricaneEnemy extends Enemy {
   constructor(x, y, vx, vy) {
-    super(x, y, vx, vy);
-    this.type = "space";
-    this.bulletType = SpaceBullet;
-    this.sprite = spaceEnemySprite;
-    this.setHealth(25, 25);
+    super(x, y, vx, vy, 20);
+    this.type = "hurricane";
+    this.bulletType = HurricaneBullet;
+    this.sprite = hurricaneEnemySprite;
+    this.setHealth(35, 35);
     this.worth = 35;
     this.speed = 80;
     this.topSpeed = 300;
@@ -469,7 +469,7 @@ class SpaceEnemy extends Enemy {
 
   grantEffect(object) {
     super.grantEffect(object);
-    object.applyEffect(SpaceRounds, {
+    object.applyEffect(HurricaneRounds, {
       duration: randInt(20, 40)
     });
   }
@@ -493,7 +493,7 @@ class SpaceEnemy extends Enemy {
 function initEnemies(count) {
   if (noSpawns) return;
   // const a = atan2(ship.y, ship.x);
-  // const enemy = createEnemy("space", ship.x + cos(a) * 150, ship.y + sin(a) * 150, 0, 0);
+  // const enemy = createEnemy("hurricane", ship.x + cos(a) * 150, ship.y + sin(a) * 150, 0, 0);
   // enemy.applyEffect(MultiShot, { duration: 10000, level: 1 });
   // enemies.push(enemy);
 
@@ -514,7 +514,7 @@ function createEnemy(type, x = 0, y = 0, vx = 0, vy = 0) {
     case "speed": enemy = new SpeedEnemy(x, y, vx, vy); break;
     case "mega": enemy = new MegaEnemy(x, y, vx, vy); break;
     case "black": enemy = new BlackEnemy(x, y, vx, vy); break;
-    case "space": enemy = new SpaceEnemy(x, y, vx, vy); break;
+    case "hurricane": enemy = new HurricaneEnemy(x, y, vx, vy); break;
     default: enemy = new Enemy(x, y, vx, vy);
   }
 
@@ -525,7 +525,7 @@ function spawnEnemy(type = "normal", respawned = false) {
   const { pos, angle } = system.getRandomSpawn(100, 200, 600);
   const { x, y } = pos;
 
-  if (type == "space" && !respawned) {
+  if (type == "hurricane" && !respawned) {
     hud.displayMessage("Something is coming from space...");
   }
 
@@ -591,7 +591,7 @@ function randomEnemyType() {
     normal: 75,
     speed: 10 + difficulty,
     homing: 5 + difficulty,
-    space: 1 + difficulty * 0.5,
+    hurricane: 1 + difficulty * 0.5,
     mega: 2 + difficulty * 0.5,
     black: 3 + difficulty
   };
@@ -638,7 +638,7 @@ function getRandomEnemyIndex() {
 function upgradeEnemyAt(enemyIndex) {
   const enemy = enemies[enemyIndex];
   const enemyType = enemy.type;
-  const upgradePath = ["normal", "speed", "homing", "black", "mega", "space"];
+  const upgradePath = ["normal", "speed", "homing", "black", "mega", "hurricane"];
   const newIndex = upgradePath.indexOf(enemyType) + 1;
 
   if (newIndex >= upgradePath.length) return false;

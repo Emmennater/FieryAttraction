@@ -46,14 +46,14 @@ class Trail extends GameObject {
 }
 
 class Ship extends GravityObject {
-  constructor(x, y) {
+  constructor(x, y, s = 10) {
     super(x, y, 50000);
     this.name = "ship";
     this.trail = new Trail();
     this.vx = 0;
     this.vy = -35;
     this.a = 0;
-    this.s = 10;
+    this.s = s;
     this.drag = 0.9998;
     this.speed = 8;
     this.turnSpeed = 2.4;
@@ -231,12 +231,11 @@ class Ship extends GravityObject {
       const theme = getTheme();
 
       if (theme == "christmas" || theme == "thanksgiving") {
-        // bulletStyleCol = [
-        //   { r: 255, g: 100, b: 100 },
-        //   { r: 255, g: 255, b: 255 },
-        //   { r: 100, g: 255, b: 100 },
-        //   { r: 255, g: 255, b: 255 }
-        // ][this.stats.bulletsShot % 4];
+        bulletStyleCol = [
+          { r: 255, g: 100, b: 100 },
+          { r: 255, g: 255, b: 255 },
+          { r: 100, g: 255, b: 100 }
+        ][this.stats.bulletsShot % 4];
       }
 
       this.stats.bulletsShot++;

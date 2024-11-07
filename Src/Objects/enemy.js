@@ -1,6 +1,7 @@
 
 enemies = [];
 
+const enemySpawnThresholds = { normal: 0, homing: 100, speed: 100, mega: 250, black: 300, space: 300 };
 const enemyStrengthThresholds = { normal: 500, homing: 800, speed: 800, mega: 1000, black: 1000, space: 1200 };
 const ENEMY_TYPE_CAPS = { black: 3, mega: 5 };
 
@@ -594,6 +595,13 @@ function randomEnemyType() {
     mega: 2 + difficulty * 0.5,
     black: 3 + difficulty
   };
+
+  for (let type in enemySpawnThresholds) {
+    const threshold = enemySpawnThresholds[type];
+    if (hud.score < threshold) {
+      delete typeChances[type];
+    }
+  }  
 
   // Don't spawn enemies that reached the cap
   for (let key in typeChances) {

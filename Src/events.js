@@ -218,7 +218,7 @@ class SpinStorm extends WorldEvent {
     this.title = "SPIN STORM";
     this.time = 0;
     this.star = system.getRandomStar();
-    this.reversed = Math.random() < 0.2;
+    this.reversed = Math.random() < 0.5;
     this.strength = 3;
     this.sunRotationSpeed = 0.01;
   

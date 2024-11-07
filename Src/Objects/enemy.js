@@ -334,8 +334,8 @@ class SpeedEnemy extends Enemy {
 }
 
 class HomingEnemy extends Enemy {
-  constructor(x, y, vx, vy) {
-    super(x, y, vx, vy);
+  constructor(x, y, vx, vy, s = 10) {
+    super(x, y, vx, vy, s);
     this.type = "homing";
     this.bulletType = HomingBullet;
     this.sprite = homingEnemySprite;
@@ -415,7 +415,7 @@ class HurricaneEnemy extends Enemy {
 
     this.tpDelay = 5;
     this.timeSinceTeleport = Infinity;
-    this.teleported = false;
+    this.teleported = true;
     this.tpTime = 2;
   }
 

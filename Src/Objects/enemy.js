@@ -470,7 +470,7 @@ class HurricaneEnemy extends Enemy {
   grantEffect(object) {
     super.grantEffect(object);
     object.applyEffect(HurricaneRounds, {
-      duration: randInt(20, 40)
+      duration: randInt(20, 30)
     });
   }
 

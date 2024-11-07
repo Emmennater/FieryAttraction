@@ -235,7 +235,7 @@ class Ship extends GravityObject {
           { r: 255, g: 100, b: 100 },
           { r: 255, g: 255, b: 255 },
           { r: 100, g: 255, b: 100 }
-        ][this.stats.bulletsShot % 4];
+        ][this.stats.bulletsShot % 3];
       }
 
       this.stats.bulletsShot++;

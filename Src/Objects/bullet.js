@@ -287,9 +287,9 @@ class HurricaneBullet extends HomingBullet {
   constructor(dat) {
     super(dat);
     this.col = { r: 255, g: 255, b: 255 };
-    this.consumes = 0.4 / this.level ** 0.5;
+    this.consumes = 0.5 / this.level ** 0.5;
     this.speed = 2 + this.level;
-    this.delay = 0.1 / this.level ** 0.5;
+    this.delay = 0.2 / this.level ** 0.5;
     this.vx *= this.speed;
     this.vy *= this.speed;
     this.homingVelocity = Math.sqrt(dat.vx ** 2 + dat.vy ** 2) * 4;

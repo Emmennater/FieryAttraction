@@ -361,7 +361,7 @@ class HomingEnemy extends Enemy {
 
 class MegaEnemy extends HomingEnemy {
   constructor(x, y, vx, vy) {
-    super(x, y, vx, vy, s);
+    super(x, y, vx, vy, 15);
     this.type = "mega";
     this.bulletType = MegaBullet;
     this.setHealth(25, 25);

@@ -591,7 +591,7 @@ function randomEnemyType() {
     normal: 75,
     speed: 10 + difficulty,
     homing: 5 + difficulty,
-    hurricane: 1 + difficulty * 0.5,
+    hurricane: 0.5 + difficulty * 0.5,
     mega: 2 + difficulty * 0.5,
     black: 3 + difficulty
   };

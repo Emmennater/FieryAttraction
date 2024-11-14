@@ -1,8 +1,8 @@
 
 enemies = [];
 
-const enemySpawnThresholds = { normal: 0, homing: 100, speed: 100, mega: 250, black: 300, hurricane: 300 };
-const enemyStrengthThresholds = { normal: 500, homing: 800, speed: 800, mega: 1000, black: 1000, hurricane: 1200 };
+const enemySpawnThresholds = { normal: 0, homing: 100, speed: 100, ultraspeed: 300, mega: 250, black: 300, hurricane: 300 };
+const enemyStrengthThresholds = { normal: 500, homing: 800, speed: 800, mega: 1000, black: 1000, hurricane: 1200, ultraspeed: 1200 };
 const ENEMY_TYPE_CAPS = { black: 3, mega: 5 };
 
 class Enemy extends Ship {
@@ -20,11 +20,15 @@ class Enemy extends Ship {
     this.sprite = enemySprite;
     this.bulletType = Bullet;
     this.damage = 2 / 5;
-    this.range = 200;
+    this.range = 300;
     this.playerRange = 150;
     this.topSpeed = 100;
     this.slainByPlayer = false;
     this.worth = 20;
+    this.combatProtocol = "neutral";
+    this.lookingAtTarget = false;
+    this.enemyLockonTimer = 0;
+    this.lockonTime = 5;
 
     // Bullet attributes
     this.bDelay = 2;
@@ -37,6 +41,114 @@ class Enemy extends Ship {
     this.bStray = 0.6; // 0.2
     this.lastBullet = null;
     this.maxTargetAngleError = 0.4;
+  }
+
+  getProtocol(dt) {
+    const closestStar = system.getClosestStar(this.x, this.y);
+    const star = closestStar.star;
+    const d = closestStar.dist;
+
+    const closeToStar = d < star.r + 120;
+
+    if (closeToStar) return "escape star";
+
+    const distToPlayer = dist(this.x, this.y, ship.x, ship.y);
+    const closeToPlayer = distToPlayer < this.range;
+
+    this.enemyLockonTimer = Math.max(0, this.enemyLockonTimer - dt);
+    if (closeToPlayer || this.enemyLockonTimer > 0) {
+      if (closeToPlayer) this.enemyLockonTimer = this.lockonTime;
+      return "attack";
+    }
+
+    return "neutral";
+  }
+
+  updateCombatProtocol(dt, target) {
+    const RAM_MIN_SPEED = 80;
+
+    // Enemy attributes
+    const enemySpeed = Math.hypot(this.vx, this.vy);
+
+    // Target attributes
+    const distToTarget = dist(this.x, this.y, target.x, target.y);
+    const angleToTarget = atan2(target.y - this.y, target.x - this.x);
+    const angleCloseToTarget = smallestAngleDifference(this.control.steeringAngle + this.a, angleToTarget);
+    const targetAngleDiff = Math.abs(angleCloseToTarget);
+
+    // Boost
+    const inRange = distToTarget > this.playerRange;
+    const getCloseToTarget = inRange && targetAngleDiff < PI * 0.3 && enemySpeed < 100;
+    const ramPlayer = targetAngleDiff < 0.2 && (enemySpeed > RAM_MIN_SPEED || distToTarget > 200) && this.health > 20;
+
+    if (getCloseToTarget || ramPlayer) {
+      this.lookAtTarget(dt, target, ramPlayer);
+      this.boost(dt);
+      return "boost";
+    }
+
+    // Fire
+    this.lookAtTarget(dt, target, false);
+    return "fire";
+  }
+
+  boost(dt) {
+    this.control.boost = true;
+    this.vx += cos(this.a + this.control.steeringAngle) * this.speed * dt;
+    this.vy += sin(this.a + this.control.steeringAngle) * this.speed * dt;
+  }
+
+  takeDamageFromStars() {
+    const closestStar = system.getClosestStar(this.x, this.y);
+    const star = closestStar.star;
+    const d = closestStar.dist;
+
+    // Damage from star
+    let damage = Math.max(star.r - d, 0) / 4;
+    damage = round(damage * 10) / 10;
+
+    if (damage > 0 && this.damageTime++ >= this.damageDelay) {
+      this.damageTime = 0;
+      this.takeDamage(damage);
+    }
+  }
+
+  avoidStars(dt) {
+    const closestStar = system.getClosestStar(this.x, this.y);
+    const star = closestStar.star;
+    const d = closestStar.dist;
+
+    // Distance to star
+    let dx = star.x - this.x;
+    let dy = star.y - this.y;
+
+    // Steer away from star
+    let A = this.a;
+    let a = atan2(dy, dx);
+    A = ((A + TWO_PI) % TWO_PI + TWO_PI);
+    a = ((a + TWO_PI) % TWO_PI + TWO_PI);
+    let turnAway = star.r / d;
+    let angleAway1 = a - HALF_PI - turnAway;
+    let angleAway2 = a + HALF_PI + turnAway;
+  
+    // Find closer angle
+    let diff1 = Math.abs(A - angleAway1);
+    let diff2 = Math.abs(A - angleAway2);
+    let targetAngle = diff1 < diff2 ? angleAway1 : angleAway2;
+    let angleDelta = targetAngle - A;
+
+    // Boost away from star
+    this.steerTargetAngle(dt, angleDelta);
+    const angleFromTarget = smallestAngleDifference(this.control.steeringAngle, angleDelta);
+    const angleCloseToTarget = Math.abs(angleFromTarget) < 1.2;
+
+    if (angleCloseToTarget) {
+      this.control.boost = true;
+      
+      // Acceleration
+      this.vx += cos(this.a + this.control.steeringAngle) * this.speed * dt;
+      this.vy += sin(this.a + this.control.steeringAngle) * this.speed * dt;
+    }
   }
 
   grantEffect(object) {
@@ -70,35 +182,8 @@ class Enemy extends Ship {
     return bullet;
   }
 
-  fireAtPlayer(dirOffset, dt, closeToStar) {
-    
-    // Variables
-    let bSpeedMult = this.lastBullet ? this.lastBullet.speed : 1;
-    
-    const finalTargetAngle = getInterceptAngle(this, ship, bSpeedMult * this.bSpeed);
-    const intercepts = !isNaN(finalTargetAngle);
-
-    if (intercepts) {
-      this.steerTargetAngle(dt, finalTargetAngle - this.a);
-    }
-    
-    // Accelerate towards player
-    const distToPlayer = dist(this.x, this.y, ship.x, ship.y);
-    const closeToPlayer = distToPlayer > this.playerRange;
-    if (closeToPlayer || closeToStar) {
-      this.control.boost = true;
-      this.vx += cos(this.a + this.control.steeringAngle) * this.speed * dt;
-      this.vy += sin(this.a + this.control.steeringAngle) * this.speed * dt;
-    }
-    
-    // Return if no intercepts
-    if (!intercepts) return;
-
-    const angleFromTarget = smallestAngleDifference(this.control.steeringAngle, finalTargetAngle - this.a);
-    const angleCloseToTarget = Math.abs(angleFromTarget) < this.maxTargetAngleError;
-    
-    this.bTime -= dt;
-    if (this.bTime > 0 || !angleCloseToTarget) return;
+  fireBullet() {
+    if (this.bTime > 0) return;
 
     let bulletAngle = this.control.steeringAngle + this.a;
 
@@ -107,10 +192,6 @@ class Enemy extends Ship {
     const STRAY_MULT = sqrt(DIST_TO_TARGET) / 20;
     let stray = (Math.random() * this.bStray - this.bStray / 2) * STRAY_MULT;
     bulletAngle += stray;
-
-    // Setting target angle
-    // let bvx = cos(bulletAngle) * this.bSpeed;
-    // let bvy = sin(bulletAngle) * this.bSpeed;
 
     const multishot = this.multishot;
     const spreadAngle = PI * 0.1;
@@ -138,8 +219,8 @@ class Enemy extends Ship {
         y = lerp(rightWingY, leftWingY, t);
       }
 
-      let vx = cos(a) * this.bSpeed; // + this.vx
-      let vy = sin(a) * this.bSpeed; // + this.vy
+      let vx = cos(a) * this.bSpeed;
+      let vy = sin(a) * this.bSpeed;
       
       // Shoot bullet
       bullet = this.spawnBullet({
@@ -153,9 +234,86 @@ class Enemy extends Ship {
         decay: this.bDecay,
         impactForce: this.bImpactForce
       });
+
+      // Add velocity of enemy to the bullet
+      bullet.vx += this.vx;
+      bullet.vy += this.vy;
     }
 
+    this.lastBullet = bullet;
+
     this.bTime = bullet.delay * this.bDelay;
+  }
+
+  attackPlayer(dt) {
+    this.bTime -= dt;
+    this.combatProtocol = this.updateCombatProtocol(dt, ship);
+
+    if (this.lookingAtTarget) this.fireBullet();
+  }
+
+  lookAtTarget(dt, target, directly = true) {
+    // Variables
+    let bSpeedMult = this.lastBullet ? this.lastBullet.speed : 1;
+
+    const finalTargetAngle = getInterceptAngle(this, target, bSpeedMult * this.bSpeed);
+    const intercepts = !isNaN(finalTargetAngle);
+    
+    // Return if no intercepts
+    if (!intercepts) return;
+
+    let aimOffset = 0;
+
+    // if (!directly) {
+    //   const distToTarget = Math.hypot(target.x - this.x, target.y - this.y);
+    //   const t = millis();
+    //   const noiseAmt = Math.min(distToTarget / 300, 1);
+    //   aimOffset = noise(t * 0.001) * noiseAmt;
+    // }
+
+    this.steerTargetAngle(dt, finalTargetAngle + aimOffset - this.a);
+    const angleFromTarget = smallestAngleDifference(this.control.steeringAngle, finalTargetAngle - this.a);
+    const angleCloseToTarget = Math.abs(angleFromTarget) < this.maxTargetAngleError;
+
+    this.lookingAtTarget = angleCloseToTarget;
+  }
+
+  fireAtPlayer(dt) {
+    
+    // // Variables
+    // let bSpeedMult = this.lastBullet ? this.lastBullet.speed : 1;
+
+    // const finalTargetAngle = getInterceptAngle(this, ship, bSpeedMult * this.bSpeed);
+    // const intercepts = !isNaN(finalTargetAngle);
+    
+    // // Return if no intercepts
+    // if (!intercepts) return;
+
+    // this.steerTargetAngle(dt, finalTargetAngle - this.a);
+    // const angleFromTarget = smallestAngleDifference(this.control.steeringAngle, finalTargetAngle - this.a);
+    // const angleCloseToTarget = Math.abs(angleFromTarget) < this.maxTargetAngleError;
+
+    // this.fireBullet();
+
+    // // Accelerate towards player
+    // const BOOST_ANGLE_ERROR = 0.3;
+    // const STRAFE_ANGLE = PI * 0.35;
+    // const STRAFE_ANGLE_ERROR = HALF_PI;
+    // const enemySpeed = Math.hypot(this.vx, this.vy);
+    // const angleToPlayer = atan2(ship.y - this.y, ship.x - this.x);
+    // const angleCloseToPlayer = smallestAngleDifference(this.control.steeringAngle + this.a, angleToPlayer);
+    // const angleDiff = Math.abs(angleCloseToPlayer);
+    // const distToPlayer = dist(this.x, this.y, ship.x, ship.y);
+    // const closeToPlayer = distToPlayer < this.range;
+    // const ramPlayer = angleDiff < BOOST_ANGLE_ERROR && enemySpeed > 100;
+    // const strafePlayer = angleDiff > STRAFE_ANGLE && angleDiff < STRAFE_ANGLE + STRAFE_ANGLE_ERROR;
+    // const getCloseToTarget = angleDiff < BOOST_ANGLE_ERROR && distToPlayer > this.playerRange;
+
+    // if ((closeToPlayer && (ramPlayer || strafePlayer || getCloseToTarget))) {
+    //   this.control.boost = true;
+    //   this.vx += cos(this.a + this.control.steeringAngle) * this.speed * dt;
+    //   this.vy += sin(this.a + this.control.steeringAngle) * this.speed * dt;
+    // }
   }
   
   strengthen(percent) {
@@ -172,87 +330,38 @@ class Enemy extends Ship {
     // Gravity
     this.attract(dt, 1);
 
-    const closestStar = system.getClosestStar(this.x, this.y);
-    const star = closestStar.star;
-    const d = closestStar.dist;
+    // Stars
+    this.takeDamageFromStars(dt);
 
-    // Distance to star
-    let dx = star.x - this.x;
-    let dy = star.y - this.y;
-
-    // Damage from star
-    let damage = Math.max(star.r - d, 0) / 4;
-    damage = round(damage * 10) / 10;
-    
-    if (damage > 0 && this.damageTime++ >= this.damageDelay) {
-      this.damageTime = 0;
-      this.takeDamage(damage);
-    }
-
-    // Steer away from star
-    let A = this.a;
-    let a = atan2(dy, dx);
-    A = ((A + TWO_PI) % TWO_PI + TWO_PI);
-    a = ((a + TWO_PI) % TWO_PI + TWO_PI);
-    let turnAway = star.r / d;
-    let angleAway1 = a - HALF_PI - turnAway;
-    let angleAway2 = a + HALF_PI + turnAway;
-    
-    // Find closer angle
-    let diff1 = Math.abs(A - angleAway1);
-    let diff2 = Math.abs(A - angleAway2);
-    let targetAngle = diff1 < diff2 ? angleAway1 : angleAway2;
-    let angleDelta = targetAngle - A;
-    
-    // Attacking priority
-    let distToPlayer = dist(this.x, this.y, ship.x, ship.y);
-    let closeToStar = d < star.r * 1.3;
-    let closeToPlayer = distToPlayer < this.range;
-    let escapeStar = false;
-
-    // Conditions for boosting away from star
-    if (d < star.r + 80) escapeStar = true;
-    if (closeToStar && !closeToPlayer) escapeStar = true;
-
-    // Boosting
     this.control.boost = false;
-    if (escapeStar) {
-      this.steerTargetAngle(dt, angleDelta);
-      const angleFromTarget = smallestAngleDifference(this.control.steeringAngle, angleDelta);
-      const angleCloseToTarget = Math.abs(angleFromTarget) < 0.1;
 
-      if (angleCloseToTarget) {
-        this.control.boost = true;
-        
-        // Acceleration
-        this.vx += cos(this.a + this.control.steeringAngle) * this.speed * dt;
-        this.vy += sin(this.a + this.control.steeringAngle) * this.speed * dt;
-      }
-    } else if (closeToPlayer) {
-      // Aiming at player
-      let dir = diff1 < diff2 ? -1 : 1;
-      this.fireAtPlayer(dir, dt, closeToStar);
-    } else {
-      this.steerTargetAngle(dt, 0);
+    const protocol = this.getProtocol(dt);
+
+    switch (protocol) {
+      case "escape star": this.avoidStars(dt); break;
+      case "attack": this.attackPlayer(dt); break;
+      case "neutral": this.steerTargetAngle(dt, 0); break;
     }
     
     // Constrain velocity
-    let maxSpeed = this.control.boost ? this.topSpeed : 40;
+    const rate = protocol == "escape star" ? 0.1 : 0.01;
+    let maxSpeed = this.control.boost ? this.topSpeed : 60;
     let sp = Math.sqrt(this.vx ** 2 + this.vy ** 2);
     let ns = Math.min(sp, maxSpeed) / sp;
-    this.vx = lerp(this.vx, this.vx * ns, 0.1);
-    this.vy = lerp(this.vy, this.vy * ns, 0.1);
+    this.vx = lerp(this.vx, this.vx * ns, rate);
+    this.vy = lerp(this.vy, this.vy * ns, rate);
     
     this.control.steeringAngle += this.control.steerVel * dt;
     this.x += this.vx * dt;
     this.y += this.vy * dt;
+
     this.updateMesh();
   }
 }
 
 class BlackEnemy extends Enemy {
-  constructor(x, y, vx, vy) {
-    super(x, y, vx, vy);
+  constructor(x, y, vx, vy, s = 10) {
+    super(x, y, vx, vy, s);
     this.type = "black";
     this.bulletType = ExplosiveBullet;
     this.sprite = blackEnemySprite;
@@ -299,14 +408,14 @@ class BlackEnemy extends Enemy {
 }
 
 class SpeedEnemy extends Enemy {
-  constructor(x, y, vx, vy) {
-    super(x, y, vx, vy);
+  constructor(x, y, vx, vy, s = 10) {
+    super(x, y, vx, vy, s);
     this.type = "speed";
     this.bulletType = SpeedBullet;
     this.sprite = speedEnemySprite;
     this.revive = false;
-    this.range = 200;
-    this.playerRange = 100;
+    this.range = 300;
+    this.playerRange = 180;
     this.speed = 80;
     this.topSpeed = 300;
     this.setHealth(20, 20);
@@ -329,6 +438,43 @@ class SpeedEnemy extends Enemy {
     super.grantEffect(object);
     object.applyEffect(SpeedRounds, {
       duration: randInt(20, 40)
+    });
+  }
+}
+
+class UltraSpeedEnemy extends SpeedEnemy {
+  constructor(x, y, vx, vy, s = 13) {
+    super(x, y, vx, vy, s);
+    this.type = "ultraspeed";
+    this.bulletType = UltraspeedBullet;
+    this.sprite = ultraspeedEnemySprite;
+    this.range = 400;
+    this.playerRange = 0;
+    this.speed = 120;
+    this.topSpeed = 400;
+    this.setHealth(40, 40);
+    this.worth = 40;
+    this.maneuverability = 5;
+
+    // Bullet attributes
+    this.bDelay = 1;
+    this.bDecay = 0.5;
+    this.bStray = 0.1;
+
+    this.exaustCol = this.oldExaustCol = {
+      min: { r: 20, g: 140, b: 220, a: 100 },
+      add: { r: 40, g: 30, b: 50, a: 0 }
+    };
+  }
+
+  grantEffect(object) {
+    super.grantEffect(object);
+    object.applyEffect(UltraspeedRounds, {
+      duration: randInt(20, 40)
+    });
+    object.applyEffect(SuperSpeed, {
+      duration: randInt(15, 25),
+      level: 2
     });
   }
 }
@@ -365,7 +511,7 @@ class MegaEnemy extends HomingEnemy {
     this.type = "mega";
     this.bulletType = MegaBullet;
     this.setHealth(35, 35);
-    this.range = 250;
+    this.range = 400;
     this.playerRange = 100;
     this.speed = 100;
     this.worth = 40;
@@ -404,6 +550,8 @@ class HurricaneEnemy extends Enemy {
     this.speed = 80;
     this.topSpeed = 300;
     this.maxTargetAngleError = PI;
+    this.range = 500;
+    this.playerRange = 200;
 
     // Bullet attributes
     this.bStray = 20;
@@ -500,7 +648,7 @@ class HurricaneEnemy extends Enemy {
 function initEnemies(count) {
   if (noSpawns) return;
   // const a = atan2(ship.y, ship.x);
-  // const enemy = createEnemy("hurricane", ship.x + cos(a) * 150, ship.y + sin(a) * 150, 0, 0);
+  // const enemy = createEnemy("ultraspeed", ship.x + cos(a) * 150, ship.y + sin(a) * 150, 0, 0);
   // enemy.applyEffect(MultiShot, { duration: 10000, level: 1 });
   // enemies.push(enemy);
 
@@ -522,6 +670,7 @@ function createEnemy(type, x = 0, y = 0, vx = 0, vy = 0) {
     case "mega": enemy = new MegaEnemy(x, y, vx, vy); break;
     case "black": enemy = new BlackEnemy(x, y, vx, vy); break;
     case "hurricane": enemy = new HurricaneEnemy(x, y, vx, vy); break;
+    case "ultraspeed": enemy = new UltraSpeedEnemy(x, y, vx, vy); break;
     default: enemy = new Enemy(x, y, vx, vy);
   }
 
@@ -599,6 +748,7 @@ function randomEnemyType() {
     speed: 10 + difficulty,
     homing: 5 + difficulty,
     hurricane: 0.5 + difficulty * 0.5,
+    ultraspeed: 0.5 + difficulty * 0.5,
     mega: 2 + difficulty * 0.5,
     black: 3 + difficulty
   };
@@ -645,7 +795,7 @@ function getRandomEnemyIndex() {
 function upgradeEnemyAt(enemyIndex) {
   const enemy = enemies[enemyIndex];
   const enemyType = enemy.type;
-  const upgradePath = ["normal", "speed", "homing", "black", "mega", "hurricane"];
+  const upgradePath = ["normal", "speed", "homing", "black", "mega", "hurricane", "ultraspeed"];
   const newIndex = upgradePath.indexOf(enemyType) + 1;
 
   if (newIndex >= upgradePath.length) return false;

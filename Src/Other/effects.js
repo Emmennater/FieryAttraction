@@ -122,6 +122,15 @@ class SpeedRounds extends CustomRounds {
   }
 }
 
+class UltraspeedRounds extends SpeedRounds {
+  constructor(target, dat) {
+    super(target, dat);
+    this.name = "ultra sonic rounds";
+    this.bulletType = UltraspeedBullet;
+    this.color = color(20, 140, 220);
+  }
+}
+
 class MegaRounds extends CustomRounds {
   constructor(target, dat) {
     super(target, dat);

@@ -80,6 +80,7 @@ class EventManager {
 
 class WorldEvent {
   constructor() {
+    this.col = { r:255, g:255, b:255 };
     this.timeElapsed = 0;
     this.stageTime = 0;
     this.stage = 0;
@@ -118,7 +119,7 @@ class WorldEvent {
 
     let FADE = sin(t * PI + 0.1);
     if (FADE >= 0) {
-      fill(255 * FADE);
+      fill(this.col.r, this.col.g, this.col.b, 255 * FADE);
       noStroke();
       textSize(MIN_SCL * 0.1 * FADE);
       textFont(arialBlack);
@@ -218,7 +219,7 @@ class SpinStorm extends WorldEvent {
     this.title = "SPIN STORM";
     this.time = 0;
     this.star = system.getRandomStar();
-    this.reversed = Math.random() < 0.5;
+    this.reversed = Math.random() < 1/3;
     this.strength = 3;
     this.sunRotationSpeed = 0.01;
   
@@ -290,7 +291,13 @@ class SolarStorm extends WorldEvent {
     this.title = "SOLAR STORM";
     this.star = system.getRandomStar();
     this.solarTime = 30;
-    this.solarFlair = null;
+    this.solarFlairs = [];
+    this.doubleStorm = Math.random() < 1/3 ? true : false;
+    this.doubleStorm = true;
+
+    if (this.doubleStorm) {
+      this.col = { r:255, g:120, b:0 };
+    }
   }
 
   start(dt) {
@@ -319,24 +326,51 @@ class SolarStorm extends WorldEvent {
     // Use dot product to find which direction the ship is moving around the sun
     const dot = starTangentX * shipVX + starTangentY * shipVY;
     const dir = dot < 0 ? -1 : 1;
+    const speed = -0.135 * dir;
+    const speedDiff = 0.0225;
     const rot = Math.atan2(starShipY, starShipX) + HALF_PI + PI * dir * 0.2;
-    const rotVel = -0.135 * dir;
+    const rotVel1 = this.doubleStorm ? speed + speedDiff * 0.5 : speed;
+    const rotVel2 = speed - speedDiff * 1.5;
 
-    this.solarFlair = spawnSolarFlair(this.star, rot, rotVel, this.solarTime);
+    this.solarFlairs.push(spawnSolarFlair(this.star, rot, rotVel1, this.solarTime));
+
+    if (this.doubleStorm) {
+      // Spawn another solar flair at 90 degrees
+      this.solarFlairs.push(spawnSolarFlair(this.star, rot, rotVel2, this.solarTime));
+      this.solarFlairs.push(spawnSolarFlair(this.star, rot + HALF_PI, rotVel1, this.solarTime));
+      this.solarFlairs.push(spawnSolarFlair(this.star, rot + HALF_PI, rotVel2, this.solarTime));
+    }
 
     return true;
   }
 
   middle(dt) {
-    return this.solarFlair.destroyed;
+    let destroyed = true;
+
+    for (let solarFlair of this.solarFlairs) {
+      if (!solarFlair.destroyed) {
+        destroyed = false;
+        break;
+      }
+    }
+
+    return destroyed;
   }
 
   end(dt) {
+    this.stop();
     return true;
   }
 
   stop() {
-    if (this.solarFlair && !this.solarFlair.destroyed)
-      this.solarFlair.destroy();
+    for (let solarFlair of this.solarFlairs) {
+      if (!solarFlair.destroyed)
+        solarFlair.destroy();
+    }
+
+    if (!ship.destroyed && this.doubleStorm) {
+      // Enjoy reward
+      hud.addScore(100);
+    }
   }
 }

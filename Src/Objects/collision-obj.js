@@ -25,4 +25,7 @@ class CollisionObject {
     return this.collisionMesh.boundaryContainsPoint(x, y);
   }
 
+  intersectsLine(x1, y1, x2, y2) {
+    return this.collisionMesh.intersectsLine(x1, y1, x2, y2);
+  }
 }

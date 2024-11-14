@@ -145,6 +145,13 @@ class CollisionMesh {
     return false;
   }
 
+  boundaryContainsCircle(x, y, r) {
+    const sumRadii = this.boundingRadius * this.scl + r;
+    const dx = x - this.pos.x;
+    const dy = y - this.pos.y;
+    return dx * dx + dy * dy < sumRadii * sumRadii;
+  }
+
   boundaryContainsPoint(x, y) {
     const sumRadii = this.boundingRadius * this.scl;
     const x1 = this.pos.x;
@@ -161,6 +168,22 @@ class CollisionMesh {
 
     for (let poly of convexPolys) {
       if (SATCollision.isPointInPolygon({ x, y }, poly)) return true;
+    }
+
+    return false;
+  }
+
+  intersectsLine(x1, y1, x2, y2) {
+    const r = Math.hypot(x1 - x2, y1 - y2) * 0.5;
+    const midpointX = (x1 + x2) * 0.5;
+    const midpointY = (y1 + y2) * 0.5;
+
+    if (!this.boundaryContainsCircle(midpointX, midpointY, r)) return false;
+
+    const convexPolys = this.getTransformedConvexPolygons();
+
+    for (let poly of convexPolys) {
+      if (SATCollision.doesLineIntersectPolygon({ x: x1, y: y1 }, { x: x2, y: y2 }, poly)) return true;
     }
 
     return false;
@@ -206,6 +229,10 @@ class SATCollision {
 
   static subtract(v1, v2) {
     return { x: v1.x - v2.x, y: v1.y - v2.y };
+  }
+
+  static cross(v1, v2) {
+    return v1.x * v2.y - v1.y * v2.x;
   }
 
   static perpendicular(edge) {
@@ -301,6 +328,40 @@ class SATCollision {
     
     // If the point is on the correct side of all edges, it's inside the polygon
     return true;
+  }
+
+  static doesLineIntersectPolygon(lineStart, lineEnd, polygon) {
+    // Helper function to check if two line segments intersect
+    const doLinesIntersect = (p1, p2, q1, q2) => {
+      // Calculate vectors
+      const r = { x: p2.x - p1.x, y: p2.y - p1.y };
+      const s = { x: q2.x - q1.x, y: q2.y - q1.y };
+      const qp = { x: q1.x - p1.x, y: q1.y - p1.y };
+      
+      const rxs = SATCollision.cross(r, s);
+      const t = SATCollision.cross(qp, s) / rxs;
+      const u = SATCollision.cross(qp, r) / rxs;
+      
+      // Check if t and u are within [0, 1] range
+      return rxs !== 0 && t >= 0 && t <= 1 && u >= 0 && u <= 1;
+    };
+    
+    // Check if line intersects any edge of the polygon
+    for (let i = 0; i < polygon.length; i++) {
+      const polyStart = polygon[i];
+      const polyEnd = polygon[(i + 1) % polygon.length];
+      
+      if (doLinesIntersect(lineStart, lineEnd, polyStart, polyEnd)) {
+        return true;
+      }
+    }
+    
+    // Check if the line's start or end point is inside the polygon
+    if (this.isPointInPolygon(lineStart, polygon) || this.isPointInPolygon(lineEnd, polygon)) {
+      return true;
+    }
+    
+    return false;
   }
 }
 

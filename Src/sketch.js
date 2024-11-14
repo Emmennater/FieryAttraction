@@ -15,6 +15,7 @@ function preload() {
   speedEnemySprite = loadImage("Assets/speed-enemy-jet.png");
   megaEnemySprite = loadImage("Assets/mega-enemy-jet.png");
   hurricaneEnemySprite = loadImage("Assets/hurricane-enemy-jet.png");
+  ultraspeedEnemySprite = loadImage("Assets/ultraspeed-enemy-jet.png");
   asteroidSprite = loadImage("Assets/asteroid-sprite.png");
   speedAsteroidSprite = loadImage("Assets/speed-asteroid.png");
   blueAsteroidSprite = loadImage("Assets/speed-asteroid.png");

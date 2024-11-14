@@ -12,8 +12,8 @@ class Bullet extends GravityObject {
     this.r = 0.5;
     this.vx = dat.vx;
     this.vy = dat.vy;
-    this.px = dat.x;
-    this.py = dat.y;
+    this.px = this.x;
+    this.py = this.y;
     this.impactForce = dat.impactForce || 1;
 
     this.level = dat.level || 1;
@@ -34,9 +34,13 @@ class Bullet extends GravityObject {
 
   checkForHit() {
     const NO_OWNER = this.owner == null || (this.owner.name !== "ship" && this.owner.name !== "enemy");
+    const vx = this.x - this.px;
+    const vy = this.y - this.py;
+    const x2 = this.x - vx * 3;
+    const y2 = this.y - vy * 3;
 
     for (let asteroid of asteroids) {
-      if (asteroid.containsPoint(this.x, this.y)) {
+      if (asteroid.intersectsLine(this.x, this.y, x2, y2)) {
         this.destroy();
         asteroid.takeDamage(this.damage * this.damageMult, this);
         this.transferMomentumTo(asteroid);
@@ -46,7 +50,7 @@ class Bullet extends GravityObject {
     }
     
     if (NO_OWNER || this.owner.name == "enemy") {
-      if (ship.containsPoint(this.x, this.y)) {
+      if (ship.intersectsLine(this.x, this.y, x2, y2)) {
         this.destroy();
         ship.takeDamage(this.damage * this.damageMult, this);
         this.transferMomentumTo(ship);
@@ -59,7 +63,7 @@ class Bullet extends GravityObject {
     if (NO_OWNER || this.owner.name == "ship") {
       // Enemies
       for (let enemy of enemies) {
-        if (enemy.containsPoint(this.x, this.y)) {
+        if (enemy.intersectsLine(this.x, this.y, x2, y2)) {
           this.destroy();
           enemy.takeDamage(this.damage * this.damageMult, this);
           this.transferMomentumTo(enemy);
@@ -80,6 +84,9 @@ class Bullet extends GravityObject {
     
     const strength = 10 * (this.dat.gravity ?? 1);
     this.attract(dt, strength);
+
+    this.px = this.x;
+    this.py = this.y;
     this.x += this.vx * dt;
     this.y += this.vy * dt;
     
@@ -87,22 +94,31 @@ class Bullet extends GravityObject {
   }
   
   draw(ctx) {
-    const ALPHA = Math.min(this.time * 120, 255);
+    const ALPHA = Math.min(this.time * 240, 255);
     let vx = this.x - this.px;
     let vy = this.y - this.py;
+    let startX = this.x - vx * 3;
+    let startY = this.y - vy * 3;
 
-    // if (this.owner == "enemy") {
-    //   ctx.stroke(255, 80, 60, ALPHA);
-    // } else {
-    //   ctx.stroke(60, 255, 80, ALPHA);
-    // }
+    // If the dot product of the bullet velocity vector is negative,
+    // then the bullet start is behind the player
+    if (this.owner && this.owner instanceof Ship) {
+      const dot = this.vx * (startX - this.owner.x) + this.vy * (startY - this.owner.y);
+      if (dot < 0) {
+        startX = this.owner.x;
+        startY = this.owner.y;
+      }
+    }
+
+    if (this.owner == "enemy") {
+      ctx.stroke(255, 80, 60, ALPHA);
+    } else {
+      ctx.stroke(60, 255, 80, ALPHA);
+    }
     
     ctx.stroke(this.col.r, this.col.g, this.col.b, ALPHA);
     ctx.strokeWeight(this.r);
-    ctx.line(this.x - vx * 3, this.y - vy * 3, this.x, this.y);
-    
-    this.px = this.x;
-    this.py = this.y;
+    ctx.line(startX, startY, this.x, this.y);
   }
 }
 
@@ -116,6 +132,20 @@ class SpeedBullet extends Bullet {
     this.vy *= this.speed;
     this.damage = 5;
     this.consumes = 0.5 / this.level ** 0.5;
+  }
+}
+
+class UltraspeedBullet extends SpeedBullet {
+  constructor(dat) {
+    super(dat);
+    this.col = { r:20, g:140, b:220 };
+    this.speed = 2.0 + this.level * 0.5;
+    this.delay = 0.2 / this.level ** 0.5;
+    this.vx *= this.speed;
+    this.vy *= this.speed;
+    this.damage = 7;
+    this.consumes = 0.5 / this.level ** 0.5;
+    this.time *= 0.5;
   }
 }
 
@@ -297,12 +327,13 @@ class HurricaneBullet extends HomingBullet {
     this.target = null;
     this.time *= 2;
 
+    this.prevIdx = 0;
+    this.previousPositions = [];
+
     // Teleport
     const spawnRadius = dat.spawnRadius || 10;
     this.x += randSign() * randInt(spawnRadius, spawnRadius * 2);
     this.y += randSign() * randInt(spawnRadius, spawnRadius * 2);
-    this.px = this.x;
-    this.py = this.y;
     
     // Randomize velocity
     const currentAngle = Math.atan2(this.vy, this.vx);
@@ -310,9 +341,6 @@ class HurricaneBullet extends HomingBullet {
     const vel = Math.sqrt(this.vx ** 2 + this.vy ** 2);
     this.vx = Math.cos(velocityAngle) * vel;
     this.vy = Math.sin(velocityAngle) * vel;
-
-    this.prevIdx = 0;
-    this.previousPositions = [];
 
     this.homingEnemyBlacklist = [ BlackEnemy, HurricaneEnemy ];
     this.homingBulletBlacklist = [ MegaBullet, HurricaneBullet ];
@@ -334,7 +362,7 @@ class HurricaneBullet extends HomingBullet {
       if (!p1 || !p2) continue;
       ++j;
 
-      ctx.stroke(this.col.r, this.col.g, this.col.b, 255 * j / 10);
+      ctx.stroke(this.col.r, this.col.g, this.col.b, ALPHA * j / 10);
       ctx.line(p1.x, p1.y, p2.x, p2.y);
     }
 

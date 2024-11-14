@@ -72,6 +72,7 @@ class Ship extends GravityObject {
     this.maxSpeed = 100;
     this.damage = 1;
     this.cameraMode = "normal";
+    this.maneuverability = 1;
 
     // Supplies
     this.fuel = 50;
@@ -316,7 +317,7 @@ class Ship extends GravityObject {
       // If the ship is moving slow in the direction of the player, increase speed
       // (increased maneuverability)
       const projectedVelocity = Math.max(0, this.vx * cos(shipAngle) + this.vy * sin(shipAngle));
-      speedIncrease = Math.max(1, 2 / (projectedVelocity * 0.1 + 1));
+      speedIncrease = Math.max(1, 2 / (projectedVelocity * 0.1 + 1 / this.maneuverability));
 
       this.vx += cos(shipAngle) * this.speed * this.speedMult * speedIncrease * dt;
       this.vy += sin(shipAngle) * this.speed * this.speedMult * speedIncrease * dt;

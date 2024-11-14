@@ -294,7 +294,7 @@ class SolarStorm extends WorldEvent {
     this.solarFlairs = [];
     
     this.type = Math.random() < 1/2 ? Math.random() < 1/2 ? "cage" : "double" : "normal";
-    this.type = "cage";
+    // this.type = "cage";
 
     switch (this.type) {
       case "cage":

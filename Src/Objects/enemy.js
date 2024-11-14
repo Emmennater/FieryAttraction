@@ -38,7 +38,7 @@ class Enemy extends Ship {
     this.bGravity = 0;
     this.bDecay = 1;
     this.bCol = { r:255, g:80, b:60 };
-    this.bStray = 0.6; // 0.2
+    this.bStray = 1.0; // 0.2 0.6
     this.lastBullet = null;
     this.maxTargetAngleError = 0.4;
   }
@@ -380,6 +380,7 @@ class BlackEnemy extends Enemy {
     this.damage = 1;
     this.bImpactForce = 3;
     this.exaustDelay = 20;
+    this.bStray = 1.2;
   }
 
   grantEffect(object) {

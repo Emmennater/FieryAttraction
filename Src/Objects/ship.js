@@ -110,7 +110,7 @@ class Ship extends GravityObject {
     const effect = super.applyEffect(...args);
     const duration = args[1].duration;
     if (this.name == "ship") {
-      spawnBonusEffect(`+${duration} ${effect.getText()}`, ship.x, ship.y, effect.color, 2);
+      spawnBonusEffect(`+${duration} ${effect.getText()}`, this.x, this.y, effect.color, 2);
     }
   }
 
@@ -257,18 +257,18 @@ class Ship extends GravityObject {
   
   addFuel(amount, sender) {
     this.fuel = constrain(this.fuel + amount, 0, 50);
-    spawnBonusEffect(`+${amount} fuel`, ship.x, ship.y, color(255, 0, 0), 2);
+    if (this.name == "ship") spawnBonusEffect(`+${amount} fuel`, this.x, this.y, color(255, 0, 0), 2);
   }
   
   addAmmo(amount, sender) {
     this.ammo = constrain(this.ammo + amount, 0, 200);
-    spawnBonusEffect(`+${amount} ammo`, ship.x, ship.y, color(255, 120, 0), 2);
+    if (this.name == "ship") spawnBonusEffect(`+${amount} ammo`, this.x, this.y, color(255, 120, 0), 2);
   }
   
   addHealth(amount, sender) {
-    if (amount < 0) this.takeDamage(-amount, sender);
+    if (amount < 0) return this.takeDamage(-amount, sender);
     this.health = constrain(this.health + amount, 0, this.maxHealth);
-    spawnBonusEffect(`+${amount} health`, ship.x, ship.y, color(0, 255, 0), 2);
+    if (this.name == "ship") spawnBonusEffect(`+${amount} health`, this.x, this.y, color(0, 255, 0), 2);
   }
 
   updateMesh() {

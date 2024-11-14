@@ -292,11 +292,16 @@ class SolarStorm extends WorldEvent {
     this.star = system.getRandomStar();
     this.solarTime = 30;
     this.solarFlairs = [];
-    this.doubleStorm = Math.random() < 1/3 ? true : false;
-    this.doubleStorm = true;
+    
+    this.type = Math.random() < 1/2 ? Math.random() < 1/2 ? "cage" : "double" : "normal";
 
-    if (this.doubleStorm) {
-      this.col = { r:255, g:120, b:0 };
+    switch (this.type) {
+      case "cage":
+        this.title = "SOLAR CAGE";
+        break;
+      case "double":
+        this.col = { r:255, g:120, b:0 };
+        break;
     }
   }
 
@@ -329,12 +334,57 @@ class SolarStorm extends WorldEvent {
     const speed = -0.135 * dir;
     const speedDiff = 0.0225;
     const rot = Math.atan2(starShipY, starShipX) + HALF_PI + PI * dir * 0.2;
-    const rotVel1 = this.doubleStorm ? speed + speedDiff * 0.5 : speed;
+    const rotVel1 = this.type == "double" ? speed + speedDiff * 0.5 : speed;
     const rotVel2 = speed - speedDiff * 1.5;
+
+    if (this.type == "cage") {
+      const TARGET_ANGLE = Math.atan2(starShipY, starShipX) + HALF_PI;
+
+      if (this.solarFlairs.length == 0) {
+        this.solarFlairs.push(spawnSolarFlair(this.star, TARGET_ANGLE - HALF_PI * 0.9, 0, this.solarTime));
+        this.solarFlairs.push(spawnSolarFlair(this.star, TARGET_ANGLE + HALF_PI * 0.9, 0, this.solarTime));
+        this.solarFlairs.push(spawnSolarFlair(this.star, TARGET_ANGLE - HALF_PI, 0, this.solarTime));
+        this.solarFlairs.push(spawnSolarFlair(this.star, TARGET_ANGLE + HALF_PI, 0, this.solarTime));
+      }
+
+      let flag = true;
+
+      // Stop when both solar flairs are at target angle
+      if (this.solarFlairs.length !== 0) {
+        // First solar flair
+        let solarFlair = this.solarFlairs[0];
+        let diff = smallestAngleDifference(solarFlair.rot, TARGET_ANGLE);
+        if (Math.abs(diff) > 0.125) {
+          solarFlair.rot += diff * 0.01;
+          flag = false;
+        }
+        this.solarFlairs[1].rot = TARGET_ANGLE + diff;
+
+        // Second solar flair
+        solarFlair = this.solarFlairs[2];
+        diff = smallestAngleDifference(solarFlair.rot, TARGET_ANGLE);
+        if (Math.abs(diff) > 0.325) {
+          solarFlair.rot += diff * 0.01;
+          flag = false;
+        }
+        this.solarFlairs[3].rot = TARGET_ANGLE + diff;
+      }
+
+      if (!flag) return false;
+
+      const rot2 = Math.atan2(shipY + shipVY - starY, shipX + shipVX - starX) + HALF_PI + PI * dir * 0.2;
+
+      // Set solar flairs to target angle velocity
+      for (let solarFlair of this.solarFlairs) {
+        solarFlair.rotVel = rot2 - rot;
+      }
+
+      return true;
+    }
 
     this.solarFlairs.push(spawnSolarFlair(this.star, rot, rotVel1, this.solarTime));
 
-    if (this.doubleStorm) {
+    if (this.type == "double") {
       // Spawn another solar flair at 90 degrees
       this.solarFlairs.push(spawnSolarFlair(this.star, rot, rotVel2, this.solarTime));
       this.solarFlairs.push(spawnSolarFlair(this.star, rot + HALF_PI, rotVel1, this.solarTime));

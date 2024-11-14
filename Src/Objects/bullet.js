@@ -102,7 +102,7 @@ class Bullet extends GravityObject {
 
     // If the dot product of the bullet velocity vector is negative,
     // then the bullet start is behind the player
-    if (this.owner && this.owner instanceof Ship) {
+    if (this.owner && this.owner instanceof Ship && this.owner.x && this.owner.y) {
       const dot = this.vx * (startX - this.owner.x) + this.vy * (startY - this.owner.y);
       if (dot < 0) {
         startX = this.owner.x;

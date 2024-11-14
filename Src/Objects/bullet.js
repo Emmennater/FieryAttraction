@@ -36,11 +36,13 @@ class Bullet extends GravityObject {
     const NO_OWNER = this.owner == null || (this.owner.name !== "ship" && this.owner.name !== "enemy");
     const vx = this.x - this.px;
     const vy = this.y - this.py;
-    const x2 = this.x - vx * 3;
-    const y2 = this.y - vy * 3;
+    const x1 = this.x;
+    const y1 = this.y;
+    const x2 = this.x + vx * 3;
+    const y2 = this.y + vy * 3;
 
     for (let asteroid of asteroids) {
-      if (asteroid.intersectsLine(this.x, this.y, x2, y2)) {
+      if (asteroid.intersectsLine(x1, y1, x2, y2)) {
         this.destroy();
         asteroid.takeDamage(this.damage * this.damageMult, this);
         this.transferMomentumTo(asteroid);
@@ -50,7 +52,7 @@ class Bullet extends GravityObject {
     }
     
     if (NO_OWNER || this.owner.name == "enemy") {
-      if (ship.intersectsLine(this.x, this.y, x2, y2)) {
+      if (ship.intersectsLine(x1, y1, x2, y2)) {
         this.destroy();
         ship.takeDamage(this.damage * this.damageMult, this);
         this.transferMomentumTo(ship);
@@ -63,7 +65,7 @@ class Bullet extends GravityObject {
     if (NO_OWNER || this.owner.name == "ship") {
       // Enemies
       for (let enemy of enemies) {
-        if (enemy.intersectsLine(this.x, this.y, x2, y2)) {
+        if (enemy.intersectsLine(x1, y1, x2, y2)) {
           this.destroy();
           enemy.takeDamage(this.damage * this.damageMult, this);
           this.transferMomentumTo(enemy);
@@ -97,18 +99,20 @@ class Bullet extends GravityObject {
     const ALPHA = Math.min(this.time * 240, 255);
     let vx = this.x - this.px;
     let vy = this.y - this.py;
-    let startX = this.x - vx * 3;
-    let startY = this.y - vy * 3;
+    let startX = this.x;
+    let startY = this.y;
+    let endX = this.x + vx * 3;
+    let endY = this.y + vy * 3;
 
     // If the dot product of the bullet velocity vector is negative,
     // then the bullet start is behind the player
-    if (this.owner && this.owner instanceof Ship && this.owner.x && this.owner.y) {
-      const dot = this.vx * (startX - this.owner.x) + this.vy * (startY - this.owner.y);
-      if (dot < 0) {
-        startX = this.owner.x;
-        startY = this.owner.y;
-      }
-    }
+    // if (this.owner && this.owner instanceof Ship && this.owner.x && this.owner.y) {
+    //   const dot = this.vx * (startX - this.owner.x) + this.vy * (startY - this.owner.y);
+    //   if (dot < 0) {
+    //     startX = this.owner.x;
+    //     startY = this.owner.y;
+    //   }
+    // }
 
     if (this.owner == "enemy") {
       ctx.stroke(255, 80, 60, ALPHA);
@@ -118,7 +122,7 @@ class Bullet extends GravityObject {
     
     ctx.stroke(this.col.r, this.col.g, this.col.b, ALPHA);
     ctx.strokeWeight(this.r);
-    ctx.line(startX, startY, this.x, this.y);
+    ctx.line(startX, startY, endX, endY);
   }
 }
 
@@ -154,7 +158,7 @@ class HomingBullet extends Bullet {
     super(dat);
     this.col = { r: 183, g: 45, b: 247 };
     this.homingVelocity = Math.sqrt(dat.vx ** 2 + dat.vy ** 2) * (1.25 + this.level * 0.25);
-    this.homingEnemyBlacklist = [ BlackEnemy, HurricaneEnemy ];
+    this.homingEnemyBlacklist = [ BlackEnemy, HurricaneEnemy, UltraspeedEnemy ];
     this.homingBulletBlacklist = [ HomingBullet, MegaBullet ];
     this.canHomeOnTarget = true;
     this.lockToAsteroids = true;
@@ -381,7 +385,7 @@ class MegaBullet extends HomingBullet {
     this.vx *= this.speed;
     this.vy *= this.speed;
     this.damage = 7.5;
-    this.homingEnemyBlacklist = [ BlackEnemy, HurricaneEnemy ];
+    this.homingEnemyBlacklist = [ BlackEnemy, HurricaneEnemy, UltraspeedEnemy ];
     this.homingBulletBlacklist = [ MegaBullet ];
   }
 

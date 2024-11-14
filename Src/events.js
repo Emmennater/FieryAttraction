@@ -294,6 +294,7 @@ class SolarStorm extends WorldEvent {
     this.solarFlairs = [];
     
     this.type = Math.random() < 1/2 ? Math.random() < 1/2 ? "cage" : "double" : "normal";
+    this.type = "cage";
 
     switch (this.type) {
       case "cage":
@@ -396,6 +397,15 @@ class SolarStorm extends WorldEvent {
 
   middle(dt) {
     let destroyed = true;
+
+    for (let solarFlair of this.solarFlairs) {
+      if (this.type == "cage") {
+        const dir = Math.sign(solarFlair.rotVel);
+        const rotVel = Math.abs(solarFlair.rotVel);
+        if (rotVel > 0.14) continue;
+        solarFlair.rotVel += dir * 0.01 * dt;
+      }
+    }
 
     for (let solarFlair of this.solarFlairs) {
       if (!solarFlair.destroyed) {

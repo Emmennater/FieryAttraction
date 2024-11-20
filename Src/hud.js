@@ -393,7 +393,7 @@ class ScoreText {
   }
 
   getScoreMultiplier() {
-    return 1 + this.combo * 0.25;
+    return 1 + this.combo * 0.1;
   }
 
   setScore(score) {
@@ -454,7 +454,7 @@ class ScoreText {
     push();
     translate(x + textWidth(comboText), y + 35 + 15);
     scale(comboScale);
-    text("×" + (this.combo * 0.25 + 1), 0, -15);
+    text("×" + (this.combo * 0.1 + 1), 0, -15);
     pop();
 
     // Score earned

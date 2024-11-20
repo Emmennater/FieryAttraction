@@ -3,7 +3,7 @@ class EventManager {
   constructor() {
     this.thresholds = [];
 
-    this.addEvent(100, () => {
+    this.addEvent(200, () => {
       const BASELINE_COUNT = 2;
       const MAX_ENEMIES = 15;
       const TARGET_COUNT = Math.floor(hud.score / 100) + BASELINE_COUNT;
@@ -18,7 +18,7 @@ class EventManager {
       }
     });
 
-    this.addEvent(200, () => {
+    this.addEvent(500, () => {
       this.startRandomEvent();
     });
 

@@ -92,7 +92,7 @@ class HUD {
   }
 
   addScore(amount) {
-    this.score += amount * this.scoreText.getScoreMultiplier();
+    this.score += Math.round(amount * this.scoreText.getScoreMultiplier());
   }
 
   addMeter(col) {

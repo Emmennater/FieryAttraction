@@ -92,7 +92,7 @@ class HUD {
   }
 
   addScore(amount) {
-    this.score += amount;
+    this.score += amount * this.scoreText.getScoreMultiplier();
   }
 
   addMeter(col) {
@@ -392,12 +392,15 @@ class ScoreText {
     this.comboTimer = this.comboDuration;
   }
 
+  getScoreMultiplier() {
+    return 1 + this.combo * 0.25;
+  }
+
   setScore(score) {
     if (this.score === score) return;
     
     if (score > this.score) {
-      this.scoreEarned = Math.round((score - this.score) * (1 + this.combo * 0.25));
-      score = this.score + this.scoreEarned;
+      this.scoreEarned = Math.round(score - this.score);
       this.combo += 1;
       this.comboTimer = 0;
     }

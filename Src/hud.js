@@ -454,7 +454,7 @@ class ScoreText {
     push();
     translate(x + textWidth(comboText), y + 35 + 15);
     scale(comboScale);
-    text("×" + (this.combo * 0.1 + 1), 0, -15);
+    text("×" + Math.round((this.combo * 0.1 + 1) * 10) / 10, 0, -15);
     pop();
 
     // Score earned

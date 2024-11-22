@@ -156,6 +156,14 @@ class Enemy extends Ship {
     object.addHealth(randInt(7, 15));
     object.addAmmo(randInt(10, 20));
     object.addFuel(randInt(5, 10));
+
+    // If this enemy has an effect give it to the bullet owner
+    for (let effect of this.effects) {
+      const level = effect.level;
+      const Effect = effect.constructor;
+      const duration = randInt(0, 10) + this.worth;
+      object.applyEffect(Effect, { level, duration });
+    }
   }
 
   onDestroy(damageSource) {
@@ -165,14 +173,6 @@ class Enemy extends Ship {
       hud.addScore(this.worth);
       if (damageSource && damageSource.owner) {
         this.grantEffect(damageSource.owner);
-        
-        // If this enemy has an effect give it to the bullet owner
-        for (let effect of this.effects) {
-          const level = effect.level;
-          const Effect = effect.constructor;
-          const duration = randInt(0, 10) + this.worth;
-          damageSource.owner.applyEffect(Effect, { level, duration });
-        }
       }
     }
   }

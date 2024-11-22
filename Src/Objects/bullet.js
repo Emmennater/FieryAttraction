@@ -36,10 +36,10 @@ class Bullet extends GravityObject {
     const NO_OWNER = this.owner == null || (this.owner.name !== "ship" && this.owner.name !== "enemy");
     const vx = this.x - this.px;
     const vy = this.y - this.py;
-    const x1 = this.x;
-    const y1 = this.y;
-    const x2 = this.x + vx * 3;
-    const y2 = this.y + vy * 3;
+    const x1 = this.px;
+    const y1 = this.py;
+    const x2 = this.px + vx * 3;
+    const y2 = this.py + vy * 3;
 
     for (let asteroid of asteroids) {
       if (asteroid.intersectsLine(x1, y1, x2, y2)) {
@@ -99,10 +99,10 @@ class Bullet extends GravityObject {
     const ALPHA = Math.min(this.time * 240, 255);
     let vx = this.x - this.px;
     let vy = this.y - this.py;
-    let startX = this.x;
-    let startY = this.y;
-    let endX = this.x + vx * 3;
-    let endY = this.y + vy * 3;
+    let startX = this.px;
+    let startY = this.py;
+    let endX = this.px + vx * 3;
+    let endY = this.py + vy * 3;
 
     // If the dot product of the bullet velocity vector is negative,
     // then the bullet start is behind the player

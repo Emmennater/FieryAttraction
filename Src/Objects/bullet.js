@@ -42,6 +42,7 @@ class Bullet extends GravityObject {
     const y2 = this.py + vy * 3;
 
     for (let asteroid of asteroids) {
+      if (asteroid.destroyed) continue;
       if (asteroid.intersectsLine(x1, y1, x2, y2)) {
         this.destroy();
         asteroid.takeDamage(this.damage * this.damageMult, this);
@@ -52,7 +53,7 @@ class Bullet extends GravityObject {
     }
     
     if (NO_OWNER || this.owner.name == "enemy") {
-      if (ship.intersectsLine(x1, y1, x2, y2)) {
+      if (!ship.destroyed && ship.intersectsLine(x1, y1, x2, y2)) {
         this.destroy();
         ship.takeDamage(this.damage * this.damageMult, this);
         this.transferMomentumTo(ship);
@@ -65,6 +66,7 @@ class Bullet extends GravityObject {
     if (NO_OWNER || this.owner.name == "ship") {
       // Enemies
       for (let enemy of enemies) {
+        if (enemy.destroyed) continue;
         if (enemy.intersectsLine(x1, y1, x2, y2)) {
           this.destroy();
           enemy.takeDamage(this.damage * this.damageMult, this);

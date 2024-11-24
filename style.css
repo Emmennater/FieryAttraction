@@ -137,5 +137,25 @@ button:active {
   font-size: 20px;
 }
 
+.fullscreen-button {
+  display: flex;
+  position: fixed;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 0;
+  bottom: 0px;
+  width: 100vw;
+  height: 40px;
+  background-color: black;
+  color: white;
+  font-size: 20px;
+  font-family: "Trebuchet MS";
+  cursor: pointer;
+  transition: 1s;
+}
 
+.fullscreen-button.hide {
+  transform: translateY(40px);
+}
 

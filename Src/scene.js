@@ -178,7 +178,7 @@ class TitleScene extends Scene {
 
   run(dt, ctx) {
 
-    const MIN_SCL = Math.min(width - 20, height - 20);
+    const MIN_SCL = Math.min(width - 80, height - 20);
     const MAX_SCL = Math.max(width - 20, height - 20);
     const BLARE = (sin(frameCount / 14) + 1) / 2;
     let sunRotation = frameCount / 2000;

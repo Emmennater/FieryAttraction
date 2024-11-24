@@ -58,6 +58,21 @@ class MobileControls {
         this.boostButton.pressed = function(dt) {
             ship.boost();
         }
+
+        if (this.isMobile) {
+            // Show fullscreen button
+            const BUTTON = document.getElementById("fullscreen-button");
+            BUTTON.classList.remove("hide");
+        }
+
+        document.addEventListener("fullscreenchange", () => {
+            if (!document.fullscreenElement) {
+                if (this.isMobile) {
+                    const BUTTON = document.getElementById("fullscreen-button");
+                    BUTTON.classList.remove("hide");
+                }
+            }
+        });
     }
 
     touched(addedTouches) {

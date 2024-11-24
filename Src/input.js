@@ -12,14 +12,23 @@ function updateCanvasSize() {
   CTX2.resizeCanvas(WIDTH, HEIGHT);
 }
 
+function toggleFullscreen() {
+  let fs = fullscreen();
+  fullscreen(!fs);
+
+  if (mobile.isMobile) {
+    const BUTTON = document.getElementById("fullscreen-button");
+    BUTTON.classList.toggle("hide", !fs);
+  }
+}
+
 function keyPressed() {
   const c = key == " " ? "SPACE" : key.toUpperCase();
   keys[c] = true;
   pressed[c] = true;
 
   if (c == "F") {
-    let fs = fullscreen();
-    fullscreen(!fs);
+    toggleFullscreen();
   }
 }
 

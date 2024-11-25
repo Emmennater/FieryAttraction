@@ -497,10 +497,10 @@ class EffectsBar {
   }
 
   addEffect(effect) {
-    if (effect.active || this.hasEffect(effect)) return true;
+    if (effect.active || this.hasEffect(effect)) return false;
 
     for (let i = 0; i < this.effectSlots.length; ++i) {
-      if (this.effectSlots[i].effect == null) {
+      if (this.effectSlots[i].effect == null && !this.effectSlots[i].locked) {
         this.effectSlots[i].effect = effect;
         return true;
       }
@@ -508,6 +508,7 @@ class EffectsBar {
 
     // Automatically activate if no slot is available
     effect.activate();
+
 
     return false;
   }

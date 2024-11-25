@@ -113,7 +113,8 @@ class Ship extends GravityObject {
       hud.effectsBar.addEffect(effect);
       spawnBonusEffect(`+${duration} ${effect.getText()}`, this.x, this.y, effect.color, 2);
     } else {
-      super.applyEffect(Effect, dat, sender);
+      const effect = super.applyEffect(Effect, dat, sender);
+      effect.activate();
     }
   }
 

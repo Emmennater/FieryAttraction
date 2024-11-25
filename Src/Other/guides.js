@@ -63,7 +63,7 @@ class Guide {
     }
 
     draw(ctx) {
-        if (!keys.SHIFT && !(mobile.isMobile && mobile.joystick.selected !== null) && !(this.enabled && this.toggle)) return;
+        if (!(keys.SHIFT && !this.toggle) && !(mobile.isMobile && mobile.joystick.selected !== null) && !(this.enabled && this.toggle)) return;
 
         const target = ship;
         let A = ship.a + ship.control.steeringAngle;

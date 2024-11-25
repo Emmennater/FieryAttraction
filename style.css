@@ -175,18 +175,22 @@ button:active {
 }
 
 .fullscreen-button {
+  /* Background Image */
+  background-image: url("Assets/enlarge.png");
+  background-size: 35px 35px;
+
   display: flex;
   position: fixed;
   align-items: center;
   justify-content: center;
-  margin: 0px 0px;
+  margin: 4px 4px;
   padding: 2px 2px;
-  top: 0px;
-  width: 40px;
-  height: 40px;
+  bottom: 0px;
+  right: 0px;
+  width: 35px;
+  height: 35px;
   min-height: auto;
-  background-color: #000c;
-  border: solid 2px #fffc;
+  border: none;
   color: white;
   font-size: 30px;
   font-family: "Trebuchet MS";
@@ -205,12 +209,12 @@ button:active {
 
 .fullscreen-button:hover {
   font-size: 30px;
-  background: #000c;
+  background-image: url("Assets/enlarge.png");
 }
 
 .fullscreen-button:active {
   font-size: 30px;
-  background: #000c;
+  background-image: url("Assets/enlarge.png");
 }
 
 .effect-buttons {

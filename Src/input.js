@@ -12,17 +12,6 @@ function updateCanvasSize() {
   CTX2.resizeCanvas(WIDTH, HEIGHT);
 }
 
-function toggleFullscreen() {
-  let fs = fullscreen();
-  print(fs);
-  fullscreen(!fs);
-
-  if (mobile.isMobile) {
-    const BUTTON = document.getElementById("fullscreen-button");
-    BUTTON.classList.toggle("hide", !fs);
-  }
-}
-
 function keyPressed() {
   const c = key == " " ? "SPACE" : key.toUpperCase();
   keys[c] = true;

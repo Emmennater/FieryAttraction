@@ -592,7 +592,7 @@ class EffectsBar {
     }
 
     // Effect slots
-    const effectW = max(width * 0.125, maxEffectWidth + 30); // width * 0.1;
+    const effectW = max(180, maxEffectWidth + 30); // width * 0.1;
     const effectH = 20;
     const effectGap = 6;
     const offX = 10;

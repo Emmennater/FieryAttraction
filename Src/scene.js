@@ -233,7 +233,7 @@ class TitleScene extends Scene {
       // Top score
       let bounds = scenes.controlButton.getBoundingClientRect();
       let topScoreY = mobile.isMobile ? bounds.y : bounds.y + MIN_SCL * 0.02;
-      let topScoreX = mobile.isMobile ? 50 : MIN_SCL * 0.04;
+      let topScoreX = MIN_SCL * 0.04;
       fill(255);
       noStroke();
       textSize(MIN_SCL * 0.04);

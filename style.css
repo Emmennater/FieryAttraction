@@ -210,11 +210,13 @@ button:active {
 .fullscreen-button:hover {
   font-size: 30px;
   background-image: url("Assets/enlarge.png");
+  background-size: 35px 35px;
 }
 
 .fullscreen-button:active {
   font-size: 30px;
   background-image: url("Assets/enlarge.png");
+  background-size: 35px 35px;
 }
 
 .effect-buttons {

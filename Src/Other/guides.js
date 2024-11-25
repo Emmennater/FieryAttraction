@@ -15,7 +15,24 @@ class DummyProjectile extends GravityObject {
 
 class Guide {
     constructor() {
+        this.toggle = getItem("fiery-attraction-toggle-aim") ?? false;
+        this.enabled = false;
 
+        if (this.toggle) {
+            const button = document.getElementById("toggle-aim");
+            button.checked = this.toggle;
+        }
+    }
+
+    toggleGuide() {
+        if (!this.toggle) return;
+        this.enabled = !this.enabled;
+    }
+
+    toggleGuideToggle() {
+        this.toggle = !this.toggle;
+
+        storeItem("fiery-attraction-toggle-aim", this.toggle);
     }
 
     update(dt) {
@@ -46,7 +63,7 @@ class Guide {
     }
 
     draw(ctx) {
-        if (!keys.SHIFT) return;
+        if (!keys.SHIFT && !(mobile.isMobile && mobile.joystick.selected !== null) && !(this.enabled && this.toggle)) return;
 
         const target = ship;
         let A = ship.a + ship.control.steeringAngle;

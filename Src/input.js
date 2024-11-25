@@ -30,6 +30,16 @@ function keyPressed() {
   if (c == "F") {
     toggleFullscreen();
   }
+
+  // Numerical keys
+  if (c >= "1" && c <= "9") {
+    const num = parseInt(c);
+    hud.effectsBar.activateEffect(num - 1);
+  }
+
+  if (c == "SHIFT") {
+    hud.guide.toggleGuide();
+  }
 }
 
 function keyReleased() {

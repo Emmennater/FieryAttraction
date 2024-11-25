@@ -22,6 +22,10 @@ class EventManager {
       this.startRandomEvent();
     });
 
+    this.addEvent(1000, () => {
+      hud.effectsBar.unlockEffectSlot();
+    })
+
     this.activeEvents = [];
   }
 
@@ -61,8 +65,11 @@ class EventManager {
     // Iterate through the thresholds and check for triggering conditions
     this.thresholds.forEach(threshold => {
       if (hud.score - threshold.lastTriggered >= threshold.score) {
+        const timesTriggered = Math.floor((hud.score - threshold.lastTriggered) / threshold.score);
         threshold.lastTriggered = Math.floor(hud.score / threshold.score) * threshold.score;
-        threshold.event();
+        for (let i = 0; i < timesTriggered; ++i) {
+          threshold.event();
+        }
       }
     });
 

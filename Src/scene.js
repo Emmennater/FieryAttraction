@@ -57,10 +57,12 @@ class Scenes {
       this.controlsOpen = true;
       this.controlButton.innerText = "Back";
       this.helpControls.style.visibility = "visible";
+      hud.effectsBar.hideButtons();
     } else {
       this.controlsOpen = false;
       this.controlButton.innerText = "Help + Controls";
       this.helpControls.style.visibility = "hidden";
+      if (this.currentScene == this.gameScene) hud.effectsBar.showButtons();
     }
   }
 
@@ -178,7 +180,7 @@ class TitleScene extends Scene {
 
   run(dt, ctx) {
 
-    const MIN_SCL = Math.min(width - 80, height - 20);
+    const MIN_SCL = Math.min(width * 0.8 - 20, height - 20);
     const MAX_SCL = Math.max(width - 20, height - 20);
     const BLARE = (sin(frameCount / 14) + 1) / 2;
     let sunRotation = frameCount / 2000;
@@ -427,6 +429,11 @@ class GameScene extends Scene {
 
     const ENEMY_COUNT = scenes.introSkipped ? 4 : 2;
     initEnemies(ENEMY_COUNT);
+
+    if (mobile.isMobile) {
+      // Show effect buttons
+      hud.effectsBar.showButtons();
+    }
   }
 
   run(dt, ctx) {
@@ -551,6 +558,9 @@ class GameOverScene extends Scene {
     alarmSound.stop();
     if (scenes.paused) scenes.togglePause();
     scenes.highScore = hud.updateHighscores();
+
+    // Hide effect buttons
+    hud.effectsBar.hideButtons();
   }
 
   run(dt, ctx) {

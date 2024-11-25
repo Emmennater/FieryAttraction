@@ -50,6 +50,7 @@ class MobileControls {
         this.joystick = new Joystick();
         this.fireButton = new CircleButton("FIRE");
         this.boostButton = new CircleButton("BOOST");
+        this.initZoom = 1;
 
         this.fireButton.pressed = function(dt) {
             ship.fireBullet(dt);
@@ -83,6 +84,8 @@ class MobileControls {
             this.fireButton.touched(TOUCH);
             this.boostButton.touched(TOUCH);
         }
+
+        this.initZoom = panzoom.zoom;
     }
 
     unTouched(removedTouches) {
@@ -106,6 +109,32 @@ class MobileControls {
         this.joystick.update(dt);
         this.fireButton.update(dt);
         this.boostButton.update(dt);
+
+        const centerTouches = [];
+        for (let touch of TouchList.previousTouches) {
+            const TOUCH = TouchList.getTouch(touch.id);
+            
+            // Touch near center
+            if (touch.x > width * 1/3 && touch.x < width * 2/3) {
+                centerTouches.push({ start: touch, now: TOUCH });
+            }
+        }
+
+        // Test
+        // centerTouches.push({ start: { x: width / 2, y: height / 2 }, now: { x: width / 2, y: height / 2 } });
+
+        if (centerTouches.length == 2) {
+            const touchA = centerTouches[0];
+            const touchB = centerTouches[1];
+
+            const oldDist = dist(touchA.start.x, touchA.start.y, touchB.start.x, touchB.start.y);
+            const newDist = dist(touchA.now.x, touchA.now.y, touchB.now.x, touchB.now.y);
+            const scalingAmount = 0.5;
+            const scalingFactor = oldDist / newDist * scalingAmount + (1 - scalingAmount);
+
+            panzoom.zoom = this.initZoom * scalingFactor;
+
+        }
     }
 
     draw() {

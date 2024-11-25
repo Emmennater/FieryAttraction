@@ -138,6 +138,7 @@ function loadTheme(name) {
     default:
       sunSprite = loadImage("Assets/hotsun.png");
       starSprite = null;
+      rocketSprite = loadImage("Assets/fighterjet2.png");
       bgCol = color(0);
       break;
   }

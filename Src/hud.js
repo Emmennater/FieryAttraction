@@ -6,6 +6,7 @@ class HUD {
     this.score = 0;
     this.scoreText = new ScoreText();
     this.messageBar = new MessageBar();
+    this.effectsBar = new EffectsBar();
     this.guide = new Guide();
     this.radar = new Radar();
 
@@ -113,6 +114,7 @@ class HUD {
     this.cameraShake.amount = 0;
     this.cameraShake.speed = 0;
     this.whiteFlash = 0;
+    this.effectsBar.reset();
 
     for (const meter of this.meters) {
       meter.reset();
@@ -220,46 +222,8 @@ class HUD {
     this.scoreText.draw(meterY, meterH / 2);
 
     // Effects
-    textAlign(CENTER, CENTER);
-    textFont("monospace");
-    textSize(16);
-
-    // Get max effect text width
-    let maxEffectWidth = 0;
-    for (let i = 0; i < ship.effects.length; ++i) {
-      const effect = ship.effects[i];
-      maxEffectWidth = max(maxEffectWidth, textWidth(effect.getText()));
-    }
-
-    const effectOffX = 10;
-    const effectOffY = 86; // 46
-    const effectW = max(width * 0.1, maxEffectWidth + 30); // width * 0.1;
-    const effectH = 20;
-    const effectGap = 6;
-    for (let i = 0; i < ship.effects.length; ++i) {
-      const effect = ship.effects[i];
-      const t = effect.timeRemaining / effect.duration;
-      const yOff = effectOffY + (effectH + effectGap) * i;
-      fill(colorAlpha(effect.color, 200));
-      rect(
-        effectOffX,
-        yOff,
-        effectW * t,
-        effectH
-      );
-      noFill();
-      stroke(255);
-      strokeWeight(1);
-      rect(
-        effectOffX,
-        yOff,
-        effectW,
-        effectH
-      );
-      fill(255);
-      noStroke();
-      text(effect.getText(), effectOffX + effectW / 2, yOff + effectH / 2);
-    }
+    this.effectsBar.update(dt);
+    this.effectsBar.draw(ctx);
 
     // Low fuel
     if (ship.fuel < 5) {
@@ -508,6 +472,197 @@ class MessageBar {
       const alpha = constrain((m.duration - m.t) * 0.75, 0, 1) * constrain(m.t, 0, 1) * 255;
       fill(colorAlpha(col, alpha));
       text(m.msg, X, Y + (i + 1) * S);
+    }
+  }
+}
+
+class EffectsBar {
+  constructor() {
+    this.reset();
+  }
+
+  canAddEffect(Effect) {
+    for (let i = 0; i < this.effectSlots.length; ++i) {
+      const slot = this.effectSlots[i];
+      if (slot.effect == null || slot.effect.constructor == Effect) return true;
+    }
+    return false;
+  }
+
+  hasEffect(effect) {
+    for (let i = 0; i < this.effectSlots.length; ++i) {
+      if (this.effectSlots[i].effect == effect) return true;
+    }
+    return false;
+  }
+
+  addEffect(effect) {
+    if (this.hasEffect(effect)) return true;
+
+    for (let i = 0; i < this.effectSlots.length; ++i) {
+      if (this.effectSlots[i].effect == null) {
+        this.effectSlots[i].effect = effect;
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  clearEffectSlot(slotIndex) {
+    this.effectSlots[slotIndex].effect = null;
+  }
+
+  activateEffect(slotIndex) {
+    const effect = this.effectSlots[slotIndex].effect;
+    if (effect == null) return false;
+    effect.activate(slotIndex);
+    this.clearEffectSlot(slotIndex);
+    return true;
+  }
+
+  unlockEffectSlot() {
+    for (let i = 0; i < this.effectSlots.length; ++i) {
+      if (this.effectSlots[i].locked) {
+        this.effectSlots[i].locked = false;
+        this.addButton(i);
+        return true;
+      }
+    }
+    return false;
+  }
+
+  addButton(slotIndex) {
+    const buttons = document.getElementById("effect-buttons");
+    const button = document.createElement("button");
+    button.innerHTML = slotIndex + 1;
+    buttons.appendChild(button);
+  }
+
+  hideButtons() {
+    const buttons = document.getElementById("effect-buttons");
+    buttons.style.visibility = "hidden";
+  }
+
+  showButtons() {
+    if (!mobile.isMobile) return;
+    const buttons = document.getElementById("effect-buttons");
+    buttons.style.visibility = "visible";
+  }
+
+  reset() {
+    this.effectSlots = Array(3);
+    for (let i = 0; i < this.effectSlots.length; ++i) {
+      this.effectSlots[i] = { effect:null, locked: true };
+    }
+    this.effectSlots[0].locked = false;
+
+    const buttons = document.getElementById("effect-buttons");
+    buttons.innerHTML = "";
+
+    const button = document.createElement("button");
+    button.innerHTML = "1";
+
+    button.addEventListener("click", () => {
+      this.activateEffect(0);
+    })
+
+    buttons.appendChild(button);
+  }
+
+  update(dt) {
+
+  }
+
+  draw(ctx) {
+    textAlign(CENTER, CENTER);
+    textFont("monospace");
+    textSize(16);
+
+    // Get max effect text width
+    let maxEffectWidth = 0;
+    for (let i = 0; i < ship.effects.length; ++i) {
+      const effect = ship.effects[i];
+      maxEffectWidth = max(maxEffectWidth, textWidth(effect.getText()));
+    }
+
+    // Effect slots
+    const effectW = max(width * 0.125, maxEffectWidth + 30); // width * 0.1;
+    const effectH = 20;
+    const effectGap = 6;
+    const offX = 10;
+    let offY = 84;
+
+    for (let i = 0; i < this.effectSlots.length; ++i) {
+      const slot = this.effectSlots[i];
+      
+      if (slot.locked) {
+        // Empty slot
+        fill(70, 200);
+        stroke(30);
+        rect(offX, offY, effectW, effectH);
+        
+        // X (corner to corner)
+        // strokeWeight(1);
+        // line(slotOffX, slotOffY, slotOffX + effectW, effectH + slotOffY);
+        // line(slotOffX, slotOffY + effectH, slotOffX + effectW, slotOffY);
+        
+        // Text
+        fill(255);
+        textSize(12);
+        noStroke();
+        text("🔒", offX + effectW / 2, offY + effectH / 2 + 1);
+      } else {
+        // Empty slot
+        fill(0, 50);
+        stroke(50);
+        rect(offX, offY, effectW, effectH);
+
+        if (slot.effect) {
+          // Background
+          fill(colorAlpha(slot.effect.color, 200));
+          rect(offX, offY, effectW, effectH);
+          
+          // Text
+          textSize(16);
+          fill(255);
+          noStroke();
+          text(slot.effect.getText(), offX + effectW / 2, offY + effectH / 2);
+        }
+      }
+
+      offY += effectH + effectGap;
+    }
+
+    // Active effects
+    fill(255);
+    textSize(16);
+    text("Active Effects", offX + effectW / 2, offY + effectH / 2);
+    offY += effectH + effectGap;
+
+    for (let i = 0; i < ship.effects.length; ++i) {
+      const effect = ship.effects[i];
+      
+      if (!effect.active) continue;
+
+      const t = effect.timeRemaining / effect.duration;
+      
+      // Fullness
+      fill(colorAlpha(effect.color, 200));
+      rect(offX, offY, effectW * t, effectH);
+      
+      // Outline
+      noFill();
+      stroke(255);
+      strokeWeight(1);
+      rect(offX, offY, effectW, effectH);
+      
+      // Text
+      fill(255);
+      noStroke();
+      text(effect.getText(), offX + effectW / 2, offY + effectH / 2);
+    
+      offY += effectH + effectGap;
     }
   }
 }

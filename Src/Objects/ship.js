@@ -106,11 +106,18 @@ class Ship extends GravityObject {
     this.collisionMesh.updateTransform();
   }
   
-  applyEffect(...args) {
-    const effect = super.applyEffect(...args);
-    const duration = args[1].duration;
+  applyEffect(Effect, dat, sender = null) {
     if (this.name == "ship") {
-      spawnBonusEffect(`+${duration} ${effect.getText()}`, this.x, this.y, effect.color, 2);
+      if (hud.effectsBar.canAddEffect(Effect)) {
+        const effect = super.applyEffect(Effect, dat, sender);
+        const duration = dat.duration;
+        hud.effectsBar.addEffect(effect);
+        spawnBonusEffect(`+${duration} ${effect.getText()}`, this.x, this.y, effect.color, 2);
+      } else {
+        spawnBonusEffect("No Space Left", this.x, this.y, color(255, 0, 0), 2);
+      }
+    } else {
+      super.applyEffect(Effect, dat, sender);
     }
   }
 

@@ -11,6 +11,7 @@ class Effect {
     this.level = dat.level || 1;
     this.timeRemaining = this.duration;
     this.done = false;
+    this.active = false;
     this.color = color(255);
   }
 
@@ -33,6 +34,10 @@ class Effect {
       this.done = true;
       this.stop();
     }
+  }
+
+  activate() {
+    this.active = true;
   }
 }
 
@@ -195,6 +200,11 @@ function updateAllEffects(dt) {
   for (let i = 0; i < objectEffects.length; ++i) {
     const effect = objectEffects[i];
     const target = effect.target;
+
+    // Skip this effect if it's not active
+    if (!effect.active) {
+      continue;
+    }
 
     // Initialize map for the target if it doesn't exist
     if (!affectedObjects.has(target)) {

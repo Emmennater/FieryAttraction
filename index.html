@@ -108,7 +108,7 @@
     <script src="Src/sketch.js"></script>
     
     <!-- Version -->
-    <version id="version">Beta 1.10.1</version>
+    <version id="version">Beta 1.10.2</version>
 
     <!-- Pause Button -->
     <button id="pause" class="pause" style="visibility: hidden;" onclick="scenes.togglePause()">Pause</button>
@@ -118,11 +118,10 @@
       <hbox>
         <button id="controls" style="visibility: hidden;" onclick="scenes.toggleControls()">Help + Controls</button>
       </hbox>
-      <div id="help-controls" style="visibility: hidden;">
-        
-        <hbox>
-          <div id="rules">
-            <h1>Rules</h1>
+      <div id="help-controls" class="help-menu" style="visibility: hidden;">
+        <div id="rules" class="help-section">
+          <h1>Rules</h1>
+          <div class="section-contents">
             <ul style="list-style-type:circle;">
               <li>Don't crash into the sun or asteroids.</li>
               <li>Shoot <span style="color:red;">RED</span> asteroids for more fuel.</li>
@@ -132,55 +131,74 @@
               <li>Have Fun!</li>
             </ul>
           </div>
+        </div>
 
-          <div id="about" style="text-align: center;">
-            <h2>About</h2>
-            <p>
-              <b>Solo Creation</b>
-              Game Designed by Emmett J.<br>
-              Music Designed by Emmett J.<br>
-              <inputline>
-                Master
-                <input type="range" min="0" max="100" value="100" class="slider" id="master-volume" oninput="htmlSounds.updateMaster()">
-              </inputline>
-              <inputline>
-                Music
-                <input type="range" min="0" max="100" value="50" class="slider" id="music-volume" oninput="scenes.changeMusicVolume()">
-              </inputline>
-              <inputline>
-                Motion Blur
-                <input type="range" min="0" max="1" value="0.5" step = "0.1" class="slider" id="motion-blur" oninput="hud.setMotionBlur(parseFloat(this.value))">
-              </inputline>
-              <inputline>
-                Festive
-                <input id="festive-button" type="checkbox" oninput="toggleTheme()">
-              </inputline>
-              <inputline>
-                Alternate Camera
-                <input id="alternate-camera" type="checkbox" oninput="ship.toggleCameraMode()">
-              </inputline>
-            </p>
+        <div id="about" class="help-section">
+          <h1>About</h1>
+          <div class="section-contents">
+            <b>Solo Creation</b><br>
+            Game Designed by Emmett J.<br>
+            Music Designed by Emmett J.<br>
+            <br><b><a href="https://github.com/Emmennater">GitHub</a></b><br>
           </div>
-        </hbox>
-          
-        <h1>Controls</h1>
-        <hbox>
-          <ul style="list-style-type:none;">
-            <li><control>Fire</control>Space</li>
-            <li><control>Boost</control>W or Up Arrow</li>
-            <li><control>Turn Left</control>A or Left Arrow</li>
-            <li><control>Turn Right</control>D or Right Arrow</li>
-            <li><control>Zoom</control>Scroll Wheel</li>
-            <li><control>Fullscreen</control>F</li>
-            <li><control>Pause</control>P or Escape</li>
-            <li><control>Aim</control>Shift</li>
-          </ul>
-        </hbox>
+        </div>
+        
+        <div id="controls" class="help-section">
+          <h1>Controls</h1>
+          <div class="section-contents">
+            <ul style="list-style-type:none;">
+              <li><control>Fire</control>Space</li>
+              <li><control>Boost</control>W or Up Arrow</li>
+              <li><control>Turn Left</control>A or Left Arrow</li>
+              <li><control>Turn Right</control>D or Right Arrow</li>
+              <li><control>Zoom</control>Scroll Wheel / Pinch</li>
+              <li><control>Fullscreen</control>F</li>
+              <li><control>Pause</control>P or Escape</li>
+              <li><control>Aim</control>Shift</li>
+              <li><control>Effects</control>Number Keys</li>
+            </ul>
+          </div>
+        </div>
+        
+        <div id="settings" class="help-section">
+          <h1>Settings</h1>
+          <div class="section-contents">
+            <inputline>
+              Master
+              <input type="range" min="0" max="100" value="100" class="slider" id="master-volume" oninput="htmlSounds.updateMaster()">
+            </inputline>
+            <inputline>
+              Music
+              <input type="range" min="0" max="100" value="50" class="slider" id="music-volume" oninput="scenes.changeMusicVolume()">
+            </inputline>
+            <inputline>
+              Motion Blur
+              <input type="range" min="0" max="1" value="0.5" step = "0.1" class="slider" id="motion-blur" oninput="hud.setMotionBlur(parseFloat(this.value))">
+            </inputline>
+            <inputline>
+              Festive
+              <input id="festive-button" type="checkbox" oninput="toggleTheme()">
+            </inputline>
+            <inputline>
+              Alternate Camera
+              <input id="alternate-camera" type="checkbox" oninput="ship.toggleCameraMode()">
+            </inputline>
+            <inputline>
+              Enable Toggle Aim
+              <input id="toggle-aim" type="checkbox" oninput="hud.guide.toggleGuideToggle()">
+            </inputline>
+          </div>
+        </div>
       </div>
     </vbox>
 
     <!-- Fullscreen Button -->
     <div id="fullscreen-button" class="fullscreen-button hide" onclick="toggleFullscreen()">Fullscreen</div>
     
+    <!-- Effect Buttons for Mobile -->
+    <div id="effect-buttons" class="effect-buttons" style="visibility: hidden;">
+      
+    </div>
+
   </body>
 </html>

@@ -56,6 +56,7 @@ inputline {
   display: flex;
   flex-direction: row;
   flex: 1;
+  max-width: 250px;
 }
 
 version {
@@ -63,29 +64,36 @@ version {
   right: 14px;
   top: 4px;
   color: #ffffff40;
-  font-size: 24px;
+  font-size: calc(min(24px, 4vw));
   font-family: "Trebuchet MS";
 }
 
 button {
   margin: 20px;
-  flex: 1;
-  max-width: 30vw;
-  
+  padding: 0px 10px;
+
   font-family: space-font;
-  font-size: 16px;
+  font-size: calc(min(3vw, 16px));
   
   min-height: 40px;
+  max-width: 40vw;
+  
   color: white;
   border: solid 2px white;
   background: transparent;
   cursor: pointer;
+
+  user-select: none;
 }
 
 p {
   display: flex;
   flex-direction: column;
   text-align: left;
+}
+
+a {
+  color: white;
 }
 
 div {
@@ -137,6 +145,28 @@ button:active {
   font-size: 20px;
 }
 
+.help-menu {
+  display: grid;
+  /* 2x2 grid */
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  justify-content: center;
+  margin: 0;
+}
+
+.help-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 0;
+}
+
+.section-contents {
+  display: inline-block;
+  text-align: left;
+  margin: 10px;
+}
+
 .fullscreen-button {
   display: flex;
   position: fixed;
@@ -152,10 +182,35 @@ button:active {
   font-size: 20px;
   font-family: "Trebuchet MS";
   cursor: pointer;
-  transition: 1s;
+  user-select: none;
+  transition: transform 0.5s;
 }
 
 .fullscreen-button.hide {
   transform: translateY(40px);
+}
+
+.effect-buttons {
+  display: flex;
+  flex-direction: column;
+
+  position: fixed;
+  right: 10px;
+  top: 90px;
+  margin: 0;
+  padding: 0;
+}
+
+.effect-buttons button {
+  margin: 10px;
+  padding: 0;
+  width: 50px;
+  height: 50px;
+
+  border: solid 2px #ffffff20;
+  background: #ffffff20;
+  border-radius: 4px;
+
+  cursor: pointer;
 }
 

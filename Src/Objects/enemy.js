@@ -20,7 +20,7 @@ class Enemy extends Ship {
     this.sprite = enemySprite;
     this.bulletType = Bullet;
     this.damage = 2 / 5;
-    this.range = 300;
+    this.range = 200;
     this.playerRange = 150;
     this.topSpeed = 100;
     this.slainByPlayer = false;
@@ -78,7 +78,7 @@ class Enemy extends Ship {
 
     // Boost
     const inRange = distToTarget > this.playerRange;
-    const getCloseToTarget = inRange && targetAngleDiff < PI * 0.3 && enemySpeed < 100;
+    const getCloseToTarget = inRange && targetAngleDiff < PI * 0.4 && enemySpeed < 100;
     const ramPlayer = targetAngleDiff < 0.2 && (enemySpeed > RAM_MIN_SPEED || distToTarget > 200) && this.health > 20;
 
     if (getCloseToTarget || ramPlayer) {
@@ -415,8 +415,8 @@ class SpeedEnemy extends Enemy {
     this.bulletType = SpeedBullet;
     this.sprite = speedEnemySprite;
     this.revive = false;
-    this.range = 300;
-    this.playerRange = 180;
+    this.range = 220;
+    this.playerRange = 150;
     this.speed = 80;
     this.topSpeed = 300;
     this.setHealth(20, 20);
@@ -512,7 +512,7 @@ class MegaEnemy extends HomingEnemy {
     this.type = "mega";
     this.bulletType = MegaBullet;
     this.setHealth(35, 35);
-    this.range = 400;
+    this.range = 300;
     this.playerRange = 100;
     this.speed = 100;
     this.worth = 40;
@@ -551,7 +551,7 @@ class HurricaneEnemy extends Enemy {
     this.speed = 80;
     this.topSpeed = 300;
     this.maxTargetAngleError = PI;
-    this.range = 500;
+    this.range = 350;
     this.playerRange = 200;
 
     // Bullet attributes

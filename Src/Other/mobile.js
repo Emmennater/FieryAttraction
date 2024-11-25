@@ -129,8 +129,8 @@ class MobileControls {
 
             const oldDist = dist(touchA.start.x, touchA.start.y, touchB.start.x, touchB.start.y);
             const newDist = dist(touchA.now.x, touchA.now.y, touchB.now.x, touchB.now.y);
-            const scalingAmount = 0.5;
-            const scalingFactor = oldDist / newDist * scalingAmount + (1 - scalingAmount);
+            const scalingAmount = 1;
+            const scalingFactor = newDist / oldDist * scalingAmount + (1 - scalingAmount);
 
             panzoom.zoom = this.initZoom * scalingFactor;
 

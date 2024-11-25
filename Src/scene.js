@@ -232,15 +232,15 @@ class TitleScene extends Scene {
       
       // Top score
       let bounds = scenes.controlButton.getBoundingClientRect();
-      let topScoreY = bounds.y + bounds.height / 2;
+      let topScoreY = bounds.y;
+      let topScoreX = mobile.isMobile ? 50 : MIN_SCL * 0.04;
       fill(255);
       noStroke();
       textSize(MIN_SCL * 0.04);
       textFont("monospace");
       textAlign(LEFT, CENTER);
-      text("HIGH SCORE " + hud.getHighscore(), 20, topScoreY);
-      text("DAILY HS " + hud.getDailyHighscore(), 20, topScoreY + MIN_SCL * 0.04 + 4);
-
+      text("HIGH SCORE " + hud.getHighscore(), topScoreX, topScoreY);
+      text("DAILY HS " + hud.getDailyHighscore(), topScoreX, topScoreY + MIN_SCL * 0.04 + 4);
 
       // Title
       textFont(futureFont);

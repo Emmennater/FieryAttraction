@@ -14,6 +14,7 @@ function updateCanvasSize() {
 
 function toggleFullscreen() {
   let fs = fullscreen();
+  print(fs);
   fullscreen(!fs);
 
   if (mobile.isMobile) {

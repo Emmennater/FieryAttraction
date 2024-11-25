@@ -172,22 +172,38 @@ button:active {
   position: fixed;
   align-items: center;
   justify-content: center;
-  margin: 0;
-  padding: 0;
-  bottom: 0px;
-  width: 100vw;
+  margin: 0px 0px;
+  padding: 2px 2px;
+  top: 0px;
+  width: 40px;
   height: 40px;
-  background-color: black;
+  min-height: auto;
+  background-color: #000c;
+  border: solid 2px #fffc;
   color: white;
-  font-size: 20px;
+  font-size: 30px;
   font-family: "Trebuchet MS";
+  line-height: 0px;
   cursor: pointer;
   user-select: none;
-  transition: transform 0.5s;
+  pointer-events: auto;
+  opacity: 1;
 }
 
 .fullscreen-button.hide {
-  transform: translateY(40px);
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.fullscreen-button:hover {
+  font-size: 30px;
+  background: #000c;
+}
+
+.fullscreen-button:active {
+  font-size: 30px;
+  background: #000c;
 }
 
 .effect-buttons {

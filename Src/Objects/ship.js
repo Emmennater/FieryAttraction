@@ -108,14 +108,10 @@ class Ship extends GravityObject {
   
   applyEffect(Effect, dat, sender = null) {
     if (this.name == "ship") {
-      if (hud.effectsBar.canAddEffect(Effect)) {
-        const effect = super.applyEffect(Effect, dat, sender);
-        const duration = dat.duration;
-        hud.effectsBar.addEffect(effect);
-        spawnBonusEffect(`+${duration} ${effect.getText()}`, this.x, this.y, effect.color, 2);
-      } else {
-        spawnBonusEffect("No Space Left", this.x, this.y, color(255, 0, 0), 2);
-      }
+      const effect = super.applyEffect(Effect, dat, sender);
+      const duration = dat.duration;
+      hud.effectsBar.addEffect(effect);
+      spawnBonusEffect(`+${duration} ${effect.getText()}`, this.x, this.y, effect.color, 2);
     } else {
       super.applyEffect(Effect, dat, sender);
     }

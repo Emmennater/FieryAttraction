@@ -258,3 +258,13 @@ function addEffect(Effect, target, dat, sender) {
 
   return effect;
 }
+
+function prioritizeEffect(effect) {
+  for (let i = 0; i < objectEffects.length; ++i) {
+    if (objectEffects[i] === effect) {
+      objectEffects.splice(i, 1);
+      objectEffects.unshift(effect);
+      return;
+    }
+  }
+}

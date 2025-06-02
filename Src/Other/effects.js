@@ -201,6 +201,13 @@ function updateAllEffects(dt) {
     const effect = objectEffects[i];
     const target = effect.target;
 
+    // Remove done effects
+    if (effect.done) {
+      effect.target.removeEffect(effect);
+      objectEffects.splice(i--, 1);
+      continue;
+    }
+
     // Skip this effect if it's not active
     if (!effect.active) {
       continue;
@@ -215,12 +222,6 @@ function updateAllEffects(dt) {
 
     // Skip this effect if its category is already running on the target
     if (activeCategories.has(effect.category)) {
-      continue;
-    }
-
-    if (effect.done) {
-      effect.target.removeEffect(effect);
-      objectEffects.splice(i--, 1);
       continue;
     }
 
@@ -245,7 +246,7 @@ function addEffect(Effect, target, dat, sender) {
     const hasSameTarget = effect.target === target;
     const hasSameLevel = effect.level === (dat.level || 1);
     const hasSameEffect = effect.constructor === Effect;
-    if (hasSameTarget && hasSameLevel && hasSameEffect) {
+    if (hasSameTarget && hasSameLevel && hasSameEffect && !effect.done) {
       effect.timeRemaining += dat.duration;
       effect.duration = effect.timeRemaining;
       return effect;

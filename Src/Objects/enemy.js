@@ -384,7 +384,7 @@ class BlackEnemy extends Enemy {
   }
 
   grantEffect(object) {
-    super.grantEffect(object);
+    Enemy.prototype.grantEffect.call(object);
     object.applyEffect(ExplosiveRounds, {
       duration: randInt(10, 20)
     })
@@ -436,7 +436,7 @@ class SpeedEnemy extends Enemy {
   }
 
   grantEffect(object) {
-    super.grantEffect(object);
+    Enemy.prototype.grantEffect.call(object);
     object.applyEffect(SpeedRounds, {
       duration: randInt(20, 40)
     });
@@ -469,7 +469,7 @@ class UltraSpeedEnemy extends SpeedEnemy {
   }
 
   grantEffect(object) {
-    super.grantEffect(object);
+    Enemy.prototype.grantEffect.call(object);
     object.applyEffect(UltraspeedRounds, {
       duration: randInt(20, 40)
     });
@@ -499,7 +499,7 @@ class HomingEnemy extends Enemy {
   }
 
   grantEffect(object) {
-    super.grantEffect(object);
+    Enemy.prototype.grantEffect.call(object);
     object.applyEffect(HomingRounds, {
       duration: randInt(20, 40)
     });
@@ -649,9 +649,12 @@ class HurricaneEnemy extends Enemy {
 function initEnemies(count) {
   if (noSpawns) return;
   // const a = atan2(ship.y, ship.x);
-  // const enemy = createEnemy("ultraspeed", ship.x + cos(a) * 150, ship.y + sin(a) * 150, 0, 0);
-  // enemy.applyEffect(MultiShot, { duration: 10000, level: 1 });
+  // const enemy = createEnemy("homing", ship.x + cos(a) * 150, ship.y + sin(a) * 150, 0, 0);
+  // enemy.health = 1;
+  // enemy.applyEffect(SpeedRounds, { duration: 100, level: 1 });
   // enemies.push(enemy);
+  // ship.applyEffect(HomingRounds, { duration: 100, level: 1 });
+  // ship.effects[0].done = true;
 
   if (count == 4) {
     spawnEnemy("speed");

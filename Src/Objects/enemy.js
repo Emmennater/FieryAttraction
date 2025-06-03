@@ -153,6 +153,7 @@ class Enemy extends Ship {
 
   grantEffect(object) {
     if (!object) return;
+
     object.addHealth(randInt(7, 15));
     object.addAmmo(randInt(10, 20));
     object.addFuel(randInt(5, 10));
@@ -384,7 +385,7 @@ class BlackEnemy extends Enemy {
   }
 
   grantEffect(object) {
-    Enemy.prototype.grantEffect.call(object);
+    Enemy.prototype.grantEffect.call(this, object);
     object.applyEffect(ExplosiveRounds, {
       duration: randInt(10, 20)
     })
@@ -436,7 +437,7 @@ class SpeedEnemy extends Enemy {
   }
 
   grantEffect(object) {
-    Enemy.prototype.grantEffect.call(object);
+    Enemy.prototype.grantEffect.call(this, object);
     object.applyEffect(SpeedRounds, {
       duration: randInt(20, 40)
     });
@@ -469,7 +470,7 @@ class UltraSpeedEnemy extends SpeedEnemy {
   }
 
   grantEffect(object) {
-    Enemy.prototype.grantEffect.call(object);
+    Enemy.prototype.grantEffect.call(this, object);
     object.applyEffect(UltraspeedRounds, {
       duration: randInt(20, 40)
     });
@@ -499,7 +500,7 @@ class HomingEnemy extends Enemy {
   }
 
   grantEffect(object) {
-    Enemy.prototype.grantEffect.call(object);
+    Enemy.prototype.grantEffect.call(this, object);
     object.applyEffect(HomingRounds, {
       duration: randInt(20, 40)
     });

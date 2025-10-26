@@ -47,17 +47,37 @@ class Guide {
         let vy = sin(shipAngle) * ship.bSpeed + ship.vy;
         const DUMMY = new DummyProjectile(x, y, vx, vy);
         const DT = 0.1;
-        let dx = 0;
-        let dy = 0;
-
+        const MAX_DIST = 100;
+        let px = x;
+        let py = y;
+        let distTraveled = 0;
+        
         ctx.noFill();
         ctx.stroke(0, 255, 0, 100);
         ctx.strokeWeight(0.5);
         ctx.beginShape();
-        
+        ctx.vertex(DUMMY.x, DUMMY.y);
+
         for (let i = 0; i < 2; i += DT) {
-            ctx.vertex(DUMMY.x, DUMMY.y);
             DUMMY.move(DT);
+            
+            let dx = DUMMY.x - px;
+            let dy = DUMMY.y - py;
+            let d = Math.hypot(dx, dy);
+            
+            if (distTraveled + d > MAX_DIST) {
+                // Add remainder
+                let nx = dx / d;
+                let ny = dy / d;
+                let r = MAX_DIST - distTraveled;
+                ctx.vertex(DUMMY.x + nx * r, DUMMY.y + ny * r);
+                break;
+            }
+            
+            distTraveled += d;
+            px = DUMMY.x;
+            py = DUMMY.y;
+            ctx.vertex(DUMMY.x, DUMMY.y);
         }
         ctx.endShape();
     }

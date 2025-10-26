@@ -142,3 +142,26 @@ function toggleFullscreen(orientation) {
   }
 }
 
+function easeInOutPower(t, p = 2) {
+  return t < 0.5
+    ? 0.5 * Math.pow(2 * t, p)
+    : 1 - 0.5 * Math.pow(2 * (1 - t), p);
+}
+
+/**
+ * Randomly picks an item based on a list of probabilities
+ * @param {Array<any>} probList Array of [item, probability]
+ * @returns {any} The picked item
+ */
+function randomFromProbs(probList) {
+  const totalProb = probList.reduce((a, b) => a + b[1], 0);
+  const rand = Math.random() * totalProb;
+
+  let prob = 0;
+  for (let i = 0; i < probList.length; ++i) {
+    prob += probList[i][1];
+    if (rand < prob) {
+      return probList[i][0];
+    }
+  }
+}

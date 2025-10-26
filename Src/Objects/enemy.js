@@ -391,21 +391,21 @@ class BlackEnemy extends Enemy {
     })
   }
 
-  drawBoost(ctx) {
+  drawBoost(ctx, opacity) {
     const exaustCol1 = {
-      min: { r: 0, g: 0, b: 0, a: 100 },
+      min: { r: 0, g: 0, b: 0, a: 0 },
       add: { r: 0, g: 0, b: 0, a: 0 }
     };
     const exaustCol2 = {
       min: { r: 0, g: 0, b: 0, a: 100 },
-      add: { r: 255, g: 0, b: 0, a: 0 }
+      add: { r: 255, g: 100, b: 0, a: 0 }
     };
 
     // Alternate exaust color
     this.oldExaustCol = (Math.random() < 0.1) ? exaustCol2 : exaustCol1;
     this.exaustCol = this.oldExaustCol;
 
-    super.drawBoost(ctx);
+    super.drawBoost(ctx, opacity);
   }
 }
 
@@ -650,7 +650,7 @@ class HurricaneEnemy extends Enemy {
 function initEnemies(count) {
   if (noSpawns) return;
   // const a = atan2(ship.y, ship.x);
-  // const enemy = createEnemy("homing", ship.x + cos(a) * 150, ship.y + sin(a) * 150, 0, 0);
+  // const enemy = createEnemy("black", ship.x + cos(a) * 150, ship.y + sin(a) * 150, 0, 0);
   // enemy.health = 1;
   // enemy.applyEffect(SpeedRounds, { duration: 100, level: 1 });
   // enemies.push(enemy);

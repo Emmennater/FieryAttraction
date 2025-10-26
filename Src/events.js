@@ -43,9 +43,16 @@ class EventManager {
   }
 
   startRandomEvent() {
-    const events = [GravityStorm, SpinStorm, SolarStorm];
-    let RandomEvent = events[Math.floor(Math.random() * events.length)];
-    return this.startEvent(RandomEvent);
+    const eventProbs = [
+      [GravityStorm, 1],
+      [SpinStorm, 1],
+      [SolarStorm, 1],
+      [SolarStorm2, 0.5],
+      [SolarCage, 0.5]
+    ];
+
+    const Event = randomFromProbs(eventProbs);
+    this.startEvent(Event);
   }
 
   checkForEvent(EventConstructor) {
@@ -293,24 +300,15 @@ class SpinStorm extends WorldEvent {
 }
 
 class SolarStorm extends WorldEvent {
-  constructor() {
+  constructor(type="normal") {
     super();
+    this.type = type;
     this.title = "SOLAR STORM";
     this.star = system.getRandomStar();
     this.solarTime = 30;
     this.solarFlairs = [];
     
-    this.type = Math.random() < 1/2 ? Math.random() < 1/2 ? "cage" : "double" : "normal";
-    // this.type = "cage";
-
-    switch (this.type) {
-      case "cage":
-        this.title = "SOLAR CAGE";
-        break;
-      case "double":
-        this.col = { r:255, g:120, b:0 };
-        break;
-    }
+    if (this.type == "double") this.col = { r:255, g:120, b:0 };
   }
 
   start(dt) {
@@ -345,51 +343,6 @@ class SolarStorm extends WorldEvent {
     const rotVel1 = this.type == "double" ? speed + speedDiff * 0.5 : speed;
     const rotVel2 = speed - speedDiff * 1.5;
 
-    if (this.type == "cage") {
-      const TARGET_ANGLE = Math.atan2(starShipY, starShipX) + HALF_PI;
-
-      if (this.solarFlairs.length == 0) {
-        this.solarFlairs.push(spawnSolarFlair(this.star, TARGET_ANGLE - HALF_PI * 0.9, 0, this.solarTime));
-        this.solarFlairs.push(spawnSolarFlair(this.star, TARGET_ANGLE + HALF_PI * 0.9, 0, this.solarTime));
-        this.solarFlairs.push(spawnSolarFlair(this.star, TARGET_ANGLE - HALF_PI, 0, this.solarTime));
-        this.solarFlairs.push(spawnSolarFlair(this.star, TARGET_ANGLE + HALF_PI, 0, this.solarTime));
-      }
-
-      let flag = true;
-
-      // Stop when both solar flairs are at target angle
-      if (this.solarFlairs.length !== 0) {
-        // First solar flair
-        let solarFlair = this.solarFlairs[0];
-        let diff = smallestAngleDifference(solarFlair.rot, TARGET_ANGLE);
-        if (Math.abs(diff) > 0.125) {
-          solarFlair.rot += diff * 0.01;
-          flag = false;
-        }
-        this.solarFlairs[1].rot = TARGET_ANGLE + diff;
-
-        // Second solar flair
-        solarFlair = this.solarFlairs[2];
-        diff = smallestAngleDifference(solarFlair.rot, TARGET_ANGLE);
-        if (Math.abs(diff) > 0.325) {
-          solarFlair.rot += diff * 0.01;
-          flag = false;
-        }
-        this.solarFlairs[3].rot = TARGET_ANGLE + diff;
-      }
-
-      if (!flag) return false;
-
-      const rot2 = Math.atan2(shipY + shipVY - starY, shipX + shipVX - starX) + HALF_PI + PI * dir * 0.2;
-
-      // Set solar flairs to target angle velocity
-      for (let solarFlair of this.solarFlairs) {
-        solarFlair.rotVel = rot2 - rot;
-      }
-
-      return true;
-    }
-
     this.solarFlairs.push(spawnSolarFlair(this.star, rot, rotVel1, this.solarTime));
 
     if (this.type == "double") {
@@ -404,15 +357,6 @@ class SolarStorm extends WorldEvent {
 
   middle(dt) {
     let destroyed = true;
-
-    for (let solarFlair of this.solarFlairs) {
-      if (this.type == "cage") {
-        const dir = Math.sign(solarFlair.rotVel);
-        const rotVel = Math.abs(solarFlair.rotVel);
-        if (rotVel > 0.14) continue;
-        solarFlair.rotVel += dir * 0.01 * dt;
-      }
-    }
 
     for (let solarFlair of this.solarFlairs) {
       if (!solarFlair.destroyed) {
@@ -435,9 +379,117 @@ class SolarStorm extends WorldEvent {
         solarFlair.destroy();
     }
 
-    if (!ship.destroyed && this.doubleStorm) {
+    if (!ship.destroyed && this.type == "double") {
       // Enjoy reward
       hud.addScore(100);
     }
+  }
+}
+
+class SolarStorm2 extends SolarStorm {
+  constructor() {
+    super("double");
+  }
+}
+
+class SolarCage extends WorldEvent {
+  constructor() {
+    super();
+    this.title = "SOLAR CAGE";
+    this.star = system.getRandomStar();
+    this.solarTime = 30;
+    this.dir = 1;
+    this.solarFlairs = [];
+    this.shipAngle = 0;
+    this.shipAngleVel = 0;
+    this.solarSpeed = 0.2;
+  }
+
+  updateShipAngle() {
+    // Set rotation to behind player
+    const shipX = ship.x;
+    const shipY = ship.y;
+    const shipVX = ship.vx;
+    const shipVY = ship.vy;
+    const starX = this.star.x;
+    const starY = this.star.y;
+
+    const starShipX = shipX - starX;
+    const starShipY = shipY - starY;
+    const starShipDist = Math.hypot(starShipX, starShipY);
+    const starShipNormX = starShipX / starShipDist;
+    const starShipNormY = starShipY / starShipDist;
+    
+    // Tangent is rotated 90 degrees counter-clockwise
+    const starTangentX = -starShipNormY;
+    const starTangentY = starShipNormX;
+
+    // Use dot product to find which direction the ship is moving around the sun
+    const dot = starTangentX * shipVX + starTangentY * shipVY;
+    const dir = dot < 0 ? -1 : 1;
+
+    // Calculate the angle of the ship around the sun
+    const shipRot = Math.atan2(starShipY, starShipX) + PI * dir * 0.5;
+
+    // Calculate the anglular velocity of the ship around the sun
+    const shipTanSpeed = dot / starShipDist;
+    
+    this.shipAngle = shipRot;
+    this.shipAngleVel = shipTanSpeed;
+    this.dir = dir;
+  }
+
+  start(dt) {
+    // Wait a bit before starting...
+    if (this.stageTime < 5)
+      return;
+
+    this.solarFlairs.push(spawnSolarFlair(this.star, 0, 0, this.solarTime));
+    this.solarFlairs.push(spawnSolarFlair(this.star, 0, 0, this.solarTime));
+    this.solarFlairs.push(spawnSolarFlair(this.star, 0, 0, this.solarTime));
+    this.solarFlairs.push(spawnSolarFlair(this.star, 0, 0, this.solarTime));
+
+    return true;
+  }
+
+  middle(dt) {
+    const rawT = Math.min(1, this.stageTime / 4);
+    const t = easeInOutPower(rawT);
+    const t2 = Math.min(1, (this.stageTime - 4) / (this.solarTime - 4));
+
+    if (t < 1) {
+      this.updateShipAngle();
+    } else {
+      const angleVel = lerp(this.shipAngleVel, this.solarSpeed * this.dir, t2);
+      this.shipAngle += angleVel * dt;
+    }
+
+    // Set all solar flairs to solar angle
+    const offsetA = lerp(HALF_PI, 0.15, t);
+    const offsetB = lerp(HALF_PI, 0.3, t);
+    this.solarFlairs[0].rot = this.shipAngle - offsetB * this.dir;
+    this.solarFlairs[1].rot = this.shipAngle - offsetA * this.dir;
+    this.solarFlairs[2].rot = this.shipAngle + offsetA * this.dir;
+    this.solarFlairs[3].rot = this.shipAngle + offsetB * this.dir;
+
+    // If all solar flairs are destroyed, stop
+    return this.solarFlairs.every(flair => flair.destroyed);
+  }
+
+  end(dt) {
+    this.stop();
+
+    if (!ship.destroyed) {
+      // Enjoy reward
+      hud.addScore(100);
+    }
+
+    return true;
+  }
+
+  stop() {
+    this.solarFlairs.forEach(flair => {
+      if (!flair.destroyed) flair.destroy()
+    });
   }
 }

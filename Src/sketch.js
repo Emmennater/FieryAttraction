@@ -106,7 +106,14 @@ function loadSprite(path, file) {
 }
 
 function getTheme() {
-  return festive ? "thanksgiving" : "normal";
+  const month = new Date().getMonth() + 1;
+  let special = "thanksgiving";
+
+  if (month == 11) special = "thanksgiving";
+  if (month == 12) special = "christmas";
+  if (month == 10) special = "halloween";
+
+  return festive ? special : "normal";
 }
 
 function loadTheme(name) {

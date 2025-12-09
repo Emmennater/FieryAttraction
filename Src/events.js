@@ -47,8 +47,8 @@ class EventManager {
       [GravityStorm, 1],
       [SpinStorm, 1],
       [SolarStorm, 1],
-      [SolarStorm2, 0.5],
-      [SolarCage, 0.5]
+      [SolarStorm2, 0.2],
+      [SolarCage, 0.2]
     ];
 
     const Event = randomFromProbs(eventProbs);

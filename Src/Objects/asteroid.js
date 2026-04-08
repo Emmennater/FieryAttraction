@@ -531,9 +531,9 @@ function randomAsteroidType(baseType = "normal") {
     ammo: 10,
     health: 6,
     speed: 3,
-    regen: 3,
+    regen: 2,
     explosive: 2,
-    "anti health": 2
+    "anti health": 1
   };
 
   // Swap normal for base
@@ -571,26 +571,3 @@ function clearAsteroids() {
   for (let k in ASTEROID_COUNTS)
     ASTEROID_COUNTS[k] = 0;
 }
-
-/*
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-*/

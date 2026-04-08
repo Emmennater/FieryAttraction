@@ -255,6 +255,7 @@ function updateAllEffects(dt) {
 function clearAllEffects() {
   for (let i = objectEffects.length - 1; i >= 0; --i) {
     const effect = objectEffects[i];
+    effect.stop();
     effect.target.effects.remove(effect);
     objectEffects.splice(i, 1);
   }

@@ -82,13 +82,13 @@ class Enemy extends Ship {
     const ramPlayer = targetAngleDiff < 0.2 && (enemySpeed > RAM_MIN_SPEED || distToTarget > 200) && this.health > 20;
 
     if (getCloseToTarget || ramPlayer) {
-      this.lookAtTarget(dt, target, ramPlayer);
+      this.lookAtTarget(dt, target);
       this.boost(dt);
       return "boost";
     }
 
     // Fire
-    this.lookAtTarget(dt, target, false);
+    this.aimAtTarget(dt, target);
     return "fire";
   }
 
@@ -249,7 +249,7 @@ class Enemy extends Ship {
     if (this.lookingAtTarget) this.fireBullet();
   }
 
-  lookAtTarget(dt, target, directly = true) {
+  aimAtTarget(dt, target) {
     // Variables
     let bSpeedMult = this.lastBullet ? this.lastBullet.speed : 1;
 
@@ -259,16 +259,27 @@ class Enemy extends Ship {
     // Return if no intercepts
     if (!intercepts) return;
 
-    let aimOffset = 0;
+    this.steerTargetAngle(dt, finalTargetAngle - this.a);
+    const angleFromTarget = smallestAngleDifference(this.control.steeringAngle, finalTargetAngle - this.a);
+    const angleCloseToTarget = Math.abs(angleFromTarget) < this.maxTargetAngleError;
 
-    // if (!directly) {
-    //   const distToTarget = Math.hypot(target.x - this.x, target.y - this.y);
-    //   const t = millis();
-    //   const noiseAmt = Math.min(distToTarget / 300, 1);
-    //   aimOffset = noise(t * 0.001) * noiseAmt;
-    // }
+    this.lookingAtTarget = angleCloseToTarget;
+  }
 
-    this.steerTargetAngle(dt, finalTargetAngle + aimOffset - this.a);
+  lookAtTarget(dt, target) {
+    // Max speed is used to lead the target
+    let finalTargetAngle = getInterceptAngle(this, target, this.maxSpeed);
+    const intercepts = !isNaN(finalTargetAngle);
+    
+    if (!intercepts) {
+      // No immediate intercept so just look at target
+      const angleToTarget = atan2(target.y - this.y, target.x - this.x);
+      finalTargetAngle = angleToTarget;
+    }
+    
+    // Intercept target
+    this.steerTargetAngle(dt, finalTargetAngle - this.a);
+
     const angleFromTarget = smallestAngleDifference(this.control.steeringAngle, finalTargetAngle - this.a);
     const angleCloseToTarget = Math.abs(angleFromTarget) < this.maxTargetAngleError;
 
@@ -608,7 +619,7 @@ class HurricaneEnemy extends Enemy {
 function initEnemies(count) {
   if (noSpawns) return;
   const a = atan2(ship.y, ship.x);
-  const enemy = createEnemy("normal", ship.x + cos(a) * 150, ship.y + sin(a) * 150, 0, 0);
+  const enemy = createEnemy("ultraspeed", ship.x + cos(a) * 150, ship.y + sin(a) * 150, 0, 0);
   // enemy.health = 1;
   // enemy.applyEffect(SpeedRounds, { duration: 100, level: 1 });
   enemies.push(enemy);

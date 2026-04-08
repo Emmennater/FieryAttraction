@@ -23,7 +23,7 @@ function preload() {
   healthAsteroidSprite = loadImage("Assets/health-asteroid-sprite.png");
   antiHealthAsteroidSprite = loadImage("Assets/anti-health-asteroid-sprite.png");
   ammoAsteroidSprite = loadImage("Assets/ammo-asteroid-sprite.png");
-  explosiveAsteroidSprite = loadImage("Assets/explosive-asteroid.png");``
+  explosiveAsteroidSprite = loadImage("Assets/explosive-asteroid.png");
   explosionSprite = loadImage("Assets/explosion.gif");
   aimArcSprite = loadImage("Assets/aim-arc.png");
   jetEnchantmentSprite = loadImage("Assets/jet-enchantment.png");
@@ -81,7 +81,7 @@ function setup() {
   ship = new Ship(600, 600);
   stars = new Stars();
   hud = new HUD();
-  scenes = new Scenes();
+  scenes = new FASceneManager();
   sounds = new Sounds();
   htmlSounds = new HTMLSounds();
 

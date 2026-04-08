@@ -90,6 +90,13 @@ class EventManager {
       }
     }
   }
+
+  drawEvents(ctx) {
+    for (let i = this.activeEvents.length - 1; i >= 0; --i) {
+      const event = this.activeEvents[i];
+      event.draw(ctx);
+    }
+  }
 }
 
 class WorldEvent {
@@ -124,7 +131,7 @@ class WorldEvent {
 
   }
 
-  showTitle() {
+  showTitle(ctx) {
     const MIN_SCL = Math.min(width, height);
     const T = this.timeElapsed;
     let t = Math.min(this.timeElapsed / 5, 1);
@@ -133,12 +140,12 @@ class WorldEvent {
 
     let FADE = sin(t * PI + 0.1);
     if (FADE >= 0) {
-      fill(this.col.r, this.col.g, this.col.b, 255 * FADE);
-      noStroke();
-      textSize(MIN_SCL * 0.1 * FADE);
-      textFont(arialBlack);
-      textAlign(CENTER, CENTER);
-      text(this.title, width / 2 + xoff, height / 2 + yoff);
+      ctx.fill(this.col.r, this.col.g, this.col.b, 255 * FADE);
+      ctx.noStroke();
+      ctx.textSize(MIN_SCL * 0.1 * FADE);
+      ctx.textFont(arialBlack);
+      ctx.textAlign(CENTER, CENTER);
+      ctx.text(this.title, width / 2 + xoff, height / 2 + yoff);
     }
   }
 
@@ -156,11 +163,13 @@ class WorldEvent {
       default: this.ended = true; break;
     }
 
-    this.showTitle();
-
     // Update time elapsed
     this.timeElapsed += dt;
     this.stageTime += dt;
+  }
+
+  draw(ctx) {
+    this.showTitle(ctx);
   }
 }
 

@@ -500,19 +500,27 @@ class Ship extends GravityObject {
     this.y = y;
   }
   
-  reset(difficult = false) {
+  reset(difficultSpawn = false) {
     let { pos, angle } = system.getRandomSpawn(200, 200, -1, 0);
-    angle += difficult ? PI * 0.2 : PI * 0.3;
+    
+    if (difficultSpawn) {
+      this.control.steerVel = 4;
+      angle += PI * 0.2;
+    } else {
+      this.control.steerVel = 0;
+      angle += PI * 0.3;
+    }
+    
     this.setPosition(pos.x, pos.y);
     this.vx = cos(angle) * 40;
     this.vy = sin(angle) * 40;
+    this.a = atan2(this.vy, this.vx);
     this.fuel = 10;
     this.ammo = 100;
     this.health = 60;
     this.bulletTime = 0;
     this.damageTime = 0;
     this.control.steeringAngle = 0;
-    this.control.steerVel = 0;
     this.destroyed = false;
     this.bulletType = DEFAULT_BULLET.Type;
     this.bulletLevel = DEFAULT_BULLET.level;

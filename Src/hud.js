@@ -176,10 +176,6 @@ class HUD {
       this.whiteFlash = 0;
     }
 
-    // Events
-    if (!scenes.paused)
-      scenes.runEvents(dt, ctx);
-
     // Radar
     // this.radar.update(dt);
     // this.radar.draw();

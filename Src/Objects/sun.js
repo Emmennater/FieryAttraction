@@ -76,10 +76,10 @@ class Sun {
   }
 
   getRandomTangentalAngle(x, y, angleFromSun = HALF_PI) {
-    let dx = x - this.x;
-    let dy = y - this.y;
-    let a = atan2(dy, dx);
-    a += randSign() * (PI - angleFromSun);
+    let dx = this.x - x;
+    let dy = this.y - y;
+    let a = atan2(dy, dx); // Toward the sun
+    a += randSign() * angleFromSun;
     return a;
   }
 }

@@ -220,8 +220,8 @@ class Enemy extends Ship {
         y = lerp(rightWingY, leftWingY, t);
       }
 
-      let vx = cos(a) * this.bSpeed;
-      let vy = sin(a) * this.bSpeed;
+      let vx = this.vx + cos(a) * this.bSpeed;
+      let vy = this.vy + sin(a) * this.bSpeed;
       
       // Shoot bullet
       bullet = this.spawnBullet({
@@ -235,10 +235,6 @@ class Enemy extends Ship {
         decay: this.bDecay,
         impactForce: this.bImpactForce
       });
-
-      // Add velocity of enemy to the bullet
-      bullet.vx += this.vx;
-      bullet.vy += this.vy;
     }
 
     this.lastBullet = bullet;

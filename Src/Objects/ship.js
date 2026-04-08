@@ -263,7 +263,7 @@ class Ship extends GravityObject {
   
   addFuel(amount, sender) {
     amount = Math.min(amount, this.maxFuel - this.fuel);
-    amount = round(amount * 10) / 10;
+    amount = floor(amount * 10) / 10;
     if (amount <= 0) return;
     this.fuel = this.fuel + amount;
     if (this.name == "ship") spawnBonusEffect(`+${amount} fuel`, this.x, this.y, color(255, 0, 0), 2);
@@ -271,7 +271,7 @@ class Ship extends GravityObject {
   
   addAmmo(amount, sender) {
     amount = Math.min(amount, this.maxAmmo - this.ammo);
-    amount = round(amount * 10) / 10;
+    amount = floor(amount * 10) / 10;
     if (amount <= 0) return;
     this.ammo = this.ammo + amount;
     if (this.name == "ship") spawnBonusEffect(`+${amount} ammo`, this.x, this.y, color(255, 120, 0), 2);

@@ -26,7 +26,7 @@ class GameObject extends CollisionObject {
   addHealth(amount, sender) {
     if (amount < 0) return this.takeDamage(-amount, sender);
     amount = Math.min(amount, this.maxHealth - this.health);
-    amount = round(amount * 10) / 10;
+    amount = floor(amount * 10) / 10;
     if (amount <= 0) return;
     this.health = this.health + amount;
     spawnHealthBar(this, 3);

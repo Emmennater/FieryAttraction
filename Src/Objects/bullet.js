@@ -57,7 +57,7 @@ class Bullet extends GravityObject {
         this.destroy();
         ship.takeDamage(this.damage * this.damageMult, this);
         this.transferMomentumTo(ship);
-        hud.addCameraShake(10, 10);
+        hud.addCameraShake(50, 1);
         htmlSounds.playSound(hitSound, 0.5);
         return;
       }
@@ -468,7 +468,7 @@ class ExplosiveBullet extends Bullet {
     // Spawn explosion
     if (this.time > 0) {
       spawnExplosion(this.x, this.y);
-      hud.addCameraShake(10, 10);
+      hud.addCameraShake(50, 1);
     }
   }
 }

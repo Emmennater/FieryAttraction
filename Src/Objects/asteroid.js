@@ -316,13 +316,13 @@ class ExplosiveAsteroid extends Asteroid {
 
     const OWNER = damageSource.owner instanceof Ship && damageSource.owner.name == "ship" ? damageSource.owner : this;
 
-    // Shake screen
-    hud.addCameraShake(10, 10);
-
     const bulletLevel = constrain(Math.floor(this.scaleReward(1) ** 0.7), 1, 3);
     const nBullets = 5; // this.scaleReward(8);
     const x = this.x;
     const y = this.y;
+    
+    // Shake screen
+    hud.addCameraShake(50 * bulletLevel, 1);
 
     // Spawn explosive bullets
     const BULLET_SPEED = 220;
@@ -342,6 +342,31 @@ class ExplosiveAsteroid extends Asteroid {
         level: bulletLevel
       });
     }
+  }
+}
+
+class RegenAsteroid extends Asteroid {
+  constructor(x, y, r, vx, vy) {
+    super(x, y, r, vx, vy);
+    this.type = "regen";
+    this.sprite = regenAsteroidSprite;
+  }
+  
+  getScore() {
+    return this.scaleReward(10);
+  }
+
+  giveReward(object) {
+    super.giveReward(object);
+    const level = constrain(Math.floor(this.scaleReward(1) ** 0.7), 1, 3);
+    object.applyEffect(Regeneration, {
+      duration: this.scaleReward(10),
+      level
+    }, this);
+  }
+
+  draw(ctx) {
+    super.draw(ctx);
   }
 }
 
@@ -376,7 +401,7 @@ function initAsteroids() {
   if (noSpawns) return;
   
   // Test
-  // const asteroid = createAsteroid("explosive", ship.x + 100, ship.y, ship.vx, ship.vy, 20);
+  // const asteroid = createAsteroid("explosive", ship.x + 100, ship.y, ship.vx, ship.vy, 40);
   // asteroids.push(asteroid);
 
   const SPAWN_RADIUS = 200;
@@ -467,6 +492,9 @@ function createAsteroid(type, x, y, vx, vy, r = null) {
     case "anti health":
       asteroid = new AntiHealthAsteroid(x, y, r, vx, vy);
       break;
+    case "regen":
+      asteroid = new RegenAsteroid(x, y, r, vx, vy);
+      break;
     default:
       asteroid = new Asteroid(x, y, r, vx, vy);
   }
@@ -483,14 +511,17 @@ function createAsteroid(type, x, y, vx, vy, r = null) {
 }
 
 function randomAsteroidType(baseType = "normal") {
+  const lateGameFactor = 0.75 / (hud.score / 1000 + 1) + 0.25;
+
   const typeChances = {
-    normal: 70,
+    normal: floor(70 * lateGameFactor),
     fuel: 10,
     ammo: 10,
     health: 6,
     speed: 3,
+    regen: 3,
     explosive: 2,
-    "anti health": 3
+    "anti health": 2
   };
 
   // Swap normal for base

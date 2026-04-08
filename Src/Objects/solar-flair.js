@@ -47,6 +47,7 @@ class Flair extends GameObject {
     ctx.translate(x, y);
     ctx.tint(255, 255, 255, this.getAlpha());
     ctx.rotate(this.rot);
+    ctx.imageMode(CENTER);
     ctx.image(solarFlairSprite, 0, 0, w, h);
     ctx.pop();
    

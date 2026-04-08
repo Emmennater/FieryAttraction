@@ -4,6 +4,9 @@ class Stars {
     this.stars = [];
     this.generate();
     this.rot = 0;
+    this.backgroundEnabled = getItem("fiery-attraction-toggle-bg") ?? true;
+    const backgroundCheckbox = document.getElementById("toggle-bg");
+    backgroundCheckbox.checked = this.backgroundEnabled;
   }
   
   generate() {
@@ -13,7 +16,7 @@ class Stars {
     for (let i = 0; i < 200; ++i) {
       let depth = (Math.random() * 100) ** 0.5 + 1;
       let radius = depth * 1000;
-      let scl = 10;
+      let scl = 5;
       let a = Math.random() * TWO_PI;
       let d = Math.random() * radius;
       let x = cos(a) * d + CX;
@@ -25,10 +28,16 @@ class Stars {
       this.stars.push({ x, y, depth, r, g, b, rot, scl });
     }
   }
-  
+
+  toggleBackground() {
+    this.backgroundEnabled = !this.backgroundEnabled;
+    storeItem("fiery-attraction-toggle-bg", this.backgroundEnabled);
+  }
+
   draw(ctx) {
-    // this.drawBg(ctx);
-    // if (1) return;
+    if (this.backgroundEnabled) {
+      this.drawBg(ctx);
+    }
 
     ctx.push();
     ctx.translate(width/2, height/2);
@@ -44,8 +53,8 @@ class Stars {
       a += this.rot;
       let newX = cos(a) * d;
       let newY = sin(a) * d;
-      let x = (newX + panzoom.xoff) / s.depth * panzoom.zoom;
-      let y = (newY + panzoom.yoff) / s.depth * panzoom.zoom;
+      let x = (newX - ship.x) / s.depth;
+      let y = (newY - ship.y) / s.depth;
       
       if (starSprite) {
         ctx.push();

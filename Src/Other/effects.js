@@ -194,6 +194,25 @@ class MultiShot extends Effect {
   }
 }
 
+class Regeneration extends Effect {
+  constructor(target, dat) {
+    super(target, dat);
+    this.name = "regeneration";
+    this.category = "healing";
+    this.color = color(230, 80, 200);
+    this.tickTime = 1 / this.level;
+    this.regenTime = 0;
+    this.healthPerTick = 5;
+  }
+
+  update(dt) {
+    if ((this.regenTime += dt) >= this.tickTime) {
+      this.target.addHealth(this.healthPerTick);
+      this.regenTime = 0;
+    }
+  }
+}
+
 function updateAllEffects(dt) {
   let affectedObjects = new Map(); // Map to track categories per target
 

@@ -19,6 +19,7 @@ function preload() {
   asteroidSprite = loadImage("Assets/asteroid-sprite.png");
   speedAsteroidSprite = loadImage("Assets/speed-asteroid.png");
   blueAsteroidSprite = loadImage("Assets/speed-asteroid.png");
+  regenAsteroidSprite = loadImage("Assets/regen-asteroid.png");
   fuelAsteroidSprite = loadImage("Assets/fuel-asteroid-sprite.png");
   healthAsteroidSprite = loadImage("Assets/health-asteroid-sprite.png");
   antiHealthAsteroidSprite = loadImage("Assets/anti-health-asteroid-sprite.png");

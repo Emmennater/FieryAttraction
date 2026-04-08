@@ -41,4 +41,11 @@ class GameObject extends CollisionObject {
   removeEffect(effect) {
     this.effects.remove(effect);
   }
+
+  hasActiveEffect() {
+    for (let effect of this.effects) {
+      if (effect.active) return true;
+    }
+    return false;
+  }
 }

@@ -98,21 +98,6 @@ class Enemy extends Ship {
     this.vy += sin(this.a + this.control.steeringAngle) * this.speed * dt;
   }
 
-  takeDamageFromStars() {
-    const closestStar = system.getClosestStar(this.x, this.y);
-    const star = closestStar.star;
-    const d = closestStar.dist;
-
-    // Damage from star
-    let damage = Math.max(star.r - d, 0) / 4;
-    damage = round(damage * 10) / 10;
-
-    if (damage > 0 && this.damageTime++ >= this.damageDelay) {
-      this.damageTime = 0;
-      this.takeDamage(damage);
-    }
-  }
-
   avoidStars(dt) {
     const closestStar = system.getClosestStar(this.x, this.y);
     const star = closestStar.star;
@@ -287,11 +272,12 @@ class Enemy extends Ship {
   }
   
   strengthen(percent) {
+    // Cap percent at 200%
+    percent = Math.min(percent, 2);
+
     this.damage *= percent;
     this.bSpeed *= percent;
     this.speed *= percent;
-    // this.topSpeed *= percent;
-    // this.health *= percent;
     this.bImpactForce *= percent;
     this.range = Math.min(this.range * percent, 500); // Cap range at 500
   }
@@ -618,21 +604,21 @@ class HurricaneEnemy extends Enemy {
 
 function initEnemies(count) {
   if (noSpawns) return;
-  const a = atan2(ship.y, ship.x);
-  const enemy = createEnemy("ultraspeed", ship.x + cos(a) * 150, ship.y + sin(a) * 150, 0, 0);
+  // const a = atan2(ship.y, ship.x);
+  // const enemy = createEnemy("default", ship.x + cos(a) * 150, ship.y + sin(a) * 150, 0, 0);
+  // enemies.push(enemy);
   // enemy.health = 1;
   // enemy.applyEffect(SpeedRounds, { duration: 100, level: 1 });
-  enemies.push(enemy);
   // ship.applyEffect(HomingRounds, { duration: 100, level: 1 });
   // ship.effects[0].done = true;
 
-  // if (count == 4) {
-  //   spawnEnemy("speed");
-  //   count--;
-  // }
+  if (count == 4) {
+    spawnEnemy("speed");
+    count--;
+  }
   
-  // for (let i = 0; i < count; i++)
-  //   spawnEnemy();
+  for (let i = 0; i < count; i++)
+    spawnEnemy();
 }
 
 function createEnemy(type, x = 0, y = 0, vx = 0, vy = 0) {
@@ -826,27 +812,3 @@ function blacklistEnemyTypes(enemyList, Classes) {
 
   return newList;
 }
-
-/*
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-*/

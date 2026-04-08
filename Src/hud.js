@@ -131,17 +131,22 @@ class HUD {
     const MIN_SCALE = min(width, height);
 
     // Motion blur
-    this.temp = lerp(this.temp, ship.stats.burning, 0.02);
+    this.temp = lerp(this.temp, ship.stats.temp, 0.02);
     const ALPHA = lerp(255, 50, this.motionBlur ** 0.5) / (this.temp * 10 * this.motionBlur + 1);
 
     // Shake
-    const SHAKE_SCALER = Math.max(panzoom.zoom, 1.5);
+    // const SHAKE_SCALER = Math.max(panzoom.zoom, 1.5);
+    const SHAKE_SCALER = 1.0;
     const shakeMult = this.cameraShake.amount * SHAKE_SCALER;
     const shakeSpeed = this.cameraShake.speed;
     let xoff = noise(20 + shakeSpeed * frameCount) * shakeMult;
     let yoff = noise(40 + shakeSpeed * frameCount) * shakeMult;
+    
     this.cameraShake.amount = lerp(this.cameraShake.amount, 0, 0.04);
     this.cameraShake.speed = lerp(this.cameraShake.speed, 0, 0.08);
+
+    if (this.cameraShake.amount < 0.01) this.cameraShake.amount = 0;
+    if (this.cameraShake.speed < 0.01) this.cameraShake.speed = 0;
     
     // Game window
     const R = 255;
@@ -188,17 +193,17 @@ class HUD {
     // Health Meter
     healthMeter.setLabel("Health " + ceil(ship.health * 10) / 10);
     healthMeter.setRect(width * 0.35, meterY, width * 0.2, meterH);
-    healthMeter.setTargetPercent(min(ship.health / 100, 1));
+    healthMeter.setTargetPercent(min(ship.health / ship.maxHealth, 1));
     
     // Ammo meter
     ammoMeter.setLabel("Ammo " + round(ship.ammo*10)/10);
     ammoMeter.setRect(width * 0.6, meterY, width * 0.2, meterH);
-    ammoMeter.setTargetPercent(min(ship.ammo / 200, 1));
+    ammoMeter.setTargetPercent(min(ship.ammo / ship.maxAmmo, 1));
 
     // Fuel mater
     fuelMeter.setLabel("Fuel " + round(ship.fuel*10)/10);
     fuelMeter.setRect(width * 0.85, meterY, width * 0.2, meterH);
-    fuelMeter.setTargetPercent(min(ship.fuel / 50, 1));
+    fuelMeter.setTargetPercent(min(ship.fuel / ship.maxFuel, 1));
 
     // Update meters
     for (const meter of this.meters) {

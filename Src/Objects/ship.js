@@ -78,6 +78,8 @@ class Ship extends GravityObject {
     this.fuel = 50;
     this.ammo = 200;
     this.health = 100;
+    this.maxFuel = 50;
+    this.maxAmmo = 200;
     this.maxHealth = 100;
 
     // Boost attributes
@@ -260,18 +262,27 @@ class Ship extends GravityObject {
   }
   
   addFuel(amount, sender) {
-    this.fuel = constrain(this.fuel + amount, 0, 50);
+    amount = Math.min(amount, this.maxFuel - this.fuel);
+    amount = round(amount * 10) / 10;
+    if (amount <= 0) return;
+    this.fuel = this.fuel + amount;
     if (this.name == "ship") spawnBonusEffect(`+${amount} fuel`, this.x, this.y, color(255, 0, 0), 2);
   }
   
   addAmmo(amount, sender) {
-    this.ammo = constrain(this.ammo + amount, 0, 200);
+    amount = Math.min(amount, this.maxAmmo - this.ammo);
+    amount = round(amount * 10) / 10;
+    if (amount <= 0) return;
+    this.ammo = this.ammo + amount;
     if (this.name == "ship") spawnBonusEffect(`+${amount} ammo`, this.x, this.y, color(255, 120, 0), 2);
   }
   
   addHealth(amount, sender) {
     if (amount < 0) return this.takeDamage(-amount, sender);
-    this.health = constrain(this.health + amount, 0, this.maxHealth);
+    amount = Math.min(amount, this.maxHealth - this.health);
+    amount = round(amount * 10) / 10;
+    if (amount <= 0) return;
+    this.health = this.health + amount;
     if (this.name == "ship") spawnBonusEffect(`+${amount} health`, this.x, this.y, color(0, 255, 0), 2);
   }
 
@@ -284,24 +295,7 @@ class Ship extends GravityObject {
     this.collisionMesh.updateTransform();
   }
 
-  takeDamageFromStars() {
-    const closestStar = system.getClosestStar(this.x, this.y);
-    const star = closestStar.star;
-    const d = closestStar.dist;
-
-    // Damage from star
-    let damage = Math.max(star.r - d, 0) / 4;
-    damage = round(damage * 10) / 10;
-
-    if (damage > 0 && this.damageTime++ >= this.damageDelay) {
-      this.damageTime = 0;
-      this.takeDamage(damage);
-    }
-  }
-
-  move(dt, ctx) {
-    let startOfGame = scenes.sceneTime < 5;
-
+  takeDamageFromStars(dt) {
     const closestStar = system.getClosestStar(this.x, this.y);
     const star = closestStar.star;
     const d = closestStar.dist;
@@ -310,21 +304,29 @@ class Ship extends GravityObject {
     let distToSun = Math.max(d - star.r, 0);
     this.stats.temp += 100 / ((distToSun + 50) * 10 + 100);
 
-    // Damage from sun
+    // Damage from star
     let damage = Math.max(star.r - d, 0) / 4;
     damage = round(damage * 10) / 10;
-    
+
     this.damageTime -= dt;
     if (damage > 0 && this.damageTime <= 0) {
       this.damageTime = this.damageDelay;
       this.takeDamage(damage);
-      hud.addCameraShake(damage * 2, 0.1);
+      if (this.name == "ship") {
+        hud.addCameraShake(Math.min(damage * 10, 100), 1);
+      }
     }
-    
+
     // Burning sound
     if (damage > 0) {
-      this.stats.burning = damage / 30;
+      this.stats.burning += damage / 30;
     }
+  }
+
+  move(dt, ctx) {
+    let startOfGame = scenes.sceneTime < 5;
+
+    this.takeDamageFromStars(dt);
     
     // Boost
     const shipAngle = this.a + this.control.steeringAngle;
@@ -339,7 +341,7 @@ class Ship extends GravityObject {
       this.vx += cos(shipAngle) * this.speed * this.speedMult * speedIncrease * dt;
       this.vy += sin(shipAngle) * this.speed * this.speedMult * speedIncrease * dt;
       
-      hud.addCameraShake(5, 10);
+      hud.addCameraShake(10, 0.5);
     }
     
     // Edge force
@@ -400,8 +402,8 @@ class Ship extends GravityObject {
     htmlSounds.playSound(collisionSound, playerDamageTaken / 10 * 0.2, true);
 
     // Camera shake
-    const amount = playerDamageTaken / 2;
-    hud.addCameraShake(amount, 5);
+    const amount = playerDamageTaken * 4;
+    hud.addCameraShake(amount, 1);
   }
 
   updateCollisions(dt) {
@@ -444,11 +446,12 @@ class Ship extends GravityObject {
       if (damage > 0 && this.damageTime <= 0) {
         this.damageTime = this.damageDelay * 2;
         this.takeDamage(damage);
-        hud.addCameraShake(damage * 2, 0.1);
+        hud.addCameraShake(Math.min(damage * 10, 100), 0.1);
       }
       
       // Burning sound
       this.stats.burning += 0.2;
+      this.stats.temp += 0.5;
     }
   }
   
@@ -467,6 +470,7 @@ class Ship extends GravityObject {
   resetStats() {
     this.stats.wasBurning = this.stats.burning;
     this.stats.burning = 0;
+    this.stats.temp = 0;
   }
   
   alignCamera() {
@@ -615,7 +619,7 @@ class Ship extends GravityObject {
     
     ctx.image(this.sprite, 0, 0, this.s * SIZE, this.s * aspect * SIZE);
 
-    if (this.effects.length > 0)
+    if (this.hasActiveEffect())
       ctx.image(jetEnchantmentSprite, 0, 0, this.s * SIZE, this.s * aspect * SIZE);
 
     if (ALPHA != 255)

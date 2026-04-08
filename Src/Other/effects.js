@@ -200,9 +200,12 @@ class Regeneration extends Effect {
     this.name = "regeneration";
     this.category = "healing";
     this.color = color(230, 80, 200);
-    this.tickTime = 1 / this.level;
+    this.tickTime = 3 / this.level;
     this.regenTime = 0;
     this.healthPerTick = 5;
+
+    if (target instanceof RegenAsteroid) this.tickTime = 3 / this.level / 5;
+    if (target instanceof Enemy) this.tickTime = 3 / this.level / 2;
   }
 
   update(dt) {
@@ -222,7 +225,7 @@ function updateAllEffects(dt) {
 
     // Remove done effects
     if (effect.done) {
-      effect.target.removeEffect(effect);
+      effect.target.effects.remove(effect);
       objectEffects.splice(i--, 1);
       continue;
     }
@@ -252,8 +255,7 @@ function updateAllEffects(dt) {
 function clearAllEffects() {
   for (let i = objectEffects.length - 1; i >= 0; --i) {
     const effect = objectEffects[i];
-    effect.stop();
-    effect.target.removeEffect(effect);
+    effect.target.effects.remove(effect);
     objectEffects.splice(i, 1);
   }
 }
@@ -282,7 +284,7 @@ function addEffect(Effect, target, dat, sender) {
 function prioritizeEffect(effect) {
   for (let i = 0; i < objectEffects.length; ++i) {
     if (objectEffects[i] === effect) {
-      effect.target.removeEffect(effect);
+      effect.target.effects.remove(effect);
       effect.target.effects.unshift(effect);
       objectEffects.splice(i, 1);
       objectEffects.unshift(effect);

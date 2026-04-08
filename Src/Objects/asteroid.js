@@ -413,7 +413,7 @@ function initAsteroids() {
   if (noSpawns) return;
   
   // Test
-  // const asteroid = createAsteroid("regen", ship.x + 100, ship.y, ship.vx, ship.vy, 40);
+  // const asteroid = createAsteroid("regen", ship.x + 100, ship.y, ship.vx, ship.vy, 20);
   // asteroids.push(asteroid);
 
   const SPAWN_RADIUS = 200;
@@ -435,6 +435,7 @@ function moveAsteroids(dt) {
     const asteroid = asteroids[i];
     if (asteroid.destroyed) {
       asteroids.splice(i, 1);
+      asteroid.removeAllEffects();
       ASTEROID_COUNTS[asteroid.type]--;
 
       // For every asteroid destroyed, 2 more spawn
@@ -523,7 +524,7 @@ function createAsteroid(type, x, y, vx, vy, r = null) {
 }
 
 function randomAsteroidType(baseType = "normal") {
-  const lateGameFactor = 0.75 / (hud.score / 1000 + 1) + 0.25;
+  const lateGameFactor = lateGameWeight(2000, 1, 0.25);
 
   const typeChances = {
     normal: floor(70 * lateGameFactor),
@@ -567,6 +568,10 @@ function trueRandomAsteroid() {
 }
 
 function clearAsteroids() {
+  for (let asteroid of asteroids) {
+    asteroid.removeAllEffects();
+  }
+
   asteroids.length = 0;
   for (let k in ASTEROID_COUNTS)
     ASTEROID_COUNTS[k] = 0;

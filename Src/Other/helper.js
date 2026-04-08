@@ -165,3 +165,14 @@ function randomFromProbs(probList) {
     }
   }
 }
+
+/**
+ * Calculates a weighted value between start and end using the current score
+ * @param {*} threshold The score needed to reach the halfway point
+ * @param {*} start The starting value
+ * @param {*} end The ending value
+ * @returns 
+ */
+function lateGameWeight(threshold, start, end) {
+  return (start - end) / (hud.score / threshold + 1) + end;
+}

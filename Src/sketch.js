@@ -88,7 +88,6 @@ function setup() {
 
   // Objects
   asteroids = [];
-  initAsteroids();
 
   // Scenes
   scenes.setup();

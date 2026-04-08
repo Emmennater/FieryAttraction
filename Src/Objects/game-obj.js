@@ -24,7 +24,6 @@ class GameObject extends CollisionObject {
   }
 
   addHealth(amount, sender) {
-    if (this.destroyed) return;
     if (amount < 0) return this.takeDamage(-amount, sender);
     amount = Math.min(amount, this.maxHealth - this.health);
     amount = round(amount * 10) / 10;
@@ -50,7 +49,13 @@ class GameObject extends CollisionObject {
   }
 
   removeEffect(effect) {
-    this.effects.remove(effect);
+    effect.done = true;
+  }
+
+  removeAllEffects() {
+    for (let effect of this.effects) {
+      this.removeEffect(effect);
+    }
   }
 
   hasActiveEffect() {

@@ -606,9 +606,9 @@ class HurricaneEnemy extends Enemy {
 function initEnemies(count) {
   if (noSpawns) return;
   // const a = atan2(ship.y, ship.x);
-  // const enemy = createEnemy("default", ship.x + cos(a) * 150, ship.y + sin(a) * 150, 0, 0);
+  // const enemy = createEnemy("speed", ship.x + cos(a) * 150, ship.y + sin(a) * 150, 0, 0);
   // enemies.push(enemy);
-  // enemy.applyEffect(Regeneration, { duration: 100, level: 1 });
+  // enemy.applyEffect(Regeneration, { duration: 100, level: 2 });
   // enemy.health = 1;
   // ship.applyEffect(HomingRounds, { duration: 100, level: 1 });
   // ship.effects[0].done = true;
@@ -659,9 +659,12 @@ function spawnEnemy(type = "normal", respawned = false) {
 
   // Random effect
   const effects = [SuperSpeed, HomingRounds, SpeedRounds, MegaRounds, ExplosiveRounds, MultiShot, Regeneration];
-  if (Math.random() < 0.03) {
+  const effectChance = lateGameWeight(4000, 0.03, 0.1);
+  
+  if (Math.random() < effectChance) {
     let RandomEffect = effects[Math.floor(Math.random() * effects.length)];
-    const level = Math.ceil((Math.random() ** 3) * 3);
+    const levelSpread = lateGameWeight(4000, 3, 1);
+    const level = Math.ceil((Math.random() ** levelSpread) * 3);
     enemy.applyEffect(RandomEffect, { duration: 100000000, level });
   }
 
@@ -671,6 +674,7 @@ function spawnEnemy(type = "normal", respawned = false) {
 function destroyEnemy(enemy, i = enemies.indexOf(enemy)) {
   if (i == -1) return;
   enemies.splice(i, 1);
+  enemy.removeAllEffects();
 
   // Respawn (same type if not killed by player)
   const respawned = !enemy.slainByPlayer;

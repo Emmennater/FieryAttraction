@@ -1,7 +1,7 @@
 
 class HUD {
   constructor() {
-    this.motionBlur = 0.5;
+    this.motionBlur = 0.1;
     this.temp = 0;
     this.score = 0;
     this.scoreText = new ScoreText();
@@ -17,7 +17,7 @@ class HUD {
     // Load previous motionblur value from localStorage
     const motionBlurSlider = document.getElementById("motion-blur");
     const motionBlurValue = getItem("fiery-attraction-motion-blur");
-    motionBlurSlider.value = motionBlurValue === undefined ? 0.5 : motionBlurValue;
+    motionBlurSlider.value = motionBlurValue ?? 0.1;
     this.setMotionBlur(parseFloat(motionBlurSlider.value));
 
     // Effects

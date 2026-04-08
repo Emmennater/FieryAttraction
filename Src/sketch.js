@@ -31,7 +31,7 @@ function preload() {
   // spacebg = loadImage("Assets/redsky.jpg");
   
   // Festive
-  festive = getItem("fiery-attraction-festive-state") ?? true;
+  festive = getItem("fiery-attraction-festive-state") ?? false;
   if (festive) {
     festive = !festive;
     document.getElementById("festive-button").click();

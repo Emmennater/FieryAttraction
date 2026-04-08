@@ -32,7 +32,6 @@ class GameOverScene extends Scene {
     let viewY = sin(-sunRotation - HALF_PI) * height / 2;
     
     panzoom.zoom = 1;
-    stars.setViewPosition(viewX, viewY);
     panzoom.setInView(viewX, viewY);
     panzoom.setRotation(sunRotation);
     stars.draw(ctx);

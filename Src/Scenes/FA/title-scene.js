@@ -45,7 +45,6 @@ class TitleScene extends Scene {
     ctx.background(bgCol);
 
     panzoom.zoom = 1;
-    stars.setViewPosition(viewX, viewY);
     panzoom.setInView(viewX, viewY);
     panzoom.setRotation(sunRotation);
     stars.draw(ctx);

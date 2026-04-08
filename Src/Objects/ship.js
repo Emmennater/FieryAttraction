@@ -485,7 +485,7 @@ class Ship extends GravityObject {
         panzoom.setRotation(-this.a - HALF_PI);
         break;
     }
-    stars.setViewPosition(x, y);
+    
     panzoom.setInView(x, y);
   }
   

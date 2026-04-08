@@ -99,6 +99,7 @@ class Guide {
         ctx.push();
         ctx.translate(x, y);
         ctx.rotate(A + HALF_PI);
+        ctx.imageMode(CENTER);
         ctx.image(aimArcSprite, 0, -h / 2, w, h);
         ctx.pop();
 

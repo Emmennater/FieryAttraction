@@ -47,8 +47,8 @@ class HUD {
   }
   
   addCameraShake(amount, speed) {
-    this.cameraShake.amount = amount;
-    this.cameraShake.speed = speed;
+    this.cameraShake.amount = Math.max(this.cameraShake.amount, amount);
+    this.cameraShake.speed = Math.max(this.cameraShake.speed, speed);
   }
 
   resurrectEffect() {
@@ -131,19 +131,17 @@ class HUD {
     const MIN_SCALE = min(width, height);
 
     // Motion blur
-    this.temp = lerp(this.temp, ship.stats.temp, 0.01);
-    const ALPHA1 = max((1 - this.temp * 5) * 100, 5) + 10;
-    const ALPHA2 = max((1 - this.temp * 5) * 50, 5) - 10;
-    const ALPHA = this.motionBlur < 0.5 ? lerp(255, ALPHA1, this.motionBlur * 2) : lerp(ALPHA1, ALPHA2, (this.motionBlur - 0.5) * 2);
-    
+    this.temp = lerp(this.temp, ship.stats.burning, 0.02);
+    const ALPHA = lerp(255, 50, this.motionBlur ** 0.5) / (this.temp * 10 * this.motionBlur + 1);
+
     // Shake
     const SHAKE_SCALER = Math.max(panzoom.zoom, 1.5);
     const shakeMult = this.cameraShake.amount * SHAKE_SCALER;
     const shakeSpeed = this.cameraShake.speed;
     let xoff = noise(20 + shakeSpeed * frameCount) * shakeMult;
     let yoff = noise(40 + shakeSpeed * frameCount) * shakeMult;
-    this.cameraShake.amount = lerp(this.cameraShake.amount, 0, 0.02);
-    this.cameraShake.speed = lerp(this.cameraShake.speed, 0, 0.04);
+    this.cameraShake.amount = lerp(this.cameraShake.amount, 0, 0.04);
+    this.cameraShake.speed = lerp(this.cameraShake.speed, 0, 0.08);
     
     // Game window
     const R = 255;

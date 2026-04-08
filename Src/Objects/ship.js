@@ -46,7 +46,7 @@ class Trail extends GameObject {
 }
 
 class Ship extends GravityObject {
-  constructor(x, y, s = 10) {
+  constructor(x, y, s = 12) {
     super(x, y, 50000);
     this.name = "ship";
     this.trail = new Trail();
@@ -58,7 +58,7 @@ class Ship extends GravityObject {
     this.speed = 8;
     this.turnSpeed = 2.4;
     this.control = { steeringAngle: 0, steerVel: 0, boost: false, fire:false };
-    this.stats = { distToSun: 0, temp: 0, burning: false, wasBurning: false, bulletsShot: 0 };
+    this.stats = { temp: 0, burning: false, wasBurning: false, bulletsShot: 0 };
     this.inputs = {};
     this.colliding = false;
     this.burning = false;
@@ -284,6 +284,21 @@ class Ship extends GravityObject {
     this.collisionMesh.updateTransform();
   }
 
+  takeDamageFromStars() {
+    const closestStar = system.getClosestStar(this.x, this.y);
+    const star = closestStar.star;
+    const d = closestStar.dist;
+
+    // Damage from star
+    let damage = Math.max(star.r - d, 0) / 4;
+    damage = round(damage * 10) / 10;
+
+    if (damage > 0 && this.damageTime++ >= this.damageDelay) {
+      this.damageTime = 0;
+      this.takeDamage(damage);
+    }
+  }
+
   move(dt, ctx) {
     let startOfGame = scenes.sceneTime < 5;
 
@@ -292,10 +307,8 @@ class Ship extends GravityObject {
     const d = closestStar.dist;
 
     // Distance to sun
-    let dx = star.x - this.x;
-    let dy = star.y - this.y;
-    this.stats.distToSun = Math.max(d - star.r, 0);
-    this.stats.temp += 100 / ((this.stats.distToSun + 50) * 10 + 100);
+    let distToSun = Math.max(d - star.r, 0);
+    this.stats.temp += 100 / ((distToSun + 50) * 10 + 100);
 
     // Damage from sun
     let damage = Math.max(star.r - d, 0) / 4;
@@ -435,8 +448,7 @@ class Ship extends GravityObject {
       }
       
       // Burning sound
-      this.stats.burning += 0.5;
-      this.stats.temp += 0.2;
+      this.stats.burning += 0.2;
     }
   }
   
@@ -444,7 +456,7 @@ class Ship extends GravityObject {
     // Sounds
     if (this.stats.burning != this.stats.wasBurning) {
       if (this.stats.burning) {
-        const volume = this.stats.burning;
+        const volume = this.stats.burning * 2;
         htmlSounds.fadeSound(burningSound, volume, 0.1);
       } else {
         htmlSounds.fadeSound(burningSound, 0.0, 0.5);
@@ -453,10 +465,7 @@ class Ship extends GravityObject {
   }
 
   resetStats() {
-    // this.stats.temp = 100 / ((this.stats.distToSun + 50) * 10 + 100);
     this.stats.wasBurning = this.stats.burning;
-    this.stats.distToSun = 0;
-    this.stats.temp = 0;
     this.stats.burning = 0;
   }
   
@@ -585,7 +594,7 @@ class Ship extends GravityObject {
     this.drawBoost(ctx, opacity);
     this.trail.draw(ctx, opacity);
     
-    const SIZE = 1.4;
+    const SIZE = 1.2;
     const aspect = rocketSprite.height / rocketSprite.width;
 
     if (this.health <= 0)

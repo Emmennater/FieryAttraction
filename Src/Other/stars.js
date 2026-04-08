@@ -10,26 +10,28 @@ class Stars {
     const CENTER = system.getCenter();
     const CX = CENTER.x;
     const CY = CENTER.y;
-    for (let i = 0; i < 100; ++i) {
-      let depth = Math.random() * 50000 + 10000;
-      let radius = depth * 800;
+    for (let i = 0; i < 200; ++i) {
+      let depth = (Math.random() * 100) ** 0.5 + 1;
+      let radius = depth * 1000;
+      let scl = 10;
       let a = Math.random() * TWO_PI;
       let d = Math.random() * radius;
       let x = cos(a) * d + CX;
       let y = sin(a) * d + CY;
-      let r = Math.random() * 99 + (255 - 99);
-      let g = Math.random() * 99 + (255 - 99);
-      let b = Math.random() * 99 + (255 - 99);
+      let r = 255;
+      let g = 255;
+      let b = 255;
       let rot = Math.random() * 2 - 1;
-      let scl = 30000;
       this.stars.push({ x, y, depth, r, g, b, rot, scl });
     }
   }
   
   draw(ctx) {
+    // this.drawBg(ctx);
+    // if (1) return;
+
     ctx.push();
     ctx.translate(width/2, height/2);
-    // ctx.scale(panzoom.zoom);
     ctx.rotate(panzoom.rot);
     
     ctx.noStroke();
@@ -42,8 +44,8 @@ class Stars {
       a += this.rot;
       let newX = cos(a) * d;
       let newY = sin(a) * d;
-      let x = (newX + panzoom.xoff) / s.depth;
-      let y = (newY + panzoom.yoff) / s.depth;
+      let x = (newX + panzoom.xoff) / s.depth * panzoom.zoom;
+      let y = (newY + panzoom.yoff) / s.depth * panzoom.zoom;
       
       if (starSprite) {
         ctx.push();
@@ -57,6 +59,25 @@ class Stars {
       }
     }
     
+    ctx.pop();
+  }
+
+  drawBg(ctx) {
+    // The height of the image must be twice the length from the center of the screen to the corner
+    const distToCorner = Math.hypot(width / 2, height / 2);
+    const imageHeight = distToCorner * 2;
+    const aspect = spacebg.height / spacebg.width;
+    const imgW = imageHeight / aspect;
+    const imgH = imageHeight;
+
+    // Space background
+    ctx.push();
+    ctx.translate(width/2, height/2);
+    ctx.rotate(panzoom.rot);
+    ctx.imageMode(CENTER);
+    // ctx.tint(50);
+    ctx.image(spacebg, 0, 0, imgW, imgH);
+    ctx.noTint();
     ctx.pop();
   }
 }

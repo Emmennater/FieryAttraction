@@ -11,6 +11,7 @@ class GameScene extends Scene {
 
     // Settings
     hud.reset();
+    this.eventManager.reset();
     panzoom.zoom = mobile.isMobile ? 1.5 : 3.0;
     bullets.length = 0;
     explosions.length = 0;
@@ -55,22 +56,6 @@ class GameScene extends Scene {
 
     // Background
     ctx.background(bgCol);
-    
-    // Space background
-    // const aspect = spacebg.height / spacebg.width;
-    // const MIN_SCL = Math.min(width, height);
-    // const imgW = 4 * MIN_SCL;
-    // const imgH = 4 * MIN_SCL * aspect;
-    // ctx.push();
-    // ctx.translate(width/2, height/2);
-    // ctx.scale(panzoom.zoom);
-    // ctx.rotate(panzoom.rot);
-    // ctx.imageMode(CENTER);
-    // ctx.tint(10, 15, 30);
-    // ctx.image(spacebg, 0, 0, imgW, imgH);
-    // ctx.noTint();
-    // ctx.pop();
-
     stars.draw(ctx);
     
     panzoom.begin(ctx);

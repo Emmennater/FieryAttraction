@@ -51,6 +51,7 @@ class IntroScene extends Scene {
     // Background
     ctx.background(bgCol);
     panzoom.zoom = 0.5;
+    
     stars.draw(ctx);
     
     // Display

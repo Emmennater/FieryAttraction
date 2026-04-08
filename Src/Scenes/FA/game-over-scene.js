@@ -7,7 +7,6 @@ class GameOverScene extends Scene {
     htmlSounds.removeSoundFromQueue(burningSound);
     htmlSounds.fadeSound(burningSound, 0, 0.2);
     htmlSounds.fadeSound(soundTrack, 0, 1);
-    scenes.eventManager.reset();
     clearAllEffects();
     alarmSound.stop();
     if (scenes.paused) scenes.togglePause();

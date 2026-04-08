@@ -99,28 +99,12 @@ class Bullet extends GravityObject {
   
   draw(ctx) {
     const ALPHA = Math.min(this.time * 240, 255);
-    let vx = this.x - this.px;
-    let vy = this.y - this.py;
+    const stretch = Math.min(this.spawnTime, 3/60);
+    
     let startX = this.px;
     let startY = this.py;
-    let endX = this.px + vx * 3;
-    let endY = this.py + vy * 3;
-
-    // If the dot product of the bullet velocity vector is negative,
-    // then the bullet start is behind the player
-    // if (this.owner && this.owner instanceof Ship && this.owner.x && this.owner.y) {
-    //   const dot = this.vx * (startX - this.owner.x) + this.vy * (startY - this.owner.y);
-    //   if (dot < 0) {
-    //     startX = this.owner.x;
-    //     startY = this.owner.y;
-    //   }
-    // }
-
-    if (this.owner == "enemy") {
-      ctx.stroke(255, 80, 60, ALPHA);
-    } else {
-      ctx.stroke(60, 255, 80, ALPHA);
-    }
+    let endX = this.x + this.vx * stretch;
+    let endY = this.y + this.vy * stretch;
     
     ctx.stroke(this.col.r, this.col.g, this.col.b, ALPHA);
     ctx.strokeWeight(this.r);

@@ -6,7 +6,7 @@ const enemyStrengthThresholds = { normal: 500, homing: 800, speed: 800, mega: 10
 const ENEMY_TYPE_CAPS = { black: 3, mega: 5 };
 
 class Enemy extends Ship {
-  constructor(x, y, vx, vy, s = 10) {
+  constructor(x, y, vx, vy, s = 12) {
     super(x, y, s);
     this.name = "enemy";
     this.type = "normal";
@@ -274,44 +274,6 @@ class Enemy extends Ship {
 
     this.lookingAtTarget = angleCloseToTarget;
   }
-
-  fireAtPlayer(dt) {
-    
-    // // Variables
-    // let bSpeedMult = this.lastBullet ? this.lastBullet.speed : 1;
-
-    // const finalTargetAngle = getInterceptAngle(this, ship, bSpeedMult * this.bSpeed);
-    // const intercepts = !isNaN(finalTargetAngle);
-    
-    // // Return if no intercepts
-    // if (!intercepts) return;
-
-    // this.steerTargetAngle(dt, finalTargetAngle - this.a);
-    // const angleFromTarget = smallestAngleDifference(this.control.steeringAngle, finalTargetAngle - this.a);
-    // const angleCloseToTarget = Math.abs(angleFromTarget) < this.maxTargetAngleError;
-
-    // this.fireBullet();
-
-    // // Accelerate towards player
-    // const BOOST_ANGLE_ERROR = 0.3;
-    // const STRAFE_ANGLE = PI * 0.35;
-    // const STRAFE_ANGLE_ERROR = HALF_PI;
-    // const enemySpeed = Math.hypot(this.vx, this.vy);
-    // const angleToPlayer = atan2(ship.y - this.y, ship.x - this.x);
-    // const angleCloseToPlayer = smallestAngleDifference(this.control.steeringAngle + this.a, angleToPlayer);
-    // const angleDiff = Math.abs(angleCloseToPlayer);
-    // const distToPlayer = dist(this.x, this.y, ship.x, ship.y);
-    // const closeToPlayer = distToPlayer < this.range;
-    // const ramPlayer = angleDiff < BOOST_ANGLE_ERROR && enemySpeed > 100;
-    // const strafePlayer = angleDiff > STRAFE_ANGLE && angleDiff < STRAFE_ANGLE + STRAFE_ANGLE_ERROR;
-    // const getCloseToTarget = angleDiff < BOOST_ANGLE_ERROR && distToPlayer > this.playerRange;
-
-    // if ((closeToPlayer && (ramPlayer || strafePlayer || getCloseToTarget))) {
-    //   this.control.boost = true;
-    //   this.vx += cos(this.a + this.control.steeringAngle) * this.speed * dt;
-    //   this.vy += sin(this.a + this.control.steeringAngle) * this.speed * dt;
-    // }
-  }
   
   strengthen(percent) {
     this.damage *= percent;
@@ -357,7 +319,7 @@ class Enemy extends Ship {
 }
 
 class BlackEnemy extends Enemy {
-  constructor(x, y, vx, vy, s = 10) {
+  constructor(x, y, vx, vy, s = 12) {
     super(x, y, vx, vy, s);
     this.type = "black";
     this.bulletType = ExplosiveBullet;
@@ -406,7 +368,7 @@ class BlackEnemy extends Enemy {
 }
 
 class SpeedEnemy extends Enemy {
-  constructor(x, y, vx, vy, s = 10) {
+  constructor(x, y, vx, vy, s = 12) {
     super(x, y, vx, vy, s);
     this.type = "speed";
     this.bulletType = SpeedBullet;
@@ -441,7 +403,7 @@ class SpeedEnemy extends Enemy {
 }
 
 class UltraSpeedEnemy extends SpeedEnemy {
-  constructor(x, y, vx, vy, s = 13) {
+  constructor(x, y, vx, vy, s = 15) {
     super(x, y, vx, vy, s);
     this.type = "ultraspeed";
     this.bulletType = UltraspeedBullet;
@@ -478,7 +440,7 @@ class UltraSpeedEnemy extends SpeedEnemy {
 }
 
 class HomingEnemy extends Enemy {
-  constructor(x, y, vx, vy, s = 10) {
+  constructor(x, y, vx, vy, s = 12) {
     super(x, y, vx, vy, s);
     this.type = "homing";
     this.bulletType = HomingBullet;
@@ -505,7 +467,7 @@ class HomingEnemy extends Enemy {
 
 class MegaEnemy extends HomingEnemy {
   constructor(x, y, vx, vy) {
-    super(x, y, vx, vy, 15);
+    super(x, y, vx, vy, 18);
     this.type = "mega";
     this.bulletType = MegaBullet;
     this.setHealth(35, 35);
@@ -539,7 +501,7 @@ class MegaEnemy extends HomingEnemy {
 
 class HurricaneEnemy extends Enemy {
   constructor(x, y, vx, vy) {
-    super(x, y, vx, vy, 20);
+    super(x, y, vx, vy, 24);
     this.type = "hurricane";
     this.bulletType = HurricaneBullet;
     this.sprite = hurricaneEnemySprite;
@@ -627,9 +589,9 @@ class HurricaneEnemy extends Enemy {
     });
   }
 
-  fireAtPlayer(...args) {
-    if (!this.teleported) return;
-    super.fireAtPlayer(...args);
+  getProtocol(...args) {
+    let protocol = super.getProtocol(...args);
+    if (!this.teleported && protocol === "attack") return "neutral";
   }
 
   spawnBullet(dat) {
@@ -645,21 +607,21 @@ class HurricaneEnemy extends Enemy {
 
 function initEnemies(count) {
   if (noSpawns) return;
-  // const a = atan2(ship.y, ship.x);
-  // const enemy = createEnemy("black", ship.x + cos(a) * 150, ship.y + sin(a) * 150, 0, 0);
+  const a = atan2(ship.y, ship.x);
+  const enemy = createEnemy("normal", ship.x + cos(a) * 150, ship.y + sin(a) * 150, 0, 0);
   // enemy.health = 1;
   // enemy.applyEffect(SpeedRounds, { duration: 100, level: 1 });
-  // enemies.push(enemy);
+  enemies.push(enemy);
   // ship.applyEffect(HomingRounds, { duration: 100, level: 1 });
   // ship.effects[0].done = true;
 
-  if (count == 4) {
-    spawnEnemy("speed");
-    count--;
-  }
+  // if (count == 4) {
+  //   spawnEnemy("speed");
+  //   count--;
+  // }
   
-  for (let i = 0; i < count; i++)
-    spawnEnemy();
+  // for (let i = 0; i < count; i++)
+  //   spawnEnemy();
 }
 
 function createEnemy(type, x = 0, y = 0, vx = 0, vy = 0) {

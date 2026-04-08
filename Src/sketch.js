@@ -28,7 +28,7 @@ function preload() {
   aimArcSprite = loadImage("Assets/aim-arc.png");
   jetEnchantmentSprite = loadImage("Assets/jet-enchantment.png");
   solarFlairSprite = loadImage("Assets/solar-flair3.png");
-  // spacebg = loadImage("Assets/redsky.jpg");
+  spacebg = loadImage("Assets/stars.jpg"); // https://pxhere.com/en/photo/1078799
   
   // Festive
   festive = getItem("fiery-attraction-festive-state") ?? false;
@@ -96,6 +96,7 @@ function setup() {
 function draw() {
   background(0);
   const dt = min(deltaTime / 1000, 32 / 1000);
+  // const dt = 1/10000;
   scenes.runCurrentScene(dt, CTX);
   htmlSounds.runSounds(dt);
   clearPressed();

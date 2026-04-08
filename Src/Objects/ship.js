@@ -276,15 +276,6 @@ class Ship extends GravityObject {
     this.ammo = this.ammo + amount;
     if (this.name == "ship") spawnBonusEffect(`+${amount} ammo`, this.x, this.y, color(255, 120, 0), 2);
   }
-  
-  addHealth(amount, sender) {
-    if (amount < 0) return this.takeDamage(-amount, sender);
-    amount = Math.min(amount, this.maxHealth - this.health);
-    amount = round(amount * 10) / 10;
-    if (amount <= 0) return;
-    this.health = this.health + amount;
-    if (this.name == "ship") spawnBonusEffect(`+${amount} health`, this.x, this.y, color(0, 255, 0), 2);
-  }
 
   updateMesh() {
     const shipAngle = this.a + this.control.steeringAngle - PI;

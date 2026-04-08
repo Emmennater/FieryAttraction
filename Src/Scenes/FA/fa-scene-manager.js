@@ -79,4 +79,9 @@ class FASceneManager extends SceneManager {
     storeItem("fiery-attraction-music-volume", percent);
     this.updateVolume();
   }
+
+  runCutScene(dt) {
+    if (this.paused) dt = 0;
+    super.runCutScene(dt);
+  }
 }

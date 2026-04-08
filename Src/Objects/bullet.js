@@ -468,7 +468,7 @@ class ExplosiveBullet extends Bullet {
     // Spawn explosion
     if (this.time > 0) {
       spawnExplosion(this.x, this.y);
-      hud.addCameraShake(50, 1);
+      hud.addCameraShake(20, 1);
     }
   }
 }

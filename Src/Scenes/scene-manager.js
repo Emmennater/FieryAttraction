@@ -4,7 +4,7 @@ class SceneManager {
     this.currentScene = null;
     this.nextScene = null;
     this.fade = 0;
-    this.fadeTime = 1;
+    this.fadeTime = 0.75;
   }
 
   //////////////////////
@@ -16,7 +16,7 @@ class SceneManager {
     this.currentScene.init();
   }
 
-  cutSceneTo(scene, fadeTime = 1) {
+  cutSceneTo(scene, fadeTime = 0.5) {
     if (this.nextScene == scene) return;
     this.nextScene = scene;
     this.fadeTime = fadeTime;
@@ -25,9 +25,9 @@ class SceneManager {
   
   runCutScene(dt) {
     if (this.nextScene != null) {
-      this.fade += 0.025 / this.fadeTime;
+      this.fade += dt / this.fadeTime;
     } else {
-      this.fade -= 0.025 / this.fadeTime;
+      this.fade -= dt / this.fadeTime;
       if (this.fade < 0)
         this.fade = 0;
     }

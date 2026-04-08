@@ -109,6 +109,11 @@ class Asteroid extends GravityObject {
     if (object.name == "ship") hud.addScore(this.getScore());
   }
 
+  applyEffect(...args) {
+    const effect = super.applyEffect(...args);
+    effect.activate();
+  }
+
   splitAsteroid(damageSource) {
     const explodeVel = 20;
     
@@ -162,6 +167,10 @@ class Asteroid extends GravityObject {
     let percent = ((R - MIN) / (MAX - MIN)) * (HIGH - LOW) + LOW;
 
     return Math.round(amount * percent + 0.5);
+  }
+
+  getLevel() {
+    return constrain(Math.floor(this.scaleReward(1) ** 0.7), 1, 3);
   }
 
   draw(ctx) {
@@ -280,8 +289,10 @@ class SpeedAsteroid extends Asteroid {
 
   giveReward(object) {
     super.giveReward(object);
+    const level = this.getLevel();
     object.applyEffect(SuperSpeed, {
-      duration: this.scaleReward(10)
+      duration: this.scaleReward(10),
+      level
     }, this);
   }
 
@@ -304,7 +315,7 @@ class ExplosiveAsteroid extends Asteroid {
 
   giveReward(object) {
     super.giveReward(object);
-    const level = constrain(Math.floor(this.scaleReward(1) ** 0.7), 1, 3);
+    const level = this.getLevel();
     object.applyEffect(MultiShot, {
       duration: this.scaleReward(15),
       level
@@ -316,7 +327,7 @@ class ExplosiveAsteroid extends Asteroid {
 
     const OWNER = damageSource.owner instanceof Ship && damageSource.owner.name == "ship" ? damageSource.owner : this;
 
-    const bulletLevel = constrain(Math.floor(this.scaleReward(1) ** 0.7), 1, 3);
+    const bulletLevel = this.getLevel();
     const nBullets = 5; // this.scaleReward(8);
     const x = this.x;
     const y = this.y;
@@ -350,6 +361,7 @@ class RegenAsteroid extends Asteroid {
     super(x, y, r, vx, vy);
     this.type = "regen";
     this.sprite = regenAsteroidSprite;
+    this.applyEffect(Regeneration, { duration: 10000000, level: this.getLevel() });
   }
   
   getScore() {
@@ -358,7 +370,7 @@ class RegenAsteroid extends Asteroid {
 
   giveReward(object) {
     super.giveReward(object);
-    const level = constrain(Math.floor(this.scaleReward(1) ** 0.7), 1, 3);
+    const level = this.getLevel();
     object.applyEffect(Regeneration, {
       duration: this.scaleReward(10),
       level
@@ -401,7 +413,7 @@ function initAsteroids() {
   if (noSpawns) return;
   
   // Test
-  // const asteroid = createAsteroid("explosive", ship.x + 100, ship.y, ship.vx, ship.vy, 40);
+  // const asteroid = createAsteroid("regen", ship.x + 100, ship.y, ship.vx, ship.vy, 40);
   // asteroids.push(asteroid);
 
   const SPAWN_RADIUS = 200;

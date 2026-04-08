@@ -82,7 +82,7 @@ class Stars {
     // Space background
     ctx.push();
     ctx.translate(width/2, height/2);
-    ctx.rotate(panzoom.rot);
+    ctx.rotate(panzoom.rot + this.rot);
     ctx.imageMode(CENTER);
     // ctx.tint(50);
     ctx.image(spacebg, 0, 0, imgW, imgH);

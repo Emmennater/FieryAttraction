@@ -28,6 +28,7 @@ class BonusEffect extends GameObject {
     ctx.push();
     ctx.translate(this.x, this.y);
     ctx.rotate(-panzoom.rot);
+    ctx.textFont("Arial");
     ctx.text(this.txt, 0, 0);
     ctx.pop();
 

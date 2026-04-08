@@ -520,7 +520,7 @@ class HurricaneEnemy extends Enemy {
 
     this.tpDelay = 5;
     this.timeSinceTeleport = Infinity;
-    this.teleported = true;
+    this.teleported = false;
     this.tpTime = 2;
   }
 
@@ -589,6 +589,7 @@ class HurricaneEnemy extends Enemy {
   getProtocol(...args) {
     let protocol = super.getProtocol(...args);
     if (!this.teleported && protocol === "attack") return "neutral";
+    return protocol;
   }
 
   spawnBullet(dat) {
@@ -607,8 +608,8 @@ function initEnemies(count) {
   // const a = atan2(ship.y, ship.x);
   // const enemy = createEnemy("default", ship.x + cos(a) * 150, ship.y + sin(a) * 150, 0, 0);
   // enemies.push(enemy);
+  // enemy.applyEffect(Regeneration, { duration: 100, level: 1 });
   // enemy.health = 1;
-  // enemy.applyEffect(SpeedRounds, { duration: 100, level: 1 });
   // ship.applyEffect(HomingRounds, { duration: 100, level: 1 });
   // ship.effects[0].done = true;
 
@@ -657,7 +658,7 @@ function spawnEnemy(type = "normal", respawned = false) {
   enemy.strengthen(strengthPercent);
 
   // Random effect
-  const effects = [SuperSpeed, HomingRounds, SpeedRounds, MegaRounds, ExplosiveRounds, MultiShot];
+  const effects = [SuperSpeed, HomingRounds, SpeedRounds, MegaRounds, ExplosiveRounds, MultiShot, Regeneration];
   if (Math.random() < 0.03) {
     let RandomEffect = effects[Math.floor(Math.random() * effects.length)];
     const level = Math.ceil((Math.random() ** 3) * 3);

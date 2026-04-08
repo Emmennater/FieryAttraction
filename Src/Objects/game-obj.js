@@ -23,6 +23,17 @@ class GameObject extends CollisionObject {
       this.maxHealth = maxHealth;
   }
 
+  addHealth(amount, sender) {
+    if (this.destroyed) return;
+    if (amount < 0) return this.takeDamage(-amount, sender);
+    amount = Math.min(amount, this.maxHealth - this.health);
+    amount = round(amount * 10) / 10;
+    if (amount <= 0) return;
+    this.health = this.health + amount;
+    spawnHealthBar(this, 3);
+    if (this.name == "ship") spawnBonusEffect(`+${amount} health`, this.x, this.y, color(0, 255, 0), 2);
+  }
+
   takeDamage(damage, damageSource) {
     this.health = Math.max(this.health - damage, 0);
     spawnHealthBar(this, 3);

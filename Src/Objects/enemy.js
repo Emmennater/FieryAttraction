@@ -44,10 +44,6 @@ class Enemy extends Ship {
     this.maxTargetAngleError = 0.4;
   }
 
-  addGrantedEffect(Effect, level, duration) {
-    this.grantedEffects.push({ Effect, level, duration });
-  }
-
   getProtocol(dt) {
     const closestStar = system.getClosestStar(this.x, this.y);
     const star = closestStar.star;
@@ -146,6 +142,11 @@ class Enemy extends Ship {
     }
   }
 
+  applyEffect(Effect, dat = {}, ...rest) {
+    super.applyEffect(Effect, dat, ...rest);
+    this.grantedEffects.push({ Effect, level: dat.level, duration: dat.duration });
+  }
+
   grantEffect(object) {
     if (!object) return;
 
@@ -156,6 +157,7 @@ class Enemy extends Ship {
     // If this enemy has an effect give it to the bullet owner
     for (let effect of this.grantedEffects) {
       let { Effect, level, duration } = effect;
+      if (duration > 10000) duration = randInt(0, 10) + this.worth;
       object.applyEffect(Effect, { level, duration });
     }
   }
@@ -704,16 +706,13 @@ function giveEnemyEffect(enemy, Effect) {
   const levelSpread = lateGameWeight(6000, 3, 1);
   let level = Math.ceil((Math.random() ** levelSpread) * 3);
   let duration = 10000000;
-  let grantDuration = randInt(0, 10) + enemy.worth;
   
   if (Effect == ForceField) {
     duration = level * 50;
-    grantDuration = level * 50;
     level = 1;
   }
 
   enemy.applyEffect(Effect, { duration, level });
-  enemy.addGrantedEffect(Effect, level, grantDuration);
 }
 
 function destroyEnemy(enemy, i = enemies.indexOf(enemy)) {

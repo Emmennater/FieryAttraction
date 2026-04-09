@@ -3,7 +3,7 @@ class EventManager {
   constructor() {
     this.thresholds = [];
 
-    this.addEvent(200, () => {
+    this.addEvent(300, () => {
       const MAX_ENEMIES = 15;
 
       if (enemies.length >= MAX_ENEMIES) {

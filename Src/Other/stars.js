@@ -57,10 +57,11 @@ class Stars {
       let y = (newY - ship.y) / s.depth;
       
       if (starSprite) {
+        const STAR_SCL = 10;
         ctx.push();
         ctx.translate(x, y);
         ctx.rotate(frameCount / 60 * s.rot);
-        ctx.image(starSprite, 0, 0, s.scl / s.depth, s.scl / s.depth);
+        ctx.image(starSprite, 0, 0, s.scl / s.depth * STAR_SCL, s.scl / s.depth * STAR_SCL);
         ctx.pop();
       } else {
         ctx.fill(s.r, s.g, s.b);

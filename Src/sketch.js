@@ -141,7 +141,7 @@ function loadTheme(name) {
     case "thanksgiving":
       sunSprite = loadImage("Assets/Festive/Halloween/hotsun.png");
       rocketSprite = loadImage("Assets/Festive/Christmas/rocket.png");
-      starSprite = loadImage("Assets/Festive/Christmas/star.webp");
+      starSprite = null;
       bgCol = color(0);
       break;
     default:
@@ -150,6 +150,12 @@ function loadTheme(name) {
       rocketSprite = loadImage("Assets/fighterjet2.png");
       bgCol = color(0);
       break;
+  }
+
+  if (window.ship) ship.sprite = rocketSprite;
+  if (window.scenes) {
+    if (scenes.titleScene.ship) scenes.titleScene.ship.sprite = rocketSprite;
+    if (scenes.introScene.ship) scenes.introScene.ship.sprite = rocketSprite;
   }
 }
 

@@ -437,20 +437,26 @@ class Ship extends GravityObject {
     }
 
     // Damage from solar flair
-    let solarFlair = null;
+    let solarDamage = 0;
     for (let flair of solarFlairs) {
       if (!this.collides(flair)) continue;
-      solarFlair = flair;
+      solarDamage = flair.getDamage();
       break;
     }
 
-    if (solarFlair) {
-      const damage = solarFlair.getDamage();
+    // Damage from solar ring
+    for (let ring of solarRings) {
+      if (!ring.collides(this)) continue;
+      solarDamage = ring.getDamage();
+      break;
+    }
+
+    if (solarDamage > 0) {
       this.damageTime -= dt;
-      if (damage > 0 && this.damageTime <= 0) {
+      if (this.damageTime <= 0) {
         this.damageTime = this.damageDelay * 2;
-        this.takeDamage(damage);
-        hud.addCameraShake(Math.min(damage * 10, 100), 0.1);
+        this.takeDamage(solarDamage);
+        hud.addCameraShake(Math.min(solarDamage * 10, 100), 0.1);
       }
       
       // Burning sound

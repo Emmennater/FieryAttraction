@@ -30,6 +30,7 @@ function preload() {
   jetEnchantmentSprite = loadImage("Assets/jet-enchantment.png");
   shieldSprite = loadImage("Assets/shield.png");
   solarFlairSprite = loadImage("Assets/solar-flair3.png");
+  solarRingSprite = loadImage("Assets/solar-ring.png");
   spacebg = loadImage("Assets/stars.jpg"); // https://pxhere.com/en/photo/1078799
   
   // Festive

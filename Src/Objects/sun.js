@@ -9,6 +9,7 @@ class Sun {
     this.m = PI * this.r ** 2 * this.density; // 4500;
     this.depth = 1;
     this.tint = { r: 255, g: 255, b: 255, a: 255 };
+    this.solarRingActivation = 0; // 0 to 1
   }
   
   isTintNormal() {
@@ -39,7 +40,19 @@ class Sun {
       ctx.tint(this.tint.r, this.tint.g, this.tint.b, this.tint.a);
       ctx.image(sunSprite, 0, 0, r, r);
       ctx.noTint();
-    } else ctx.image(sunSprite, 0, 0, r, r);
+    } else {
+      ctx.image(sunSprite, 0, 0, r, r);
+    }
+    
+    if (this.solarRingActivation > 0) {
+      const GAP = 800 + (1 - this.solarRingActivation ** 0.2) * 4000;
+      ctx.push();
+      ctx.rotate(millis() / 4000);
+      ctx.image(solarRingSprite, 0, 0, r + GAP, r + GAP);
+      ctx.rotate(millis() / 8000);
+      ctx.image(solarRingSprite, 0, 0, r + GAP, r + GAP);
+      ctx.pop();
+    }
     
     ctx.pop();
     ctx.pop();

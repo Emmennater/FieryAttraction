@@ -164,6 +164,8 @@ function randomFromProbs(probList) {
       return probList[i][0];
     }
   }
+
+  return null;
 }
 
 /**

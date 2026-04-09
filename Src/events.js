@@ -39,15 +39,32 @@ class EventManager {
     this.activeEvents.length = 0;
   }
 
-  startRandomEvent() {
-    const eventProbs = [
+  getEventsAndProbs() {
+    return [
       [GravityStorm, 1],
       [SpinStorm, 1],
       [SolarStorm, 1],
       [SolarStorm2, 0.2],
-      [SolarCage, 0.2]
+      [SolarCage, 0.2],
+      [SolarRing, 0.2]
     ];
+  }
 
+  getAvailableEvents() {
+    let currentEventCategories = new Set();
+
+    for (let event of this.activeEvents) {
+      currentEventCategories.add(event.constructor.CATEGORY);
+    }
+
+    let availableEvents = this.getEventsAndProbs()
+      .filter(event => !currentEventCategories.has(event[0].CATEGORY));
+
+    return availableEvents;
+  }
+
+  startRandomEvent() {
+    const eventProbs = this.getAvailableEvents();
     const Event = randomFromProbs(eventProbs);
     this.startEvent(Event);
   }
@@ -57,7 +74,8 @@ class EventManager {
   }
 
   startEvent(Event) {
-    if (this.checkForEvent(Event)) return false;
+    if (!Event) return false;
+    if (this.checkForEvent(Event)) throw "Event already active";
 
     const event = new Event();
     this.activeEvents.push(event);
@@ -97,6 +115,8 @@ class EventManager {
 }
 
 class WorldEvent {
+  static CATEGORY = "event";
+  
   constructor() {
     this.col = { r:255, g:255, b:255 };
     this.timeElapsed = 0;
@@ -171,6 +191,8 @@ class WorldEvent {
 }
 
 class GravityStorm extends WorldEvent {
+  static CATEGORY = "gravity";
+  
   constructor() {
     super();
     this.star = system.getRandomStar();
@@ -234,6 +256,8 @@ class GravityStorm extends WorldEvent {
 }
 
 class SpinStorm extends WorldEvent {
+  static CATEGORY = "spin";
+  
   constructor() {
     super();
     this.title = "SPIN STORM";
@@ -306,6 +330,8 @@ class SpinStorm extends WorldEvent {
 }
 
 class SolarStorm extends WorldEvent {
+  static CATEGORY = "solar";
+  
   constructor(type="normal") {
     super();
     this.type = type;
@@ -393,12 +419,16 @@ class SolarStorm extends WorldEvent {
 }
 
 class SolarStorm2 extends SolarStorm {
+  static CATEGORY = "solar";
+  
   constructor() {
     super("double");
   }
 }
 
 class SolarCage extends WorldEvent {
+  static CATEGORY = "solar";
+  
   constructor() {
     super();
     this.title = "SOLAR CAGE";
@@ -497,5 +527,41 @@ class SolarCage extends WorldEvent {
     this.solarFlairs.forEach(flair => {
       if (!flair.destroyed) flair.destroy()
     });
+  }
+}
+
+class SolarRing extends WorldEvent {
+  static CATEGORY = "solar ring";
+
+  constructor() {
+    super();
+    this.title = "SOLAR RING";
+    this.star = system.getRandomStar();
+    this.solarTime = 40;
+    this.solarRingObj = null;
+  }
+
+  start(dt) {
+    // Wait a bit before starting...
+    if (this.stageTime < 5)
+      return;
+
+    this.solarRingObj = spawnSolarRing(this.star, this.solarTime);
+
+    return true;
+  }
+
+  middle(dt) {
+    return this.solarRingObj.destroyed;
+  }
+
+  end(dt) {
+    this.stop();
+    return true;
+  }
+
+  stop() {
+    if (!this.solarRingObj) return;
+    this.solarRingObj.destroy();
   }
 }

@@ -62,7 +62,9 @@ class GameScene extends Scene {
     
     panzoom.begin(ctx);
     updateSolarFlairs(dt);
+    updateSolarRings(dt);
     drawSolarFlairs(ctx);
+    drawSolarRings(ctx);
     panzoom.end(ctx);
     
     system.update(dt);

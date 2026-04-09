@@ -54,7 +54,7 @@ class Ship extends GravityObject {
     this.vy = -35;
     this.a = 0;
     this.s = s;
-    this.drag = 0.9998;
+    this.drag = 0.988;
     this.speed = 8;
     this.turnSpeed = 2.4;
     this.control = { steeringAngle: 0, steerVel: 0, boost: false, fire:false };
@@ -263,18 +263,28 @@ class Ship extends GravityObject {
   
   addFuel(amount, sender) {
     amount = Math.min(amount, this.maxFuel - this.fuel);
-    amount = floor(amount * 10) / 10;
     if (amount <= 0) return;
     this.fuel = this.fuel + amount;
-    if (this.name == "ship") spawnBonusEffect(`+${amount} fuel`, this.x, this.y, color(255, 0, 0), 2);
+    if (this.name == "ship") spawnBonusEffect(`+${round(amount * 10) / 10} fuel`, this.x, this.y, color(255, 0, 0), 2);
   }
   
   addAmmo(amount, sender) {
     amount = Math.min(amount, this.maxAmmo - this.ammo);
-    amount = floor(amount * 10) / 10;
     if (amount <= 0) return;
     this.ammo = this.ammo + amount;
-    if (this.name == "ship") spawnBonusEffect(`+${amount} ammo`, this.x, this.y, color(255, 120, 0), 2);
+    if (this.name == "ship") spawnBonusEffect(`+${round(amount * 10) / 10} ammo`, this.x, this.y, color(255, 120, 0), 2);
+  }
+
+  addHealth(amount, sender, resurrect = true) {
+    super.addHealth(amount, sender);
+
+    if (this.name == "ship" && resurrect && amount > 0 && this.destroyed) {
+      super.addHealth(this.maxHealth / 4);
+      this.destroyed = false;
+      hud.resurrectEffect();
+      htmlSounds.playSound(resurrectionSound, 1, true);
+      scenes.gameScene.disruptGameOver();
+    }
   }
 
   updateMesh() {
@@ -329,9 +339,12 @@ class Ship extends GravityObject {
       const projectedVelocity = Math.max(0, this.vx * cos(shipAngle) + this.vy * sin(shipAngle));
       speedIncrease = Math.max(1, 2 / (projectedVelocity * 0.1 + 1 / this.maneuverability));
 
-      this.vx += cos(shipAngle) * this.speed * this.speedMult * speedIncrease * dt;
-      this.vy += sin(shipAngle) * this.speed * this.speedMult * speedIncrease * dt;
-      
+      let ax = cos(shipAngle) * this.speed * this.speedMult * speedIncrease;
+      let ay = sin(shipAngle) * this.speed * this.speedMult * speedIncrease;
+
+      this.vx += ax * dt;
+      this.vy += ay * dt;
+
       hud.addCameraShake(10, 0.5);
     }
     
@@ -340,21 +353,21 @@ class Ship extends GravityObject {
     if (startOfGame && scenes.introSkipped) edgeStrength = 0;
     this.attract(dt, 1, edgeStrength);
     
-    // Movement
-    this.x += this.vx * dt;
-    this.y += this.vy * dt;
-    this.vx *= this.drag;
-    this.vy *= this.drag;
-    this.updateMesh();
-    
     // Constrain velocity
     if (!startOfGame) {
       let maxSpeed = this.control.boost ? this.maxSpeed : this.maxSpeed * 0.4;
       let sp = Math.sqrt(this.vx ** 2 + this.vy ** 2);
       let ns = Math.min(sp, maxSpeed) / sp;
-      this.vx = lerp(this.vx, this.vx * ns, 0.025);
-      this.vy = lerp(this.vy, this.vy * ns, 0.025);
+      this.vx = lerp(this.vx, this.vx * ns, 1.5 * dt);
+      this.vy = lerp(this.vy, this.vy * ns, 1.5 * dt);
     }
+
+    // Movement
+    this.x += this.vx * dt;
+    this.y += this.vy * dt;
+    this.vx *= 1 - (1 - this.drag) * dt;
+    this.vy *= 1 - (1 - this.drag) * dt;
+    this.updateMesh();
 
     // Reduce bullet time
     this.bulletTime -= dt * 60;
@@ -530,11 +543,6 @@ class Ship extends GravityObject {
     this.bulletLevel = DEFAULT_BULLET.level;
     this.stats.bulletsShot = 0;
   }
-
-  resurrect() {
-    this.addHealth(this.maxHealth / 4);
-    this.destroyed = false;
-  }
   
   drawBoost(ctx, opacity) {
     let shipTurnRate = (this.control.boost) ? 0.01 : 0.02;
@@ -591,6 +599,7 @@ class Ship extends GravityObject {
     
     const SIZE = 1.2;
     const aspect = rocketSprite.height / rocketSprite.width;
+    const SHIELD_SCALE = 2.5;
 
     if (this.health <= 0)
       this.alpha = Math.max(this.alpha - 8, 0);
@@ -609,6 +618,9 @@ class Ship extends GravityObject {
       ctx.tint(255, ALPHA);
     
     ctx.image(this.sprite, 0, 0, this.s * SIZE, this.s * aspect * SIZE);
+    
+    if (this.getActiveEffect(ForceField) != null)
+      ctx.image(shieldSprite, 0, 0, this.s * SIZE * SHIELD_SCALE, this.s * aspect * SIZE * SHIELD_SCALE);
 
     if (this.hasActiveEffect())
       ctx.image(jetEnchantmentSprite, 0, 0, this.s * SIZE, this.s * aspect * SIZE);

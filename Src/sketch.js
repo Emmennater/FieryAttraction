@@ -28,6 +28,7 @@ function preload() {
   explosionSprite = loadImage("Assets/explosion.gif");
   aimArcSprite = loadImage("Assets/aim-arc.png");
   jetEnchantmentSprite = loadImage("Assets/jet-enchantment.png");
+  shieldSprite = loadImage("Assets/shield.png");
   solarFlairSprite = loadImage("Assets/solar-flair3.png");
   spacebg = loadImage("Assets/stars.jpg"); // https://pxhere.com/en/photo/1078799
   

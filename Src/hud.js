@@ -649,7 +649,7 @@ class EffectsBar {
       
       if (!effect.active) continue;
 
-      const t = effect.timeRemaining / effect.duration;
+      const t = effect.getUsagePercentage();
       
       // Fullness
       fill(colorAlpha(effect.color, 200));

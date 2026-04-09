@@ -29,6 +29,7 @@ class Enemy extends Ship {
     this.lookingAtTarget = false;
     this.enemyLockonTimer = 0;
     this.lockonTime = 5;
+    this.grantedEffects = [];
 
     // Bullet attributes
     this.bDelay = 2;
@@ -41,6 +42,10 @@ class Enemy extends Ship {
     this.bStray = 1.0; // 0.2 0.6
     this.lastBullet = null;
     this.maxTargetAngleError = 0.4;
+  }
+
+  addGrantedEffect(Effect, level, duration) {
+    this.grantedEffects.push({ Effect, level, duration });
   }
 
   getProtocol(dt) {
@@ -94,8 +99,19 @@ class Enemy extends Ship {
 
   boost(dt) {
     this.control.boost = true;
-    this.vx += cos(this.a + this.control.steeringAngle) * this.speed * dt;
-    this.vy += sin(this.a + this.control.steeringAngle) * this.speed * dt;
+    let speedIncrease = 1;
+    
+    // If the ship is moving slow in the direction of the player, increase speed
+    // (increased maneuverability)
+    const shipAngle = this.a + this.control.steeringAngle;
+    const projectedVelocity = Math.max(0, this.vx * cos(shipAngle) + this.vy * sin(shipAngle));
+    speedIncrease = Math.max(1, 2 / (projectedVelocity * 0.1 + 1 / this.maneuverability));
+
+    let ax = cos(shipAngle) * this.speed * this.speedMult * speedIncrease;
+    let ay = sin(shipAngle) * this.speed * this.speedMult * speedIncrease;
+
+    this.vx += ax * dt;
+    this.vy += ay * dt;
   }
 
   avoidStars(dt) {
@@ -110,16 +126,14 @@ class Enemy extends Ship {
     // Steer away from star
     let A = this.a;
     let a = atan2(dy, dx);
-    A = ((A + TWO_PI) % TWO_PI + TWO_PI);
-    a = ((a + TWO_PI) % TWO_PI + TWO_PI);
     let turnAway = star.r / d;
     let angleAway1 = a - HALF_PI - turnAway;
     let angleAway2 = a + HALF_PI + turnAway;
   
     // Find closer angle
-    let diff1 = Math.abs(A - angleAway1);
-    let diff2 = Math.abs(A - angleAway2);
-    let targetAngle = diff1 < diff2 ? angleAway1 : angleAway2;
+    let diff1 = smallestAngleDifference(A, angleAway1);
+    let diff2 = smallestAngleDifference(A, angleAway2);
+    let targetAngle = Math.abs(diff1) < Math.abs(diff2) ? angleAway1 : angleAway2;
     let angleDelta = targetAngle - A;
 
     // Boost away from star
@@ -128,11 +142,7 @@ class Enemy extends Ship {
     const angleCloseToTarget = Math.abs(angleFromTarget) < 1.2;
 
     if (angleCloseToTarget) {
-      this.control.boost = true;
-      
-      // Acceleration
-      this.vx += cos(this.a + this.control.steeringAngle) * this.speed * dt;
-      this.vy += sin(this.a + this.control.steeringAngle) * this.speed * dt;
+      this.boost(dt);
     }
   }
 
@@ -144,10 +154,8 @@ class Enemy extends Ship {
     object.addFuel(randInt(5, 10));
 
     // If this enemy has an effect give it to the bullet owner
-    for (let effect of this.effects) {
-      const level = effect.level;
-      const Effect = effect.constructor;
-      const duration = randInt(0, 10) + this.worth;
+    for (let effect of this.grantedEffects) {
+      let { Effect, level, duration } = effect;
       object.applyEffect(Effect, { level, duration });
     }
   }
@@ -300,12 +308,12 @@ class Enemy extends Ship {
     }
     
     // Constrain velocity
-    const rate = protocol == "escape star" ? 0.1 : 0.01;
-    let maxSpeed = this.control.boost ? this.topSpeed : 60;
+    const rate = protocol == "escape star" ? 6 : 0.6;
+    let maxSpeed = this.control.boost ? this.topSpeed : this.topSpeed * 0.4;
     let sp = Math.sqrt(this.vx ** 2 + this.vy ** 2);
     let ns = Math.min(sp, maxSpeed) / sp;
-    this.vx = lerp(this.vx, this.vx * ns, rate);
-    this.vy = lerp(this.vy, this.vy * ns, rate);
+    this.vx = lerp(this.vx, this.vx * ns, 1.5 * dt);
+    this.vy = lerp(this.vy, this.vy * ns, 1.5 * dt);
     
     this.control.steeringAngle += this.control.steerVel * dt;
     this.x += this.vx * dt;
@@ -606,9 +614,9 @@ class HurricaneEnemy extends Enemy {
 function initEnemies(count) {
   if (noSpawns) return;
   // const a = atan2(ship.y, ship.x);
-  // const enemy = createEnemy("speed", ship.x + cos(a) * 150, ship.y + sin(a) * 150, 0, 0);
+  // const enemy = createEnemy("normal", ship.x + cos(a) * 150, ship.y + sin(a) * 150, 0, 0);
   // enemies.push(enemy);
-  // enemy.applyEffect(Regeneration, { duration: 100, level: 2 });
+  // enemy.applyEffect(SuperSpeed, { duration: 20, level: 1 });
   // enemy.health = 1;
   // ship.applyEffect(HomingRounds, { duration: 100, level: 1 });
   // ship.effects[0].done = true;
@@ -632,7 +640,8 @@ function createEnemy(type, x = 0, y = 0, vx = 0, vy = 0) {
     case "black": enemy = new BlackEnemy(x, y, vx, vy); break;
     case "hurricane": enemy = new HurricaneEnemy(x, y, vx, vy); break;
     case "ultraspeed": enemy = new UltraSpeedEnemy(x, y, vx, vy); break;
-    default: enemy = new Enemy(x, y, vx, vy);
+    case "normal": enemy = new Enemy(x, y, vx, vy); break;
+    default: throw new Error(`Unknown enemy type: ${type}`);
   }
 
   return enemy;
@@ -658,17 +667,53 @@ function spawnEnemy(type = "normal", respawned = false) {
   enemy.strengthen(strengthPercent);
 
   // Random effect
-  const effects = [SuperSpeed, HomingRounds, SpeedRounds, MegaRounds, ExplosiveRounds, MultiShot, Regeneration];
+  let effects = [
+    [HomingRounds, SpeedRounds, MegaRounds, ExplosiveRounds],
+    [SuperSpeed],
+    [MultiShot],
+    [Regeneration],
+    [ForceField]
+  ];
+
   const effectChance = lateGameWeight(4000, 0.03, 0.1);
+  const bonusEffectChance = lateGameWeight(4000, 0.2, 0.5);
   
   if (Math.random() < effectChance) {
-    let RandomEffect = effects[Math.floor(Math.random() * effects.length)];
-    const levelSpread = lateGameWeight(4000, 3, 1);
-    const level = Math.ceil((Math.random() ** levelSpread) * 3);
-    enemy.applyEffect(RandomEffect, { duration: 100000000, level });
+    do {
+      let rowIdx = 0;
+      let allEffects = effects.flat();
+      let effectIdx = Math.floor(Math.random() * allEffects.length);
+
+      for (let i = 0; i < effects.length; i++) {
+        if (effects[i].includes(allEffects[effectIdx])) {
+          rowIdx = i;
+          break;
+        }
+      }
+
+      let RandomEffect = allEffects[effectIdx];
+      effects.splice(rowIdx, 1);
+      giveEnemyEffect(enemy, RandomEffect);
+    } while (Math.random() < bonusEffectChance && effects.length > 0);
   }
 
   enemies.push(enemy);
+}
+
+function giveEnemyEffect(enemy, Effect) {
+  const levelSpread = lateGameWeight(4000, 3, 1);
+  let level = Math.ceil((Math.random() ** levelSpread) * 3);
+  let duration = 10000000;
+  let grantDuration = randInt(0, 10) + enemy.worth;
+  
+  if (Effect == ForceField) {
+    duration = level * 50;
+    grantDuration = level * 50;
+    level = 1;
+  }
+
+  enemy.applyEffect(Effect, { duration, level });
+  enemy.addGrantedEffect(Effect, level, grantDuration);
 }
 
 function destroyEnemy(enemy, i = enemies.indexOf(enemy)) {

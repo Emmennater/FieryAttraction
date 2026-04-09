@@ -26,11 +26,10 @@ class GameObject extends CollisionObject {
   addHealth(amount, sender) {
     if (amount < 0) return this.takeDamage(-amount, sender);
     amount = Math.min(amount, this.maxHealth - this.health);
-    amount = floor(amount * 10) / 10;
     if (amount <= 0) return;
     this.health = this.health + amount;
     spawnHealthBar(this, 3);
-    if (this.name == "ship") spawnBonusEffect(`+${amount} health`, this.x, this.y, color(0, 255, 0), 2);
+    if (this.name == "ship") spawnBonusEffect(`+${round(amount * 10) / 10} health`, this.x, this.y, color(0, 255, 0), 2);
   }
 
   takeDamage(damage, damageSource) {
@@ -63,5 +62,12 @@ class GameObject extends CollisionObject {
       if (effect.active) return true;
     }
     return false;
+  }
+
+  getActiveEffect(Effect) {
+    for (let effect of this.effects) {
+      if (effect.constructor == Effect && effect.active) return effect;
+    }
+    return null;
   }
 }

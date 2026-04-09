@@ -19,6 +19,14 @@ class Effect {
     return this.name + (this.level > 1 ? " " + romanNumeral(this.level) : "");
   }
 
+  getUsagePercentage() {
+    return this.timeRemaining / this.duration;
+  }
+
+  addUsage(amount) {
+    this.timeRemaining += amount;
+  }
+
   update(dt) { }
 
   stop() {
@@ -209,9 +217,56 @@ class Regeneration extends Effect {
   }
 
   update(dt) {
-    if ((this.regenTime += dt) >= this.tickTime) {
-      this.target.addHealth(this.healthPerTick);
-      this.regenTime = 0;
+    if ((this.regenTime -= dt) <= 0) {
+      let canResurrect = this.level > 1;
+      this.target.addHealth(this.healthPerTick, null, canResurrect);
+      this.regenTime = this.tickTime;
+    }
+  }
+}
+
+class ForceField extends Effect {
+  constructor(target, dat) {
+    super(target, dat);
+    this.name = "force field";
+    this.category = "shield";
+    this.color = color(30, 180, 200);
+    this.targetTakeDamageFn = null;
+    this.level = 1;
+  }
+
+  stop() {
+    // Restore the original takeDamage function
+    this.target.takeDamage = this.targetTakeDamageFn;
+  }
+
+  run(dt) {
+    this.update(dt);
+
+    // Time remaining
+    if (this.timeRemaining <= 0) {
+      this.done = true;
+      this.stop();
+    }
+  }
+
+  activate() {
+    super.activate();
+
+    // Store the original takeDamage function
+    this.targetTakeDamageFn = this.target.takeDamage;
+    this.target.takeDamage = (damage, damageSource) => {
+      // Take health from shield first
+      if (this.timeRemaining > 0) {
+        let damageAbsorbed = Math.min(damage, this.timeRemaining);
+        this.timeRemaining -= damageAbsorbed;
+        damage -= damageAbsorbed;
+      }
+
+      if (damage > 0) {
+        // Call from the target's scope to avoid issues with using "this"
+        this.targetTakeDamageFn.call(this.target, damage, damageSource);
+      }
     }
   }
 }

@@ -3,6 +3,7 @@ class GameScene extends Scene {
   constructor() {
     super();
     this.eventManager = new EventManager();
+    this.gameOverTimeout = null;
   }
   
   init() {
@@ -12,6 +13,7 @@ class GameScene extends Scene {
     // Settings
     hud.reset();
     this.eventManager.reset();
+    this.gameOverTimeout = null;
     panzoom.zoom = mobile.isMobile ? 1.5 : 3.0;
     bullets.length = 0;
     explosions.length = 0;
@@ -100,16 +102,9 @@ class GameScene extends Scene {
     if (ship.destroyed && !scenes.gameOver) {
       scenes.gameOver = true;
       spawnExplosion(ship.x, ship.y, ship, 0.3);
-      setTimeout(() => {
+      this.gameOverTimeout = setTimeout(() => {
         scenes.cutSceneTo(scenes.gameOverScene, 1);
       }, 500);
-    } else if (ship.health > 0 && ship.destroyed && scenes.nextScene == scenes.gameOverScene) {
-      // Resurrect ship
-      ship.resurrect();
-      hud.resurrectEffect();
-      htmlSounds.playSound(resurrectionSound, 1, true);
-      scenes.abortCutScene();
-      scenes.gameOver = false;
     }
     
     // Start of sound track
@@ -132,5 +127,13 @@ class GameScene extends Scene {
         text("PAUSED", width / 2, (bounds.y + bounds.height + height) / 2);
       }
     }
+  }
+
+  disruptGameOver() {
+    if (this.gameOverTimeout)
+      clearTimeout(this.gameOverTimeout);
+    scenes.abortCutScene();
+    scenes.gameOver = false;
+    this.gameOverTimeout = null;
   }
 }

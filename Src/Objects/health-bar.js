@@ -2,12 +2,13 @@
 healthBars = [];
 
 class HealthBar extends GameObject {
-    constructor(obj, t = 1) {
+    constructor(obj, t = 1, col = color(0, 255, 0)) {
         super();
         this.value = obj.health;
         this.maxValue = obj.maxHealth;
         this.obj = obj;
         this.t = t;
+        this.col = col;
         this.width = 20;
         this.height = 2.5;
         this.duration = t;
@@ -32,15 +33,16 @@ class HealthBar extends GameObject {
         const y = this.obj.y;
         const r = this.obj.collisionMesh.getBoundingRadius() + this.height * 0.6;
         const percentFull = this.value / this.maxValue;
+        const rgba = this.col.levels;
 
         // Display text
         ctx.push();
         ctx.translate(x, y);
         ctx.rotate(-panzoom.rot);
-        ctx.fill(0, 80, 0, this.getAlpha());
+        ctx.fill(rgba[0] * 0.3, rgba[1] * 0.3, rgba[2] * 0.3, this.getAlpha());
         ctx.noStroke();
         ctx.rect(-this.width / 2, -this.height / 2 - r, this.width, this.height);
-        ctx.fill(0, 255, 0, this.getAlpha());
+        ctx.fill(rgba[0], rgba[1], rgba[2], this.getAlpha());
         ctx.rect(-this.width / 2, -this.height / 2 - r, this.width * percentFull, this.height);
         ctx.pop();
 
@@ -65,7 +67,7 @@ function findObjectHealthBar(obj) {
     return null;
 }
 
-function spawnHealthBar(obj, t = 1) {
+function spawnHealthBar(obj, t = 1, col = color(0, 255, 0)) {
     // If object is player, don't spawn health bar
     if (obj instanceof Ship && obj.name == "ship") return;
 
@@ -77,7 +79,7 @@ function spawnHealthBar(obj, t = 1) {
         return healthBar;
     }
 
-    healthBar = new HealthBar(obj, t);
+    healthBar = new HealthBar(obj, t, col);
     healthBars.push(healthBar);
     return healthBar;
 }

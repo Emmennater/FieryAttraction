@@ -233,6 +233,15 @@ class ForceField extends Effect {
     this.color = color(30, 180, 200);
     this.targetTakeDamageFn = null;
     this.level = 1;
+
+    const THIS = this;
+    this.dummyObj = {
+      collisionMesh: target.collisionMesh,
+      get maxHealth() { return THIS.duration },
+      get health() { return THIS.timeRemaining },
+      get x() { return target.x; },
+      get y() { return target.y; }
+    };
   }
 
   stop() {
@@ -261,6 +270,11 @@ class ForceField extends Effect {
         let damageAbsorbed = Math.min(damage, this.timeRemaining);
         this.timeRemaining -= damageAbsorbed;
         damage -= damageAbsorbed;
+
+        // Only spawn a health bar for non-player objects
+        if (!this.target instanceof Ship || this.target.name != "ship") {
+          spawnHealthBar(this.dummyObj, 3, this.color);
+        }
       }
 
       if (damage > 0) {

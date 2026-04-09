@@ -616,7 +616,7 @@ function initEnemies(count) {
   // const a = atan2(ship.y, ship.x);
   // const enemy = createEnemy("normal", ship.x + cos(a) * 150, ship.y + sin(a) * 150, 0, 0);
   // enemies.push(enemy);
-  // enemy.applyEffect(SuperSpeed, { duration: 20, level: 1 });
+  // enemy.applyEffect(ForceField, { duration: 20, level: 1 });
   // enemy.health = 1;
   // ship.applyEffect(HomingRounds, { duration: 100, level: 1 });
   // ship.effects[0].done = true;

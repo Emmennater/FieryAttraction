@@ -535,7 +535,7 @@ class HurricaneEnemy extends Enemy {
 
     this.tpDelay = 5;
     this.timeSinceTeleport = Infinity;
-    this.teleported = false;
+    this.teleported = true;
     this.tpTime = 2;
   }
 

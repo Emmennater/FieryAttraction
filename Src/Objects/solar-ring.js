@@ -26,7 +26,7 @@ class SolarRingObject {
     }
 
     if (this.t <= 0) {
-      this.destroy = true;
+      this.destroy();
     }
   }
 

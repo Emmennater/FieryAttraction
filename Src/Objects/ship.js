@@ -625,9 +625,14 @@ class Ship extends GravityObject {
     
     ctx.image(this.sprite, 0, 0, this.s * SIZE, this.s * aspect * SIZE);
     
-    if (this.getActiveEffect(ForceField) != null)
+    const forceFieldEffect = this.getActiveEffect(ForceField);
+    if (forceFieldEffect != null) {
+      const ALPHA = forceFieldEffect.getAlpha();
+      if (ALPHA != 255) ctx.tint(255, ALPHA);
       ctx.image(shieldSprite, 0, 0, this.s * SIZE * SHIELD_SCALE, this.s * aspect * SIZE * SHIELD_SCALE);
-
+      if (ALPHA != 255) ctx.noTint();
+    }
+      
     if (this.hasActiveEffect())
       ctx.image(jetEnchantmentSprite, 0, 0, this.s * SIZE, this.s * aspect * SIZE);
 

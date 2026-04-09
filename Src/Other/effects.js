@@ -244,6 +244,10 @@ class ForceField extends Effect {
     };
   }
 
+  getAlpha() {
+    return Math.min(255, this.timeRemaining * 255 / 30) + 50;
+  }
+
   stop() {
     // Restore the original takeDamage function
     this.target.takeDamage = this.targetTakeDamageFn;

@@ -144,7 +144,12 @@ class Enemy extends Ship {
 
   applyEffect(Effect, dat = {}, ...rest) {
     super.applyEffect(Effect, dat, ...rest);
-    this.grantedEffects.push({ Effect, level: dat.level, duration: dat.duration });
+    let level = dat.level;
+    let duration = dat.duration;
+
+    if (Effect === ForceField) duration *= 2;
+
+    this.grantedEffects.push({ Effect, level, duration });
   }
 
   grantEffect(object) {

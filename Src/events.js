@@ -4,13 +4,10 @@ class EventManager {
     this.thresholds = [];
 
     this.addEvent(200, () => {
-      const BASELINE_COUNT = 2;
       const MAX_ENEMIES = 15;
-      const TARGET_COUNT = Math.floor(hud.score / 100) + BASELINE_COUNT;
-      // const UPGRADE_COUNT = Math.floor(hud.score / 400) + 1;
 
-      // Replace enemies with stronger ones
-      if (TARGET_COUNT >= MAX_ENEMIES) {
+      if (enemies.length >= MAX_ENEMIES) {
+        // Replace enemies with stronger ones
         upgradeRandomEnemy();
         return;
       } else {
@@ -244,7 +241,7 @@ class SpinStorm extends WorldEvent {
     this.star = system.getRandomStar();
     this.reversed = Math.random() < 1/3;
     this.strength = 3;
-    this.sunRotationSpeed = 0.01;
+    this.sunRotationSpeed = 0.6;
   
     // If reversed reverse title
     if (this.reversed) {
@@ -268,16 +265,16 @@ class SpinStorm extends WorldEvent {
     }
 
     // Rotate sun and stars
-    this.star.rot += (multiplier - 1) * this.sunRotationSpeed;
-    stars.rot += (multiplier - 1) * this.sunRotationSpeed;
+    this.star.rot += (multiplier - 1) * this.sunRotationSpeed * dt;
+    stars.rot += (multiplier - 1) * this.sunRotationSpeed * dt;
 
     return time >= 1;
   }
 
   middle(dt) {
     // Rotate sun and stars
-    this.star.rot += this.sunRotationSpeed * this.strength;
-    stars.rot += this.sunRotationSpeed * this.strength;
+    this.star.rot += this.sunRotationSpeed * this.strength * dt;
+    stars.rot += this.sunRotationSpeed * this.strength * dt;
 
     return this.stageTime >= 15;
   }
@@ -294,8 +291,8 @@ class SpinStorm extends WorldEvent {
     }
 
     // Rotate sun and stars
-    this.star.rot += (multiplier - 1) * this.sunRotationSpeed;
-    stars.rot += (multiplier - 1) * this.sunRotationSpeed;
+    this.star.rot += (multiplier - 1) * this.sunRotationSpeed * dt;
+    stars.rot += (multiplier - 1) * this.sunRotationSpeed * dt;
 
     return time >= 1;
   }

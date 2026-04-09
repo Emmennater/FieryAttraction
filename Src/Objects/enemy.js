@@ -286,7 +286,7 @@ class Enemy extends Ship {
     this.damage *= percent;
     this.bSpeed *= percent;
     this.speed *= percent;
-    this.bImpactForce *= percent;
+    this.bImpactForce *= Math.min(percent, 1.5);
     this.range = Math.min(this.range * percent, 500); // Cap range at 500
   }
 
@@ -675,8 +675,8 @@ function spawnEnemy(type = "normal", respawned = false) {
     [ForceField]
   ];
 
-  const effectChance = lateGameWeight(4000, 0.03, 0.1);
-  const bonusEffectChance = lateGameWeight(4000, 0.2, 0.5);
+  const effectChance = lateGameWeight(10000, 0.03, 1.0);
+  const bonusEffectChance = lateGameWeight(10000, 0.2, 1.0);
   
   if (Math.random() < effectChance) {
     do {
@@ -701,7 +701,7 @@ function spawnEnemy(type = "normal", respawned = false) {
 }
 
 function giveEnemyEffect(enemy, Effect) {
-  const levelSpread = lateGameWeight(4000, 3, 1);
+  const levelSpread = lateGameWeight(6000, 3, 1);
   let level = Math.ceil((Math.random() ** levelSpread) * 3);
   let duration = 10000000;
   let grantDuration = randInt(0, 10) + enemy.worth;

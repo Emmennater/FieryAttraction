@@ -68,10 +68,10 @@ class Ship extends GravityObject {
     this.alpha = 255;
     this.angle = 0;
     this.speedMult = 1;
-    this.speedMultTime = 0;
     this.maxSpeed = 100;
     this.damage = 1;
     this.cameraMode = "normal";
+    this.maneuverabilityMult = 1;
     this.maneuverability = 1;
 
     // Supplies
@@ -332,18 +332,34 @@ class Ship extends GravityObject {
     // Boost
     const shipAngle = this.a + this.control.steeringAngle;
     if (this.control.boost) {
-      let speedIncrease = 1;
-      
+      let currentAngle = Math.atan2(this.vy, this.vx);
+      let currentSpeed = Math.hypot(this.vx, this.vy);
+      const nvx = this.vx / currentSpeed;
+      const nvy = this.vy / currentSpeed;
+
       // If the ship is moving slow in the direction of the player, increase speed
       // (increased maneuverability)
-      const projectedVelocity = Math.max(0, this.vx * cos(shipAngle) + this.vy * sin(shipAngle));
-      speedIncrease = Math.max(1, 2 / (projectedVelocity * 0.1 + 1 / this.maneuverability));
+      const maneuverability = this.maneuverability * this.maneuverabilityMult;
+      const projectedVelocity = Math.max(0, nvx * cos(shipAngle) + nvy * sin(shipAngle));
+      let speedIncrease = Math.max(1, 2 / (projectedVelocity + 1 / maneuverability));
 
       let ax = cos(shipAngle) * this.speed * this.speedMult * speedIncrease;
       let ay = sin(shipAngle) * this.speed * this.speedMult * speedIncrease;
 
       this.vx += ax * dt;
       this.vy += ay * dt;
+
+      currentAngle = Math.atan2(this.vy, this.vx);
+      currentSpeed = Math.hypot(this.vx, this.vy);
+
+      // Turn the velocity vector by a factor of the maneuverability
+      // let turnFactor = (1 - 1 / (maneuverability + 1)) * 0.5;
+      // let angleDiff = smallestAngleDifference(currentAngle, shipAngle);
+      // let newAngle = currentAngle + angleDiff * turnFactor * dt;
+      
+      // this.vx = cos(newAngle) * currentSpeed;
+      // this.vy = sin(newAngle) * currentSpeed;
+      // this.a += angleDiff * turnFactor * dt;
 
       hud.addCameraShake(10, 0.5);
     }

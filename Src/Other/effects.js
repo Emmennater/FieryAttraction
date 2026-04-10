@@ -59,6 +59,7 @@ class SuperSpeed extends Effect {
 
   update(dt) {
     this.target.speedMult = 4 + this.level;
+    this.target.maneuverabilityMult = 4 + this.level;
     this.target.exaustCol = {
       min: { r: 30, g: 180, b: 200, a: 100 },
       add: { r: 40, g: 30, b: 50, a: 0 }
@@ -67,6 +68,7 @@ class SuperSpeed extends Effect {
 
   stop() {
     this.target.speedMult = 1;
+    this.target.maneuverabilityMult = 1;
     this.target.exaustCol = this.target.oldExaustCol;
   }
 

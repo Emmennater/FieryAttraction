@@ -430,7 +430,7 @@ function initAsteroids() {
 }
 
 function moveAsteroids(dt) {
-  const CAP = 70;
+  const CAP = 60;
   for (let i = asteroids.length - 1; i >= 0; --i) {
     const asteroid = asteroids[i];
     if (asteroid.destroyed) {

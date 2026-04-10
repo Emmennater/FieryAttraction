@@ -64,18 +64,23 @@ class EventManager {
   }
 
   startRandomEvent() {
-    const eventProbs = this.getAvailableEvents();
+    const eventProbs = this.getEventsAndProbs();
     const Event = randomFromProbs(eventProbs);
     this.startEvent(Event);
   }
 
   checkForEvent(EventConstructor) {
-    return this.activeEvents.some(event => event.constructor === EventConstructor);
+    // Check if event category is already active
+    for (let event of this.activeEvents) {
+      if (event.constructor.CATEGORY === EventConstructor.CATEGORY) return true;
+    }
+
+    return false;
   }
 
   startEvent(Event) {
     if (!Event) return false;
-    if (this.checkForEvent(Event)) throw "Event already active";
+    if (this.checkForEvent(Event)) return false;
 
     const event = new Event();
     this.activeEvents.push(event);

@@ -1,5 +1,11 @@
 
-class P2P {
+class Host {
+  constructor() {
+    
+  }
+}
+
+class Client {
   constructor() {
     
   }

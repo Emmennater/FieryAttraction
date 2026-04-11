@@ -43,8 +43,7 @@ class GameScene extends Scene {
   run(dt, ctx) {
     // Pausing
     if (pressed.P || pressed.ESCAPE) {
-      scenes.paused = !scenes.paused;
-      scenes.toggleControls();
+      scenes.togglePause();
     }
     if (scenes.paused)
       dt = 0;

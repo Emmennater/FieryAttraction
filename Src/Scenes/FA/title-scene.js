@@ -9,7 +9,8 @@ class TitleScene extends Scene {
     scenes.gameOver = false;
 
     // Elements
-    scenes.controlButton.style.visibility = "visible";
+    scenes.controlsButton.style.visibility = "visible";
+    scenes.serverControlsButton.style.visibility = "visible";
     scenes.versionTag.style.visibility = "visible";
     scenes.pauseButton.style.visibility = "hidden";
 
@@ -67,19 +68,28 @@ class TitleScene extends Scene {
     // mobile.draw();
     // hud.draw(dt, ctx);
 
-    if (!scenes.controlsOpen) {
-      
-      // Top score
-      let bounds = scenes.controlButton.getBoundingClientRect();
-      let topScoreY = mobile.isMobile ? bounds.y : bounds.y + MIN_SCL * 0.02;
-      let topScoreX = MIN_SCL * 0.04;
+    const constrolsHidden = scenes.helpControls.style.display == "none";
+    const serverControlsHidden = scenes.serverControls.style.display == "none";
+    const showTitle = constrolsHidden && serverControlsHidden;
+
+    if (showTitle) {
       fill(255);
       noStroke();
       textSize(MIN_SCL * 0.04);
       textFont("monospace");
       textAlign(LEFT, CENTER);
-      text("HIGH SCORE " + hud.getHighscore(), topScoreX, topScoreY);
-      text("DAILY HS " + hud.getDailyHighscore(), topScoreX, topScoreY + MIN_SCL * 0.04 + 4);
+
+      // Top score
+      const HS_TXT = "HIGH SCORE " + hud.getHighscore();
+      const DHS_TXT = "DAILY HS " + hud.getDailyHighscore();
+      const bounds = scenes.controlsButton.getBoundingClientRect();
+      let topScoreY = mobile.isMobile ? 20 : 20 + MIN_SCL * 0.02;
+      const topScoreX = MIN_SCL * 0.04;
+      const moveBelow = max(textWidth(HS_TXT), textWidth(DHS_TXT)) + topScoreX + 10 > bounds.left;
+      if (moveBelow) topScoreY = bounds.bottom + 20 + MIN_SCL * 0.02;
+      
+      text(HS_TXT, topScoreX, topScoreY);
+      text(DHS_TXT, topScoreX, topScoreY + MIN_SCL * 0.04 + 4);
 
       // Title
       textFont(futureFont);
@@ -109,7 +119,8 @@ class TitleScene extends Scene {
       }
 
       if (started) {
-        scenes.controlButton.style.visibility = "hidden";
+        scenes.controlsButton.style.visibility = "hidden";
+        scenes.serverControlsButton.style.visibility = "hidden";
         scenes.versionTag.style.visibility = "hidden";
 
         // Stop title soundtrack

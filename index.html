@@ -130,10 +130,11 @@
     <vbox>
       <hbox>
         <button id="controls" style="visibility: hidden;" onclick="scenes.toggleControls()">Help + Controls</button>
+        <button id="server" style="visibility: hidden;" onclick="scenes.toggleServerControls()">Multiplayer</button>
       </hbox>
-      <div id="help-controls"  class="scrollview" style="visibility: hidden;">
-        <div class="help-menu">
-          <div id="rules" class="help-section">
+      <div id="help-controls"  class="scrollview" style="display: none;">
+        <div class="controls-menu">
+          <div id="rules" class="controls-section">
             <h1>Rules</h1>
             <div class="section-contents">
               <ul style="list-style-type:circle;">
@@ -147,7 +148,7 @@
             </div>
           </div>
   
-          <div id="about" class="help-section">
+          <div id="about" class="controls-section">
             <h1>About</h1>
             <div class="section-contents">
               <b>Solo Creation</b><br>
@@ -157,7 +158,7 @@
             </div>
           </div>
           
-          <div id="controls" class="help-section">
+          <div id="controls" class="controls-section">
             <h1>Controls</h1>
             <div class="section-contents">
               <ul style="list-style-type:none;">
@@ -174,7 +175,7 @@
             </div>
           </div>
           
-          <div id="settings" class="help-section">
+          <div id="settings" class="controls-section">
             <h1>Settings</h1>
             <div class="section-contents">
               <inputline>
@@ -208,6 +209,24 @@
             </div>
           </div>
         </div>
+      </div>
+      <div id="server-controls" class="scrollview" style="display: none;">
+        <vbox>
+          <div id="server-join" class="section-contents">
+            <inputline>
+              Address
+              <input id="server-address" type="text" value="127.0.0.1">
+            </inputline>
+            <inputline>
+              Port
+              <input id="server-port" type="text" value="6402">
+            </inputline>
+            <button>Join</button>
+          </div>
+          <h1>Not Sure How To Start a Server?</h1>
+          Download the Server Folder at <a href="https://github.com/Emmennater/FieryAttraction">https://github.com/Emmennater/FieryAttraction</a>
+          <br>Follow the instructions in the readme.
+        </vbox>
       </div>
     </vbox>
 

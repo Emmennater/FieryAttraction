@@ -52,11 +52,43 @@ vbox {
 /*   background: red; */
 }
 
+#server-controls .section-contents {
+  display: flex;
+  flex-direction: column;
+  font-size: 24px;
+  align-items: center;
+  width: 40vw;
+}
+
+#server-controls inputline {
+  margin-top: 10px;
+}
+
 inputline {
   display: flex;
   flex-direction: row;
   flex: 1;
-  max-width: 250px;
+  max-width: 300px;
+  width: 100%;
+}
+
+inputline input[type="checkbox"] {
+  margin-left: 10px;
+}
+
+inputline input[type="text"] {
+  flex: 1;
+  margin-left: 10px;
+  width: 120px;
+  padding: 2px 4px;
+  border: none;
+  background: #fff3;
+  color: white;
+  font-size: inherit;
+}
+
+inputline input[type="text"]:focus {
+  outline: none;
 }
 
 version {
@@ -119,7 +151,7 @@ control {
 }
 
 button:hover {
-  font-size: 17px;
+  transform: scale(1.05);
   background: #ffffff10;
 }
 
@@ -149,7 +181,7 @@ button:active {
   overflow-y: auto; 
 }
 
-.help-menu { 
+.controls-menu { 
   display: grid; 
   grid-template-columns: 1fr 1fr; 
   grid-auto-flow: row; 
@@ -159,7 +191,7 @@ button:active {
   /* min-height: 100%; Ensures minimum full viewport height */
 }
 
-.help-section { 
+.controls-section { 
   display: flex; 
   flex-direction: column; 
   align-items: center; 
@@ -172,6 +204,25 @@ button:active {
   text-align: left; 
   margin: 10px; 
   flex-grow: 1; 
+}
+
+.section-contents button {
+  min-height: 0px;
+  max-width: 200px;
+  margin: 14px;
+  padding: 4px 14px;
+
+  font-family: Trebuchet MS, sans-serif;
+  font-size: 24px;
+  font-weight: bold;
+  text-align: center;
+  
+  color: white;
+  border: solid 2px white;
+  background: transparent;
+  cursor: pointer;
+
+  user-select: none;
 }
 
 .fullscreen-button {

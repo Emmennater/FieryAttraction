@@ -19,10 +19,11 @@ class FASceneManager extends SceneManager {
     // Elements
     this.musicSlider = document.getElementById("music-volume");
     this.helpControls = document.getElementById("help-controls");
-    this.controlButton = document.getElementById("controls");
+    this.serverControls = document.getElementById("server-controls");
+    this.controlsButton = document.getElementById("controls");
+    this.serverControlsButton = document.getElementById("server");
     this.pauseButton = document.getElementById("pause");
     this.versionTag = document.getElementById("version");
-    this.controlsOpen = false;
     this.sceneTime = 0;
     
     // Music volume
@@ -40,24 +41,52 @@ class FASceneManager extends SceneManager {
     // Ship camera mode
     this.cameraMode = getItem("fiery-attraction-camera-mode") ?? "normal";
     document.getElementById("alternate-camera").checked = this.cameraMode == "rotated";
+
+    // Server address and port
+    const serverAddress = getItem("fiery-attraction-server-address") ?? "127.0.0.1";
+    const serverPort = getItem("fiery-attraction-server-port") ?? 6402;
+    const serverAddressInput = document.getElementById("server-address")
+    const serverPortInput = document.getElementById("server-port");
+  
+    serverAddressInput.value = serverAddress;
+    serverPortInput.value = serverPort;
+
+    serverAddressInput.addEventListener("input", () => {
+      storeItem("fiery-attraction-server-address", serverAddressInput.value);
+    });
+
+    serverPortInput.addEventListener("input", () => {
+      storeItem("fiery-attraction-server-port", serverPortInput.value);
+    });
   }
 
   setup() {
     this.setScene(this.titleScene);
   }
 
-  toggleControls(open = null) {
-    if (open === null) open = !this.controlsOpen;
-    if (open) {
-      this.controlsOpen = true;
-      this.controlButton.innerText = "Back";
-      this.helpControls.style.visibility = "visible";
-      hud.effectsBar.hideButtons();
-    } else {
-      this.controlsOpen = false;
-      this.controlButton.innerText = "Help + Controls";
-      this.helpControls.style.visibility = "hidden";
+  toggleControls() {
+    if (this.helpControls.style.display == "block") {
+      this.helpControls.style.display = "none";
+      this.serverControlsButton.style.display = "block";
+      this.controlsButton.innerText = "Help + Controls";
       if (this.currentScene == this.gameScene) hud.effectsBar.showButtons();
+    } else {
+      this.helpControls.style.display = "block";
+      this.serverControlsButton.style.display = "none";
+      this.controlsButton.innerText = "Back";
+      hud.effectsBar.hideButtons();
+    }
+  }
+
+  toggleServerControls() {
+    if (this.serverControls.style.display == "block") {
+      this.serverControls.style.display = "none";
+      this.controlsButton.style.display = "block";
+      this.serverControlsButton.innerText = "Multiplayer";
+    } else {
+      this.serverControls.style.display = "block";
+      this.controlsButton.style.display = "none";
+      this.serverControlsButton.innerText = "Back";
     }
   }
 

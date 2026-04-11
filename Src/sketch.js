@@ -80,7 +80,6 @@ function setup() {
   mobile = new MobileControls();
   panzoom = new PanZoom();
   system = new StarSystem();
-  sun = system.stars[0];
   ship = new MainPlayer(600, 600);
   stars = new Stars();
   hud = new HUD();

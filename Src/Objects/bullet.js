@@ -34,7 +34,6 @@ class Bullet extends GravityObject {
   }
 
   checkForHit() {
-    const NO_OWNER = this.owner == null || (this.owner.name !== "ship" && this.owner.name !== "enemy");
     const vx = this.x - this.px;
     const vy = this.y - this.py;
     const x1 = this.px;
@@ -42,6 +41,7 @@ class Bullet extends GravityObject {
     const x2 = this.px + vx * 3;
     const y2 = this.py + vy * 3;
 
+    // Collide with asteroids
     for (let asteroid of asteroids) {
       if (asteroid.destroyed) continue;
       if (asteroid.intersectsLine(x1, y1, x2, y2)) {
@@ -53,7 +53,8 @@ class Bullet extends GravityObject {
       }
     }
     
-    if (NO_OWNER || this.owner.name == "enemy") {
+    // Collide with player
+    if (!this.owner || this.owner instanceof Enemy) {
       if (!ship.destroyed && ship.intersectsLine(x1, y1, x2, y2)) {
         this.destroy();
         ship.takeDamage(this.damage * this.damageMult, this);
@@ -65,8 +66,8 @@ class Bullet extends GravityObject {
       }
     }
     
-    if (NO_OWNER || this.owner.name == "ship") {
-      // Enemies
+    // Collide with enemies
+    if (!this.owner || this.owner instanceof Player) {
       for (let enemy of enemies) {
         if (enemy.destroyed) continue;
         if (enemy.intersectsLine(x1, y1, x2, y2)) {
@@ -74,7 +75,6 @@ class Bullet extends GravityObject {
           enemy.takeDamage(this.damage * this.damageMult, this);
           this.transferMomentumTo(enemy);
           htmlSounds.playSound(hitSound, 0.5);
-          // sounds.playRandomly(hitSound, 0.5);
           return;
         }
       }
@@ -157,16 +157,14 @@ class HomingBullet extends Bullet {
     // Select a target
     let targets;
     this.target = null;
-    switch (this.owner.name) {
-      case "ship":
-        targets = asteroids.concat(enemies);
-        this.target = this.selectTarget(targets);
-        break;
-      case "enemy":
-        targets = [ship];
-        if (this.lockToAsteroids) targets = targets.concat(asteroids);
-        this.target = this.selectTarget(targets);
-        break;
+
+    if (this.owner instanceof Player) {
+      targets = asteroids.concat(enemies);
+      this.target = this.selectTarget(targets, true);
+    } else if (this.owner instanceof Enemy) {
+      targets = [ship];
+      if (this.lockToAsteroids) targets = targets.concat(asteroids);
+      this.target = this.selectTarget(targets);
     }
   }
 
@@ -175,7 +173,7 @@ class HomingBullet extends Bullet {
     if (targets.length == 0) return;
     let bulletAngle = atan2(this.vy, this.vx);
     let aimFov = PI * 0.4;
-    let targetAliens = this.owner.name == "ship";
+    let targetAliens = this.owner instanceof Player;
     let selectedTarget = selectTarget(this, targets, aimFov, bulletAngle, targetAliens);
 
     // let shortestDist = Infinity;
@@ -373,24 +371,9 @@ class MegaBullet extends HomingBullet {
     this.vx *= this.speed;
     this.vy *= this.speed;
     this.damage = 7.5;
+    this.lockToAsteroids = false;
     this.homingEnemyBlacklist = [ BlackEnemy, HurricaneEnemy, UltraSpeedEnemy ];
     this.homingBulletBlacklist = [ MegaBullet ];
-  }
-
-  pickTarget() {
-    // Select a target
-    let targets;
-    this.target = null;
-    switch (this.owner.name) {
-      case "ship":
-        targets = asteroids.concat(enemies);
-        this.target = this.selectTarget(targets);
-        break;
-      case "enemy":
-        targets = asteroids.concat([ship]);
-        this.target = this.selectTarget(targets);
-        break;
-    }
   }
 }
 
@@ -517,7 +500,7 @@ function selectTarget(bullet, targets, fov, firingAngle, targetAliens = false) {
     
     if (targetAliens) {
       // Increase score for tracking aliens
-      if (t.name == "enemy") {
+      if (t instanceof Enemy) {
         score *= 1.5;
       }
     }

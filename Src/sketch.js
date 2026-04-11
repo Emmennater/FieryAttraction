@@ -81,7 +81,7 @@ function setup() {
   panzoom = new PanZoom();
   system = new StarSystem();
   sun = system.stars[0];
-  ship = new Player(600, 600);
+  ship = new MainPlayer(600, 600);
   stars = new Stars();
   hud = new HUD();
   scenes = new FASceneManager();

@@ -12,6 +12,7 @@ class Effect {
     this.timeRemaining = this.duration;
     this.done = false;
     this.active = false;
+    this.activated = false;
     this.color = color(255);
   }
 
@@ -27,11 +28,11 @@ class Effect {
     this.timeRemaining += amount;
   }
 
-  update(dt) { }
+  update(dt) {}
 
-  stop() {
+  start() {}
 
-  }
+  stop() {}
 
   run(dt) {
     this.update(dt);
@@ -45,7 +46,7 @@ class Effect {
   }
 
   activate() {
-    this.active = true;
+    this.activated = true;
   }
 }
 
@@ -57,7 +58,7 @@ class SuperSpeed extends Effect {
     this.color = color(30, 180, 200);
   }
 
-  update(dt) {
+  start() {
     this.target.speedMult = 4 + this.level;
     this.target.maneuverabilityMult = 4 + this.level;
     this.target.exaustCol = {
@@ -96,11 +97,11 @@ class CustomRounds extends Effect {
     this.color = color(30, 180, 200);
   }
 
-  update(dt) {
+  start() {
     this.target.bulletType = this.bulletType;
     this.target.bulletLevel = this.level;
   }
-
+  
   stop() {
     this.target.bulletType = this.oldBulletType;
     this.target.bulletLevel = this.oldBulletLevel;
@@ -182,7 +183,7 @@ class MultiShot extends Effect {
     this.multishotQuantity = 2 + this.level;
   }
 
-  update(dt) {
+  start() {
     this.target.multishot = this.multishotQuantity;
   }
 
@@ -250,6 +251,29 @@ class ForceField extends Effect {
     return Math.min(255, this.timeRemaining * 255 / 30) + 50;
   }
 
+  start() {
+    // Store the original takeDamage function
+    this.targetTakeDamageFn = this.target.takeDamage;
+    this.target.takeDamage = (damage, damageSource) => {
+      // Take health from shield first
+      if (this.timeRemaining > 0) {
+        let damageAbsorbed = Math.min(damage, this.timeRemaining);
+        this.timeRemaining -= damageAbsorbed;
+        damage -= damageAbsorbed;
+
+        // Only spawn a health bar for non-player objects
+        if (!(this.target instanceof Player)) {
+          spawnHealthBar(this.dummyObj, 3, this.color);
+        }
+      }
+
+      if (damage > 0) {
+        // Call from the target's scope to avoid issues with using "this"
+        this.targetTakeDamageFn.call(this.target, damage, damageSource);
+      }
+    }
+  }
+
   stop() {
     // Restore the original takeDamage function
     if (!this.targetTakeDamageFn) return;
@@ -265,35 +289,11 @@ class ForceField extends Effect {
       this.stop();
     }
   }
-
-  activate() {
-    super.activate();
-
-    // Store the original takeDamage function
-    this.targetTakeDamageFn = this.target.takeDamage;
-    this.target.takeDamage = (damage, damageSource) => {
-      // Take health from shield first
-      if (this.timeRemaining > 0) {
-        let damageAbsorbed = Math.min(damage, this.timeRemaining);
-        this.timeRemaining -= damageAbsorbed;
-        damage -= damageAbsorbed;
-
-        // Only spawn a health bar for non-player objects
-        if (!this.target instanceof Ship || this.target.name != "ship") {
-          spawnHealthBar(this.dummyObj, 3, this.color);
-        }
-      }
-
-      if (damage > 0) {
-        // Call from the target's scope to avoid issues with using "this"
-        this.targetTakeDamageFn.call(this.target, damage, damageSource);
-      }
-    }
-  }
 }
 
 function updateAllEffects(dt) {
   let affectedObjects = new Map(); // Map to track categories per target
+  let activeEffects = [];
 
   for (let i = 0; i < objectEffects.length; ++i) {
     const effect = objectEffects[i];
@@ -301,13 +301,14 @@ function updateAllEffects(dt) {
 
     // Remove done effects
     if (effect.done) {
+      effect.active = false;
       effect.target.effects.remove(effect);
       objectEffects.splice(i--, 1);
       continue;
     }
 
-    // Skip this effect if it's not active
-    if (!effect.active) {
+    // Skip this effect if it's not activated
+    if (!effect.activated) {
       continue;
     }
 
@@ -323,8 +324,29 @@ function updateAllEffects(dt) {
       continue;
     }
 
-    effect.run(dt);
+    activeEffects.push(effect);
     activeCategories.add(effect.category); // Mark the category as active for this target
+  }
+
+  // Deactivate effects
+  for (let effect of objectEffects) {
+    if (effect.active && !activeEffects.includes(effect)) {
+      effect.active = false;
+      effect.stop();
+    }
+  }
+
+  // Activate effects
+  for (let effect of activeEffects) {
+    if (!effect.active) {
+      effect.active = true;
+      effect.start();
+    }
+  }
+
+  // Run effects
+  for (let effect of activeEffects) {
+    effect.run(dt);
   }
 }
 

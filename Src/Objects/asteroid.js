@@ -101,12 +101,12 @@ class Asteroid extends GravityObject {
     
     spawnExplosion(this.x, this.y, null, this.r / 40 * 0.2, this.r);
     
-    const ownerIsJet = bullet && bullet.owner && (bullet.owner.name == "ship" || bullet.owner.name == "enemy");
-    if (ownerIsJet) this.giveReward(bullet.owner);
+    const ownerIsShip = bullet && bullet.owner instanceof Ship;
+    if (ownerIsShip) this.giveReward(bullet.owner);
   }
 
   giveReward(object) {
-    if (object.name == "ship") hud.addScore(this.getScore());
+    if (object instanceof Player) hud.addScore(this.getScore());
   }
 
   applyEffect(...args) {
@@ -217,7 +217,8 @@ class FuelAsteroid extends Asteroid {
 
   giveReward(object) {
     super.giveReward(object);
-    object.addFuel(this.scaleReward(4), this);
+    if (object instanceof Player)
+      object.addFuel(this.scaleReward(4), this);
   }
 }
 
@@ -271,7 +272,8 @@ class AmmoAsteroid extends Asteroid {
   
   giveReward(object) {
     super.giveReward(object);
-    object.addAmmo(this.scaleReward(15), this);
+    if (object instanceof Player)
+      object.addAmmo(this.scaleReward(15), this);
   }
 }
 
@@ -324,8 +326,6 @@ class ExplosiveAsteroid extends Asteroid {
 
   onDestroy(damageSource) {
     super.onDestroy(damageSource);
-
-    const OWNER = damageSource.owner instanceof Ship && damageSource.owner.name == "ship" ? damageSource.owner : this;
 
     const bulletLevel = this.getLevel();
     const nBullets = 5; // this.scaleReward(8);

@@ -68,9 +68,6 @@ function findObjectHealthBar(obj) {
 }
 
 function spawnHealthBar(obj, t = 1, col = color(0, 255, 0)) {
-    // If object is player, don't spawn health bar
-    if (obj instanceof Ship && obj.name == "ship") return;
-
     // Find existing health bar
     let healthBar = findObjectHealthBar(obj);
     if (healthBar) {

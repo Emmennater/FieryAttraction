@@ -38,8 +38,8 @@ class FASceneManager extends SceneManager {
     this.updateVolume();
 
     // Ship camera mode
-    const cameraMode = getItem("fiery-attraction-camera-mode") ?? "normal";
-    if (cameraMode == "rotated") document.getElementById("alternate-camera").click();
+    this.cameraMode = getItem("fiery-attraction-camera-mode") ?? "normal";
+    document.getElementById("alternate-camera").checked = this.cameraMode == "rotated";
   }
 
   setup() {
@@ -83,5 +83,10 @@ class FASceneManager extends SceneManager {
   runCutScene(dt) {
     if (this.paused) dt = 0;
     super.runCutScene(dt);
+  }
+
+  toggleCameraMode() {
+    this.cameraMode = this.cameraMode == "normal" ? "rotated" : "normal";
+    storeItem("fiery-attraction-camera-mode", this.cameraMode);
   }
 }

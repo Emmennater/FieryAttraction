@@ -8,7 +8,6 @@ const ENEMY_TYPE_CAPS = { black: 3, mega: 5 };
 class Enemy extends Ship {
   constructor(x, y, vx, vy, s = 12) {
     super(x, y, s);
-    this.name = "enemy";
     this.type = "normal";
     this.x = x;
     this.y = y;
@@ -156,7 +155,7 @@ class Enemy extends Ship {
 
   onDestroy(damageSource) {
     spawnExplosion(this.x, this.y, this);
-    if (damageSource && damageSource.owner && damageSource.owner.name == "ship") {
+    if (damageSource && damageSource.owner instanceof Player) {
       this.slainByPlayer = true;
       hud.addScore(this.worth);
       if (damageSource && damageSource.owner) {
@@ -170,9 +169,13 @@ class Enemy extends Ship {
 
     // Adding bullet stray
     const DIST_TO_TARGET = dist(this.x, this.y, ship.x, ship.y);
-    const STRAY_MULT = sqrt(DIST_TO_TARGET) / 20;
+    const STRAY_MULT = sqrt(DIST_TO_TARGET) / 20 * this.bStray;
 
-    if (this.lookingAtTarget) this.fireBullet(STRAY_MULT);
+    if (this.lookingAtTarget && this.bTime <= 0) {
+      this.control.fire = true;
+      const bullet = this.fireBullet(STRAY_MULT);
+      this.bTime += bullet.delay * this.bDelay;
+    }
   }
 
   aimAtTarget(dt, target) {
@@ -233,6 +236,7 @@ class Enemy extends Ship {
     }
 
     super.move(dt);
+    this.takeDamageFromStars(dt);
   }
 }
 

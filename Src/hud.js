@@ -498,7 +498,7 @@ class EffectsBar {
   }
 
   addEffect(effect) {
-    if (effect.active || this.hasEffect(effect)) return false;
+    if (effect.activated || this.hasEffect(effect)) return false;
 
     for (let i = 0; i < this.effectSlots.length; ++i) {
       if (this.effectSlots[i].effect == null && !this.effectSlots[i].locked) {
@@ -649,7 +649,7 @@ class EffectsBar {
     for (let i = 0; i < ship.effects.length; ++i) {
       const effect = ship.effects[i];
       
-      if (!effect.active) continue;
+      if (!effect.activated) continue;
 
       const t = effect.getUsagePercentage();
       

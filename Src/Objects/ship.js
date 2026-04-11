@@ -48,7 +48,6 @@ class Trail extends GameObject {
 class Ship extends GravityObject {
   constructor(x, y, s = 12) {
     super(x, y, 50000);
-    this.name = "ship";
     this.trail = new Trail();
     this.vx = 0;
     this.vy = -35;
@@ -58,27 +57,16 @@ class Ship extends GravityObject {
     this.speed = 8;
     this.turnSpeed = 2.4;
     this.control = { steeringAngle: 0, steerVel: 0, boost: false, fire:false };
-    this.inputs = {};
     this.colliding = false;
-    this.burning = false;
     this.damageDelay = 20 / 60;
     this.damageTime = 0;
     this.sprite = rocketSprite;
     this.alpha = 255;
-    this.angle = 0;
     this.speedMult = 1;
     this.maxSpeed = 100;
     this.damage = 1;
     this.maneuverabilityMult = 1;
     this.maneuverability = 1;
-
-    // Supplies
-    this.fuel = 50;
-    this.ammo = 200;
-    this.health = 100;
-    this.maxFuel = 50;
-    this.maxAmmo = 200;
-    this.maxHealth = 100;
 
     // Boost attributes
     this.oldExaustCol = {
@@ -99,10 +87,11 @@ class Ship extends GravityObject {
     this.lastBullet = null;
 
     // Collision mesh
-    const scl = 1 / 738;
+    const spriteWidth = this.sprite.width;
+    const spriteHeight= this.sprite.height;
     this.makeCollisionMesh([368, 0], [273, 395], [0, 600], [0, 695], [144, 828], [595, 828], [737, 695], [737, 600], [465, 395]);
-    this.collisionMesh.setOrigin(738/2, 897/2);
-    this.collisionMesh.setScale(this.s * 1.4 * scl);
+    this.collisionMesh.setOrigin(spriteWidth/2, spriteHeight/2);
+    this.collisionMesh.setScale(this.s * 1.4 / spriteWidth);
     this.collisionMesh.updateTransform();
   }
 
@@ -157,10 +146,6 @@ class Ship extends GravityObject {
     // this.vx = cos(newAngle) * currentSpeed;
     // this.vy = sin(newAngle) * currentSpeed;
     // this.a += angleDiff * turnFactor * dt;
-
-    if (this.name == "ship") {
-      hud.addCameraShake(10, 0.5);
-    }
   }
 
   getSteeringAccel() {
@@ -173,10 +158,6 @@ class Ship extends GravityObject {
   }
 
   fireBullet(stray = 0) {
-    if (this.bTime > 0) return;
-
-    this.control.fire = true;
-
     const shipAngle = this.a + this.control.steeringAngle;
     const bulletStray = (Math.random() - 0.5) * stray;
     const bulletAngle = shipAngle + bulletStray;
@@ -223,31 +204,8 @@ class Ship extends GravityObject {
     }
 
     this.lastBullet = bullet;
-    this.bTime += bullet.delay * this.bDelay;
     
     return bullet;
-  }
-  
-  addFuel(amount, sender) {
-    amount = Math.min(amount, this.maxFuel - this.fuel);
-    if (amount <= 0) return;
-    this.fuel = this.fuel + amount;
-    if (this.name == "ship") spawnBonusEffect(`+${round(amount * 10) / 10} fuel`, this.x, this.y, color(255, 0, 0), 2);
-  }
-  
-  addAmmo(amount, sender) {
-    amount = Math.min(amount, this.maxAmmo - this.ammo);
-    if (amount <= 0) return;
-    this.ammo = this.ammo + amount;
-    if (this.name == "ship") spawnBonusEffect(`+${round(amount * 10) / 10} ammo`, this.x, this.y, color(255, 120, 0), 2);
-  }
-
-  removeFuel(amount) {
-    this.fuel = Math.max(this.fuel - amount, 0);
-  }
-
-  removeAmmo(amount) {
-    this.ammo = Math.max(this.ammo - amount, 0);
   }
 
   updateMesh() {
@@ -344,7 +302,6 @@ class Ship extends GravityObject {
   
   move(dt) {
     this.attract(dt, 1);
-    this.takeDamageFromStars(dt);
     
     // Constrain velocity
     let maxSpeed = this.control.boost ? this.maxSpeed : this.maxSpeed * 0.4;

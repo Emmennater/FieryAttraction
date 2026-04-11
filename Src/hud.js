@@ -131,11 +131,13 @@ class HUD {
     const MIN_SCALE = min(width, height);
 
     // Motion blur
-    this.temp = lerp(this.temp, ship.stats.temp, 0.02);
+    const { star, dist: d } = system.getClosestStar(ship.x, ship.y);
+    const shipDistToSun = Math.max(d - star.r, 0);
+    const shipTemp = 100 / ((shipDistToSun + 50) * 10 + 100);
+    this.temp = lerp(this.temp, shipTemp, 0.02);
     const ALPHA = lerp(255, 50, this.motionBlur ** 0.5) / (this.temp * 10 * this.motionBlur + 1);
 
     // Shake
-    // const SHAKE_SCALER = Math.max(panzoom.zoom, 1.5);
     const SHAKE_SCALER = 1.0;
     const shakeMult = this.cameraShake.amount * SHAKE_SCALER;
     const shakeSpeed = this.cameraShake.speed;

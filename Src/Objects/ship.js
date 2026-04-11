@@ -58,7 +58,6 @@ class Ship extends GravityObject {
     this.speed = 8;
     this.turnSpeed = 2.4;
     this.control = { steeringAngle: 0, steerVel: 0, boost: false, fire:false };
-    this.stats = { temp: 0, burning: false, wasBurning: false, bulletsShot: 0 };
     this.inputs = {};
     this.colliding = false;
     this.burning = false;
@@ -70,7 +69,6 @@ class Ship extends GravityObject {
     this.speedMult = 1;
     this.maxSpeed = 100;
     this.damage = 1;
-    this.cameraMode = "normal";
     this.maneuverabilityMult = 1;
     this.maneuverability = 1;
 
@@ -92,7 +90,7 @@ class Ship extends GravityObject {
 
     // Bullet attributes
     this.bTime = 0;
-    this.bDelay = 20 / 60;
+    this.bDelay = 1;
     this.bCol = { r: 60, g: 255, b: 80 };
     this.bSpeed = 120;
     this.bulletType = DEFAULT_BULLET.Type;
@@ -107,24 +105,11 @@ class Ship extends GravityObject {
     this.collisionMesh.setScale(this.s * 1.4 * scl);
     this.collisionMesh.updateTransform();
   }
-  
-  applyEffect(Effect, dat, sender = null) {
-    if (this.name == "ship") {
-      const effect = super.applyEffect(Effect, dat, sender);
-      const duration = dat.duration;
-      hud.effectsBar.addEffect(effect);
-      spawnBonusEffect(`+${duration} ${effect.getText()}`, this.x, this.y, effect.color, 2);
-    } else {
-      const effect = super.applyEffect(Effect, dat, sender);
-      effect.activate();
-    }
-  }
 
   steer(dt, delta) {
     if (Math.sign(this.control.steerVel) != Math.sign(delta))
       delta *= 2;
     this.control.steerVel += delta * dt;
-    this.fuel -= 0.0005;
   }
 
   steerTargetAngle(dt, targetAngle) {
@@ -140,93 +125,84 @@ class Ship extends GravityObject {
     this.steer(dt, dir * steerSpeed);
   }
 
-  boost() {
-    if (this.fuel > 0) {
-      this.control.boost = true;
-      this.fuel -= 0.01;
+  boost(dt) {
+    this.control.boost = true;
+
+    const shipAngle = this.a + this.control.steeringAngle;
+    let currentAngle = Math.atan2(this.vy, this.vx);
+    let currentSpeed = Math.hypot(this.vx, this.vy);
+    const nvx = this.vx / currentSpeed;
+    const nvy = this.vy / currentSpeed;
+
+    // If the ship is moving slow in the direction of the player, increase speed
+    // (increased maneuverability)
+    const maneuverability = this.maneuverability * this.maneuverabilityMult;
+    const projectedVelocity = Math.max(0, nvx * cos(shipAngle) + nvy * sin(shipAngle));
+    let speedIncrease = Math.max(1, 3 / (projectedVelocity + 1 / maneuverability));
+
+    let ax = cos(shipAngle) * this.speed * this.speedMult * speedIncrease;
+    let ay = sin(shipAngle) * this.speed * this.speedMult * speedIncrease;
+
+    this.vx += ax * dt;
+    this.vy += ay * dt;
+
+    // currentAngle = Math.atan2(this.vy, this.vx);
+    // currentSpeed = Math.hypot(this.vx, this.vy);
+
+    // Turn the velocity vector by a factor of the maneuverability
+    // let turnFactor = (1 - 1 / (maneuverability + 1)) * 0.5;
+    // let angleDiff = smallestAngleDifference(currentAngle, shipAngle);
+    // let newAngle = currentAngle + angleDiff * turnFactor * dt;
+    
+    // this.vx = cos(newAngle) * currentSpeed;
+    // this.vy = sin(newAngle) * currentSpeed;
+    // this.a += angleDiff * turnFactor * dt;
+
+    if (this.name == "ship") {
+      hud.addCameraShake(10, 0.5);
     }
   }
 
   getSteeringAccel() {
     let turnSpeed = this.fuel > 0 ? this.turnSpeed : this.turnSpeed /  6;
-    // if (keys.SHIFT) turnSpeed *= 0.5;
     return turnSpeed;
   }
-
-  controls(dt) {
-    let oldBoost = this.control.boost;
-    this.control.boost = false;
-    this.control.fire = false;
-    this.bTime -= dt;
-
-    let turnSpeed = this.getSteeringAccel();
-    if (!scenes.paused) {
-      // Steering
-      if (keys.ARROWLEFT || keys.A)
-        this.steer(dt, -turnSpeed);
-      if (keys.ARROWRIGHT || keys.D)
-        this.steer(dt, turnSpeed);
-      
-      // Boosting
-      if (keys.ARROWUP || keys.W)
-        this.boost();
-
-      // Shooting
-      if (keys.SPACE)
-        this.fireBullet(dt);
-    }
-    
-    // Sounds
-    if (oldBoost != this.control.boost) {
-      if (this.control.boost) {
-        htmlSounds.fadeSound(rocketSound, 0.075, 0.2);
-        // sounds.startSound(rocketSound);
-      } else {
-        htmlSounds.fadeSound(rocketSound, 0.0, 0.2);
-        // sounds.stopSound(rocketSound);
-      }
-    }
-    
-    this.fuel = Math.max(this.fuel, 0);
-    // this.control.steerVel += steerDelta * 2 * dt;
-    this.control.steeringAngle += this.control.steerVel * dt;
-  }
   
-  fireBullet(dt) {
-    // Cooldown
+  spawnBullet(dat) {
+    return spawnBullet(dat);
+  }
+
+  fireBullet(stray = 0) {
     if (this.bTime > 0) return;
-    this.bTime = 0;
+
     this.control.fire = true;
-    htmlSounds.playSound(shootSound, 0.02, true);
-    
-    // Out of ammo
-    if (this.ammo <= 0) {
-      this.bTime += this.bDelay * 2;
-    }
 
     const shipAngle = this.a + this.control.steeringAngle;
+    const bulletStray = (Math.random() - 0.5) * stray;
+    const bulletAngle = shipAngle + bulletStray;
+
     const multishot = this.multishot;
     const spreadAngle = PI * 0.1;
     const angleGap = spreadAngle / multishot;
     let bullet = null;
 
     const s = this.s * 0.75;
-    const leftWingX = this.x - cos(shipAngle - HALF_PI) * s + cos(shipAngle) * s * 0.5;
-    const leftWingY = this.y - sin(shipAngle - HALF_PI) * s + sin(shipAngle) * s * 0.5;
-    const rightWingX = this.x - cos(shipAngle + HALF_PI) * s + cos(shipAngle) * s * 0.5;
-    const rightWingY = this.y - sin(shipAngle + HALF_PI) * s + sin(shipAngle) * s * 0.5;
+    const leftWingX = this.x - cos(bulletAngle - HALF_PI) * s + cos(bulletAngle) * s * 0.5;
+    const leftWingY = this.y - sin(bulletAngle - HALF_PI) * s + sin(bulletAngle) * s * 0.5;
+    const rightWingX = this.x - cos(bulletAngle + HALF_PI) * s + cos(bulletAngle) * s * 0.5;
+    const rightWingY = this.y - sin(bulletAngle + HALF_PI) * s + sin(bulletAngle) * s * 0.5;
 
     for (let i = 0; i < multishot; i++) {
-      let a = shipAngle - spreadAngle / 2;
+      let a = bulletAngle - spreadAngle / 2;
       a += angleGap * (i + 0.5);
 
       let x, y;
 
-      if (Math.abs(a - shipAngle) < 0.01) {
+      if (Math.abs(a - bulletAngle) < 0.01) {
         x = this.x + cos(a) * this.s;
         y = this.y + sin(a) * this.s;
       } else {
-        const t = (a - shipAngle + spreadAngle / 2) / spreadAngle;
+        const t = (a - bulletAngle + spreadAngle / 2) / spreadAngle;
         x = lerp(rightWingX, leftWingX, t);
         y = lerp(rightWingY, leftWingY, t);
       }
@@ -235,18 +211,8 @@ class Ship extends GravityObject {
       let vy = this.vy + sin(a) * this.bSpeed;
       
       let bulletStyleCol = this.bCol;
-      const theme = getTheme();
 
-      if (theme == "christmas" || theme == "thanksgiving") {
-        bulletStyleCol = [
-          { r: 255, g: 100, b: 100 },
-          { r: 255, g: 255, b: 255 },
-          { r: 100, g: 255, b: 100 }
-        ][this.stats.bulletsShot % 3];
-      }
-
-      this.stats.bulletsShot++;
-      bullet = spawnBullet({
+      bullet = this.spawnBullet({
         x, y, vx, vy,
         owner: this,
         Type: this.bulletType,
@@ -257,8 +223,9 @@ class Ship extends GravityObject {
     }
 
     this.lastBullet = bullet;
-    this.bTime += bullet.delay;
-    this.ammo = Math.max(this.ammo - bullet.consumes * Math.max(multishot - 1, 1), 0);
+    this.bTime += bullet.delay * this.bDelay;
+    
+    return bullet;
   }
   
   addFuel(amount, sender) {
@@ -275,16 +242,12 @@ class Ship extends GravityObject {
     if (this.name == "ship") spawnBonusEffect(`+${round(amount * 10) / 10} ammo`, this.x, this.y, color(255, 120, 0), 2);
   }
 
-  addHealth(amount, sender, resurrect = true) {
-    super.addHealth(amount, sender);
+  removeFuel(amount) {
+    this.fuel = Math.max(this.fuel - amount, 0);
+  }
 
-    if (this.name == "ship" && resurrect && amount > 0 && this.destroyed) {
-      super.addHealth(this.maxHealth / 4);
-      this.destroyed = false;
-      hud.resurrectEffect();
-      htmlSounds.playSound(resurrectionSound, 1, true);
-      scenes.gameScene.disruptGameOver();
-    }
+  removeAmmo(amount) {
+    this.ammo = Math.max(this.ammo - amount, 0);
   }
 
   updateMesh() {
@@ -301,96 +264,25 @@ class Ship extends GravityObject {
     const star = closestStar.star;
     const d = closestStar.dist;
 
-    // Distance to sun
-    let distToSun = Math.max(d - star.r, 0);
-    this.stats.temp += 100 / ((distToSun + 50) * 10 + 100);
-
-    // Damage from star
     let damage = Math.max(star.r - d, 0) / 4;
     damage = round(damage * 10) / 10;
 
     this.damageTime -= dt;
-    if (damage > 0 && this.damageTime <= 0) {
+    
+    if (this.damageTime <= 0 && damage > 0) {
       this.damageTime = this.damageDelay;
       this.takeDamage(damage);
-      if (this.name == "ship") {
-        hud.addCameraShake(Math.min(damage * 10, 100), 1);
-      }
     }
-
-    // Burning sound
-    if (damage > 0) {
-      this.stats.burning += damage / 30;
-    }
+    
+    return damage;
   }
 
-  move(dt, ctx) {
-    let startOfGame = scenes.sceneTime < 5;
-
-    this.takeDamageFromStars(dt);
-    
-    // Boost
-    const shipAngle = this.a + this.control.steeringAngle;
-    if (this.control.boost) {
-      let currentAngle = Math.atan2(this.vy, this.vx);
-      let currentSpeed = Math.hypot(this.vx, this.vy);
-      const nvx = this.vx / currentSpeed;
-      const nvy = this.vy / currentSpeed;
-
-      // If the ship is moving slow in the direction of the player, increase speed
-      // (increased maneuverability)
-      const maneuverability = this.maneuverability * this.maneuverabilityMult;
-      const projectedVelocity = Math.max(0, nvx * cos(shipAngle) + nvy * sin(shipAngle));
-      let speedIncrease = Math.max(1, 2 / (projectedVelocity + 1 / maneuverability));
-
-      let ax = cos(shipAngle) * this.speed * this.speedMult * speedIncrease;
-      let ay = sin(shipAngle) * this.speed * this.speedMult * speedIncrease;
-
-      this.vx += ax * dt;
-      this.vy += ay * dt;
-
-      currentAngle = Math.atan2(this.vy, this.vx);
-      currentSpeed = Math.hypot(this.vx, this.vy);
-
-      // Turn the velocity vector by a factor of the maneuverability
-      // let turnFactor = (1 - 1 / (maneuverability + 1)) * 0.5;
-      // let angleDiff = smallestAngleDifference(currentAngle, shipAngle);
-      // let newAngle = currentAngle + angleDiff * turnFactor * dt;
-      
-      // this.vx = cos(newAngle) * currentSpeed;
-      // this.vy = sin(newAngle) * currentSpeed;
-      // this.a += angleDiff * turnFactor * dt;
-
-      hud.addCameraShake(10, 0.5);
-    }
-    
-    // Edge force
-    let edgeStrength = 1;
-    if (startOfGame && scenes.introSkipped) edgeStrength = 0;
-    this.attract(dt, 1, edgeStrength);
-    
-    // Constrain velocity
-    if (!startOfGame) {
-      let maxSpeed = this.control.boost ? this.maxSpeed : this.maxSpeed * 0.4;
-      let sp = Math.sqrt(this.vx ** 2 + this.vy ** 2);
-      let ns = Math.min(sp, maxSpeed) / sp;
-      this.vx = lerp(this.vx, this.vx * ns, 1.5 * dt);
-      this.vy = lerp(this.vy, this.vy * ns, 1.5 * dt);
-    }
-
-    // Movement
-    this.x += this.vx * dt;
-    this.y += this.vy * dt;
-    this.vx *= 1 - (1 - this.drag) * dt;
-    this.vy *= 1 - (1 - this.drag) * dt;
+  setPosition(x, y) {
+    this.x = x;
+    this.y = y;
     this.updateMesh();
-
-    // Reduce bullet time
-    this.bulletTime -= dt * 60;
-    if (this.bulletTime < 0)
-      this.bulletTime = 0;
   }
-  
+
   elasticCollision(collidedObj) {
     const playerInitVx = this.vx;
     const playerInitVy = this.vy;
@@ -398,174 +290,82 @@ class Ship extends GravityObject {
     const objectInitVx = objectInitVel.x;
     const objectInitVy = objectInitVel.y;
 
-    elasticCollision(this, collidedObj);
+    const objectA = {
+      x: this.x,
+      y: this.y,
+      vx: this.vx,
+      vy: this.vy,
+      m: this.m
+    };
+
+    const objectB = {
+      x: collidedObj.x,
+      y: collidedObj.y,
+      vx: objectInitVx,
+      vy: objectInitVy,
+      m: collidedObj.m
+    };
+
+    // Force fields boost mass
+    const forceFieldA = this.hasActiveEffect(ForceField);
+    const forceFieldB = collidedObj.hasActiveEffect(ForceField);
+    if (forceFieldA && !forceFieldB) objectB.m = 1;
+    if (!forceFieldA && forceFieldB) objectA.m = 1;
+
+    elasticCollision(objectA, objectB);
     
+    // Update velocities
+    this.vx = objectA.vx;
+    this.vy = objectA.vy;
+    collidedObj.vx = objectB.vx;
+    collidedObj.vy = objectB.vy;
+
     // Calculate the change in velocity (post-collision minus pre-collision)
-    const objectFinalVel = collidedObj.getVelocity();
-    const playerDeltaVx = playerInitVx - this.vx;
-    const playerDeltaVy = playerInitVy - this.vy;
-    const objectDeltaVx = objectInitVx - objectFinalVel.x;
-    const objectDeltaVy = objectInitVy - objectFinalVel.y;
+    const playerDeltaVx = playerInitVx - objectA.vx;
+    const playerDeltaVy = playerInitVy - objectA.vy;
+    const objectDeltaVx = objectInitVx - objectB.vx;
+    const objectDeltaVy = objectInitVy - objectB.vy;
 
     // Compute damage
     const playerDeltaVel = Math.hypot(playerDeltaVx, playerDeltaVy);
     const objectDeltaVel = Math.hypot(objectDeltaVx, objectDeltaVy);
 
-    const playerDamageTaken = round(playerDeltaVel * 2) * 0.1;
-    const objectDamageTaken = round(objectDeltaVel * 1) * 0.1;
+    const playerDamageTaken = round(playerDeltaVel) * 0.1;
+    const objectDamageTaken = round(objectDeltaVel * 0.5) * 0.1;
 
     // Damage
-    this.takeDamage(playerDamageTaken);
-    collidedObj.takeDamage(objectDamageTaken, { owner: this });
-    
-    // Sound
-    htmlSounds.playSound(collisionSound, playerDamageTaken / 10 * 0.2, true);
-
-    // Camera shake
-    const amount = playerDamageTaken * 4;
-    hud.addCameraShake(amount, 1);
-  }
-
-  updateCollisions(dt) {
-    let collided = false;
-    let collidedObj = null;
-    
-    // Asteroid collision
-    for (let asteroid of asteroids) {
-      if (!this.collides(asteroid)) continue;
-      collided = true;
-      collidedObj = asteroid;
-      break;
-    }
-    
-    // Enemy collision
-    for (let enemy of enemies) {
-      if (!this.collides(enemy)) continue;
-      collided = true;
-      collidedObj = enemy;
-      break;
+    if (!forceFieldA && !forceFieldB) {
+      this.takeDamage(playerDamageTaken);
+      collidedObj.takeDamage(objectDamageTaken, { owner: this });
     }
 
-    // Elastic collisions
-    if (collided != this.colliding) {
-      this.colliding = collided;
-      if (collidedObj) this.elasticCollision(collidedObj);
-    }
-
-    // Damage from solar flair
-    let solarDamage = 0;
-    for (let flair of solarFlairs) {
-      if (!this.collides(flair)) continue;
-      solarDamage = flair.getDamage();
-      break;
-    }
-
-    // Damage from solar ring
-    for (let ring of solarRings) {
-      if (!ring.collides(this)) continue;
-      solarDamage = ring.getDamage();
-      break;
-    }
-
-    if (solarDamage > 0) {
-      this.damageTime -= dt;
-      if (this.damageTime <= 0) {
-        this.damageTime = this.damageDelay * 2;
-        this.takeDamage(solarDamage);
-        hud.addCameraShake(Math.min(solarDamage * 10, 100), 0.1);
-      }
-      
-      // Burning sound
-      this.stats.burning += 0.2;
-      this.stats.temp += 0.5;
-    }
+    return { playerDamageTaken, objectDamageTaken };
   }
   
-  updateSounds() {
-    // Sounds
-    if (this.stats.burning != this.stats.wasBurning) {
-      if (this.stats.burning) {
-        const volume = this.stats.burning * 2;
-        htmlSounds.fadeSound(burningSound, volume, 0.1);
-      } else {
-        htmlSounds.fadeSound(burningSound, 0.0, 0.5);
-      }
-    }
-  }
-
-  resetStats() {
-    this.stats.wasBurning = this.stats.burning;
-    this.stats.burning = 0;
-    this.stats.temp = 0;
-  }
-  
-  alignCamera() {
-    let x = this.x;
-    let y = this.y;
+  move(dt) {
+    this.attract(dt, 1);
+    this.takeDamageFromStars(dt);
     
-    const star = system.getClosestStar(this.x, this.y).star;
+    // Constrain velocity
+    let maxSpeed = this.control.boost ? this.maxSpeed : this.maxSpeed * 0.4;
+    let sp = Math.sqrt(this.vx ** 2 + this.vy ** 2);
+    let ns = Math.min(sp, maxSpeed) / sp;
+    this.vx = lerp(this.vx, this.vx * ns, 1.5 * dt);
+    this.vy = lerp(this.vy, this.vy * ns, 1.5 * dt);
 
-    // Calculate angle to sun
-    const sunAngle = Math.atan2(star.y - this.y, star.x - this.x);
-    const r1 = -sunAngle + HALF_PI;
-    const r2 = -this.a - HALF_PI;
-    const r3 = lerpAngle(r1, r2, 0.25);
-    const s = Math.min(width, height) * 0.1;
+    // Movement
+    this.control.steeringAngle += this.control.steerVel * dt;
+    this.x += this.vx * dt;
+    this.y += this.vy * dt;
+    this.vx *= 1 - (1 - this.drag) * dt;
+    this.vy *= 1 - (1 - this.drag) * dt;
+    this.updateMesh();
 
-    switch (this.cameraMode) {
-      case "rotated":
-        x = this.x + cos(this.a) * s / panzoom.zoom;
-        y = this.y + sin(this.a) * s / panzoom.zoom;
-        panzoom.setRotation(r3);
-        break;
-      default:
-        x = this.x + cos(this.a) * s / panzoom.zoom;
-        y = this.y + sin(this.a) * s / panzoom.zoom;
-        panzoom.setRotation(-this.a - HALF_PI);
-        break;
-    }
-    
-    panzoom.setInView(x, y);
-  }
-  
-  toggleCameraMode() {
-    this.cameraMode = this.cameraMode == "normal" ? "rotated" : "normal";
-
-    storeItem("fiery-attraction-camera-mode", this.cameraMode);
+    // Reduce bullet time
+    const outOfAmmoFactor = this.ammo <= 0 ? 0.5 : 1;
+    this.bTime = Math.max(this.bTime - outOfAmmoFactor * dt, 0);
   }
 
-  setPosition(x, y) {
-    this.x = x;
-    this.y = y;
-  }
-  
-  reset(difficultSpawn = false) {
-    let { pos, angle } = system.getRandomSpawn(200, 200, -1, 0);
-    
-    if (difficultSpawn) {
-      this.control.steerVel = 4;
-      angle += PI * 0.2;
-    } else {
-      this.control.steerVel = 0;
-      angle += PI * 0.3;
-    }
-    
-    this.setPosition(pos.x, pos.y);
-    this.vx = cos(angle) * 40;
-    this.vy = sin(angle) * 40;
-    this.a = atan2(this.vy, this.vx);
-    this.fuel = 10;
-    this.ammo = 100;
-    this.health = 60;
-    this.bulletTime = 0;
-    this.damageTime = 0;
-    this.control.steeringAngle = 0;
-    this.destroyed = false;
-    this.bulletType = DEFAULT_BULLET.Type;
-    this.bulletLevel = DEFAULT_BULLET.level;
-    this.stats.bulletsShot = 0;
-  }
-  
   drawBoost(ctx, opacity) {
     let shipTurnRate = (this.control.boost) ? 0.01 : 0.02;
     let oldAngle = fixAngle(this.a);
@@ -659,7 +459,6 @@ class Ship extends GravityObject {
 
     // Draw mesh
     // this.drawMesh(ctx);
-    
   }
 }
 

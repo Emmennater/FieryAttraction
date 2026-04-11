@@ -53,7 +53,7 @@ class MobileControls {
     this.initZoom = 1;
 
     this.fireButton.pressed = function (dt) {
-      ship.fireBullet(dt);
+      ship.fireBullet();
     }
 
     this.boostButton.pressed = function (dt) {

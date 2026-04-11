@@ -38,7 +38,7 @@ class FASceneManager extends SceneManager {
     this.updateVolume();
 
     // Ship camera mode
-    const cameraMode = getItem("fiery-attraction-camera-mode") || "normal";
+    const cameraMode = getItem("fiery-attraction-camera-mode") ?? "normal";
     if (cameraMode == "rotated") document.getElementById("alternate-camera").click();
   }
 

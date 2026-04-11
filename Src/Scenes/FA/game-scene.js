@@ -77,8 +77,7 @@ class GameScene extends Scene {
     moveBullets(dt);
     moveExplosions(dt);
     
-    ship.resetStats();
-    ship.move(dt, ctx);
+    ship.move(dt);
     ship.updateCollisions(dt);
     ship.updateSounds();
     

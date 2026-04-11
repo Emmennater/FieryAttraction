@@ -48,8 +48,8 @@ function getInterceptAngle(turret, target, bulletSpeed) {
 }
 
 function elasticCollision(objectA, objectB) {
-    const objectAVel = objectA.getVelocity();
-    const objectBVel = objectB.getVelocity();
+    const objectAVel = { x: objectA.vx, y: objectA.vy };
+    const objectBVel = { x: objectB.vx, y: objectB.vy };
 
     // Calculate the direction between player and object
     const playerToObject = [objectB.x - objectA.x, objectB.y - objectA.y];
@@ -62,16 +62,17 @@ function elasticCollision(objectA, objectB) {
 
     // Apply the conservation of momentum (elastic collision)
     const combinedMass = objectA.m + objectB.m;
-    const playerNewNormX = (playerNorm * (objectA.m - objectB.m) + 2 * objectB.m * objectNorm) / combinedMass;
-    const objectNewNormX = (objectNorm * (objectB.m - objectA.m) + 2 * objectA.m * playerNorm) / combinedMass;
+    const playerNewNorm = (playerNorm * (objectA.m - objectB.m) + 2 * objectB.m * objectNorm) / combinedMass;
+    const objectNewNorm = (objectNorm * (objectB.m - objectA.m) + 2 * objectA.m * playerNorm) / combinedMass;
 
     // Update velocities based on the new projected velocity in the normal direction
-    const avx = playerNewNormX * playerToObjectNorm[0];
-    const avy = playerNewNormX * playerToObjectNorm[1];
+    const avxDiff = playerNewNorm * playerToObjectNorm[0] - playerNorm * playerToObjectNorm[0];
+    const avyDiff = playerNewNorm * playerToObjectNorm[1] - playerNorm * playerToObjectNorm[1];
+    const bvxDiff = objectNewNorm * playerToObjectNorm[0] - objectNorm * playerToObjectNorm[0];
+    const bvyDiff = objectNewNorm * playerToObjectNorm[1] - objectNorm * playerToObjectNorm[1];
 
-    const bvx = objectNewNormX * playerToObjectNorm[0];
-    const bvy = objectNewNormX * playerToObjectNorm[1];
-
-    objectA.setVelocity(avx, avy);
-    objectB.setVelocity(bvx, bvy);
+    objectA.vx += avxDiff;
+    objectA.vy += avyDiff;
+    objectB.vx += bvxDiff;
+    objectB.vy += bvyDiff;
 }

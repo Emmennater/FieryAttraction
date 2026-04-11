@@ -21,8 +21,8 @@ class Enemy extends Ship {
     this.bulletType = Bullet;
     this.damage = 2 / 5;
     this.range = 200;
-    this.playerRange = 150;
-    this.topSpeed = 100;
+    this.playerRange = 100;
+    this.maxSpeed = 100;
     this.slainByPlayer = false;
     this.worth = 20;
     this.combatProtocol = "neutral";
@@ -45,6 +45,8 @@ class Enemy extends Ship {
   }
 
   getProtocol(dt) {
+    this.control.boost = false;
+
     const closestStar = system.getClosestStar(this.x, this.y);
     const star = closestStar.star;
     const d = closestStar.dist;
@@ -93,23 +95,6 @@ class Enemy extends Ship {
     return "fire";
   }
 
-  boost(dt) {
-    this.control.boost = true;
-    let speedIncrease = 1;
-    
-    // If the ship is moving slow in the direction of the player, increase speed
-    // (increased maneuverability)
-    const shipAngle = this.a + this.control.steeringAngle;
-    const projectedVelocity = Math.max(0, this.vx * cos(shipAngle) + this.vy * sin(shipAngle));
-    speedIncrease = Math.max(1, 2 / (projectedVelocity * 0.1 + 1 / this.maneuverability));
-
-    let ax = cos(shipAngle) * this.speed * this.speedMult * speedIncrease;
-    let ay = sin(shipAngle) * this.speed * this.speedMult * speedIncrease;
-
-    this.vx += ax * dt;
-    this.vy += ay * dt;
-  }
-
   avoidStars(dt) {
     const closestStar = system.getClosestStar(this.x, this.y);
     const star = closestStar.star;
@@ -143,7 +128,9 @@ class Enemy extends Ship {
   }
 
   applyEffect(Effect, dat = {}, ...rest) {
-    super.applyEffect(Effect, dat, ...rest);
+    const effect = super.applyEffect(Effect, dat, ...rest);
+    effect.activate();
+    
     let level = dat.level;
     let duration = dat.duration;
 
@@ -178,75 +165,14 @@ class Enemy extends Ship {
     }
   }
 
-  spawnBullet(dat) {
-    const bullet = spawnBullet(dat);
-    return bullet;
-  }
-
-  fireBullet() {
-    if (this.bTime > 0) return;
-
-    let bulletAngle = this.control.steeringAngle + this.a;
+  attackPlayer(dt) {
+    this.combatProtocol = this.updateCombatProtocol(dt, ship);
 
     // Adding bullet stray
     const DIST_TO_TARGET = dist(this.x, this.y, ship.x, ship.y);
     const STRAY_MULT = sqrt(DIST_TO_TARGET) / 20;
-    let stray = (Math.random() * this.bStray - this.bStray / 2) * STRAY_MULT;
-    bulletAngle += stray;
 
-    const multishot = this.multishot;
-    const spreadAngle = PI * 0.1;
-    const angleGap = spreadAngle / multishot;
-    let bullet = null;
-    
-    const s = this.s * 0.75;
-    const leftWingX = this.x - cos(bulletAngle - HALF_PI) * s + cos(bulletAngle) * s * 0.5;
-    const leftWingY = this.y - sin(bulletAngle - HALF_PI) * s + sin(bulletAngle) * s * 0.5;
-    const rightWingX = this.x - cos(bulletAngle + HALF_PI) * s + cos(bulletAngle) * s * 0.5;
-    const rightWingY = this.y - sin(bulletAngle + HALF_PI) * s + sin(bulletAngle) * s * 0.5;
-
-    for (let i = 0; i < multishot; i++) {
-      let a = bulletAngle - spreadAngle / 2;
-      a += angleGap * (i + 0.5);
-
-      let x, y;
-
-      if (Math.abs(a - bulletAngle) < 0.01) {
-        x = this.x + cos(a) * this.s;
-        y = this.y + sin(a) * this.s;
-      } else {
-        const t = (a - bulletAngle + spreadAngle / 2) / spreadAngle;
-        x = lerp(rightWingX, leftWingX, t);
-        y = lerp(rightWingY, leftWingY, t);
-      }
-
-      let vx = this.vx + cos(a) * this.bSpeed;
-      let vy = this.vy + sin(a) * this.bSpeed;
-      
-      // Shoot bullet
-      bullet = this.spawnBullet({
-        x: this.x, y: this.y, vx, vy,
-        owner: this,
-        Type: this.bulletType,
-        damageMult: this.damage,
-        level: this.bulletLevel,
-        bCol: this.bCol,
-        gravity: this.bGravity,
-        decay: this.bDecay,
-        impactForce: this.bImpactForce
-      });
-    }
-
-    this.lastBullet = bullet;
-
-    this.bTime = bullet.delay * this.bDelay;
-  }
-
-  attackPlayer(dt) {
-    this.bTime -= dt;
-    this.combatProtocol = this.updateCombatProtocol(dt, ship);
-
-    if (this.lookingAtTarget) this.fireBullet();
+    if (this.lookingAtTarget) this.fireBullet(STRAY_MULT);
   }
 
   aimAtTarget(dt, target) {
@@ -298,14 +224,6 @@ class Enemy extends Ship {
   }
 
   move(dt) {
-    // Gravity
-    this.attract(dt, 1);
-
-    // Stars
-    this.takeDamageFromStars(dt);
-
-    this.control.boost = false;
-
     const protocol = this.getProtocol(dt);
 
     switch (protocol) {
@@ -313,20 +231,8 @@ class Enemy extends Ship {
       case "attack": this.attackPlayer(dt); break;
       case "neutral": this.steerTargetAngle(dt, 0); break;
     }
-    
-    // Constrain velocity
-    const rate = protocol == "escape star" ? 6 : 0.6;
-    let maxSpeed = this.control.boost ? this.topSpeed : this.topSpeed * 0.4;
-    let sp = Math.sqrt(this.vx ** 2 + this.vy ** 2);
-    let ns = Math.min(sp, maxSpeed) / sp;
-    this.vx = lerp(this.vx, this.vx * ns, 1.5 * dt);
-    this.vy = lerp(this.vy, this.vy * ns, 1.5 * dt);
-    
-    this.control.steeringAngle += this.control.steerVel * dt;
-    this.x += this.vx * dt;
-    this.y += this.vy * dt;
 
-    this.updateMesh();
+    super.move(dt);
   }
 }
 
@@ -385,11 +291,10 @@ class SpeedEnemy extends Enemy {
     this.type = "speed";
     this.bulletType = SpeedBullet;
     this.sprite = speedEnemySprite;
-    this.revive = false;
     this.range = 220;
-    this.playerRange = 150;
-    this.speed = 80;
-    this.topSpeed = 300;
+    this.playerRange = 100;
+    this.speed = 40;
+    this.maxSpeed = 200;
     this.setHealth(20, 20);
     this.worth = 25;
     
@@ -423,7 +328,7 @@ class UltraSpeedEnemy extends SpeedEnemy {
     this.range = 400;
     this.playerRange = 0;
     this.speed = 120;
-    this.topSpeed = 400;
+    this.maxSpeed = 400;
     this.setHealth(40, 40);
     this.worth = 40;
     this.maneuverability = 5;
@@ -520,7 +425,7 @@ class HurricaneEnemy extends Enemy {
     this.setHealth(50, 50);
     this.worth = 50;
     this.speed = 80;
-    this.topSpeed = 300;
+    this.maxSpeed = 300;
     this.maxTargetAngleError = PI;
     this.range = 350;
     this.playerRange = 200;
@@ -621,7 +526,7 @@ class HurricaneEnemy extends Enemy {
 function initEnemies(count) {
   if (noSpawns) return;
   // const a = atan2(ship.y, ship.x);
-  // const enemy = createEnemy("normal", ship.x + cos(a) * 150, ship.y + sin(a) * 150, 0, 0);
+  // const enemy = createEnemy("hurricane", ship.x + cos(a) * 150, ship.y + sin(a) * 150, 0, 0);
   // enemies.push(enemy);
   // enemy.applyEffect(ForceField, { duration: 20, level: 1 });
   // enemy.health = 1;

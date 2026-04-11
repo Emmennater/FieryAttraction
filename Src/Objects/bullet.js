@@ -27,6 +27,7 @@ class Bullet extends GravityObject {
   
   transferMomentumTo(object) {
     if (!object) return;
+    if (object.hasActiveEffect(ForceField)) return;
     const vx = this.vx * this.m / object.m * this.impactForce;
     const vy = this.vy * this.m / object.m * this.impactForce;
     object.addVelocity(vx, vy);
@@ -57,7 +58,8 @@ class Bullet extends GravityObject {
         this.destroy();
         ship.takeDamage(this.damage * this.damageMult, this);
         this.transferMomentumTo(ship);
-        hud.addCameraShake(50, 1);
+        if (!ship.hasActiveEffect(ForceField))
+          hud.addCameraShake(50, 1);
         htmlSounds.playSound(hitSound, 0.5);
         return;
       }

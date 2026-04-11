@@ -57,7 +57,8 @@ class GameObject extends CollisionObject {
     }
   }
 
-  hasActiveEffect() {
+  hasActiveEffect(Effect = null) {
+    if (Effect !== null) return this.getActiveEffect(Effect) !== null;
     for (let effect of this.effects) {
       if (effect.active) return true;
     }

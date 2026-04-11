@@ -413,7 +413,8 @@ function initAsteroids() {
   if (noSpawns) return;
   
   // Test
-  // const asteroid = createAsteroid("regen", ship.x + 100, ship.y, ship.vx, ship.vy, 20);
+  // const asteroid = createAsteroid("normal", ship.x + ship.vx * 10, ship.y + ship.vy * 10, -ship.vx * 2, -ship.vy * 2, 80);
+  // const asteroid = createAsteroid("normal", ship.x + 100, ship.y, ship.vx, ship.vy, 80);
   // asteroids.push(asteroid);
 
   const SPAWN_RADIUS = 200;

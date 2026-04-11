@@ -252,6 +252,7 @@ class ForceField extends Effect {
 
   stop() {
     // Restore the original takeDamage function
+    if (!this.targetTakeDamageFn) return;
     this.target.takeDamage = this.targetTakeDamageFn;
   }
 

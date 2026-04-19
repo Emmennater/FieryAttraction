@@ -12,7 +12,9 @@ const ASTEROID_COUNTS = {
   normal: 0,
   fuel: 0,
   ammo: 0,
-  health: 0
+  health: 0,
+  "anti health": 0,
+  explosive: 0
 };
 
 const ASTEROID_MINIMUMS = {
@@ -456,7 +458,9 @@ function moveAsteroids(dt) {
         }
 
         // Replacement asteroids
-        spawnAsteroid(newType, 600, random(30, 60));
+        if (asteroids.length < CAP) {
+          spawnAsteroid(newType, 600, random(30, 60));
+        }
         if (Math.random() < 0.5 && asteroids.length < CAP) {
           spawnAsteroid(randomAsteroidType(), 600, random(30, 60));
         }

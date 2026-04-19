@@ -29,7 +29,7 @@ To allow people outside of your network to access your port, you will need to ad
 You also need to portfoward the address by signing into your router. If you have permission you can access the login by going to address under `Default Gateway` when you type `ipconfig` in Command Prompt. Looks like `192.168.x.1` where x is usually a small number. The steps to portfowarding vary depending on the router. I recommend finding a tutorial online for your specific router.
 
 #### Alternative
-It is possible to skip the portfowarding by using a tunneling service such as [ngrok](https://ngrok.com/) to create a public URL (much easier).
+It is possible to skip portfowarding by using a tunneling service such as [ngrok](https://ngrok.com/) to create a public URL (much easier).
 1. Install ngrok and add the exe to your path so that it is accessible from the terminal.
 2. Create an ngrok account.
 3. Getting Started > Your Authtoken

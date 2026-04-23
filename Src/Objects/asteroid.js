@@ -1,20 +1,11 @@
 
 const ASTEROID_QUEUE = [];
 
-const ASTEROID_RATIOS = {
-  normal: 0.5,
-  fuel: 0.2,
-  ammo: 0.2,
-  health: 0.1
-};
-
 const ASTEROID_COUNTS = {
   normal: 0,
   fuel: 0,
-  ammo: 0,
   health: 0,
-  "anti health": 0,
-  explosive: 0
+  ammo: 0
 };
 
 const ASTEROID_MINIMUMS = {
@@ -390,7 +381,9 @@ function destroyAllAsteroids() {
 }
 
 function spawnAsteroid(type, spawnRadius = 600, delay = 0) {
-  ASTEROID_COUNTS[type]++;
+  if (type in ASTEROID_COUNTS) {
+    ASTEROID_COUNTS[type]++;
+  }
   
   const spawnAsteroid = () => {
     // Player check
@@ -407,8 +400,15 @@ function spawnAsteroid(type, spawnRadius = 600, delay = 0) {
     asteroids.push(asteroid);
   }
 
-  if (delay == 0) spawnAsteroid();
-  else setTimeout(spawnAsteroid, delay * 1000);
+  if (delay == 0) {
+    spawnAsteroid();
+  } else {
+    const timer = setTimeout(() => {
+      ASTEROID_QUEUE.splice(ASTEROID_QUEUE.indexOf(timer), 1);
+      spawnAsteroid();
+    }, delay * 1000);
+    ASTEROID_QUEUE.push(timer);
+  }
 }
 
 function initAsteroids() {
@@ -439,23 +439,16 @@ function moveAsteroids(dt) {
     if (asteroid.destroyed) {
       asteroids.splice(i, 1);
       asteroid.removeAllEffects();
-      ASTEROID_COUNTS[asteroid.type]--;
+
+      if (asteroid.type in ASTEROID_COUNTS) {
+        ASTEROID_COUNTS[asteroid.type]--;
+      }
 
       // For every asteroid destroyed, 2 more spawn
       if (!asteroid.isSplit) {
-
-        // Current ratio for this type
-        const oldType = asteroid.type || "normal";
-        const expectedRatio = ASTEROID_RATIOS[oldType];
-        const currentRatio = ASTEROID_COUNTS[oldType] / asteroids.length;
-        // let newType = (currentRatio <= expectedRatio) ? asteroid.type : randomAsteroid();
-
-        // Minimum asteroids (preserve asteroid types)
-        let newType = randomAsteroidType();
-        const TYPE_MIN = ASTEROID_MINIMUMS[oldType];
-        if (TYPE_MIN && ASTEROID_COUNTS[asteroid.type] < TYPE_MIN) {
-          newType = oldType;
-        }
+        const oldType = asteroid.type;
+        const notEnough = ASTEROID_MINIMUMS[oldType] && ASTEROID_COUNTS[oldType] < ASTEROID_MINIMUMS[oldType];
+        const newType = notEnough ? oldType : randomAsteroidType();
 
         // Replacement asteroids
         if (asteroids.length < CAP) {
@@ -573,6 +566,13 @@ function trueRandomAsteroid() {
 }
 
 function clearAsteroids() {
+  // Clear asteroid queue
+  for (let timer of ASTEROID_QUEUE) {
+    clearTimeout(timer);
+  }
+
+  ASTEROID_QUEUE.length = 0;
+
   for (let asteroid of asteroids) {
     asteroid.removeAllEffects();
   }

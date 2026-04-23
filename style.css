@@ -61,7 +61,7 @@ vbox {
 }
 
 #server-controls inputline {
-  margin-top: 10px;
+  margin: 5px 0px;
 }
 
 inputline {
@@ -106,6 +106,7 @@ button {
 
   font-family: space-font;
   font-size: calc(min(3vw, 16px));
+  letter-spacing: 2px;
   
   min-height: 40px;
   max-width: 40vw;
@@ -204,25 +205,6 @@ button:active {
   text-align: left; 
   margin: 10px; 
   flex-grow: 1; 
-}
-
-.section-contents button {
-  min-height: 0px;
-  max-width: 200px;
-  margin: 14px;
-  padding: 4px 14px;
-
-  font-family: Trebuchet MS, sans-serif;
-  font-size: 24px;
-  font-weight: bold;
-  text-align: center;
-  
-  color: white;
-  border: solid 2px white;
-  background: transparent;
-  cursor: pointer;
-
-  user-select: none;
 }
 
 .fullscreen-button {

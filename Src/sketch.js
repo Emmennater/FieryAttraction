@@ -86,6 +86,7 @@ function setup() {
   scenes = new FASceneManager();
   sounds = new Sounds();
   htmlSounds = new HTMLSounds();
+  multiplayer = new Multiplayer();
 
   // Objects
   asteroids = [];

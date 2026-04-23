@@ -4,11 +4,11 @@
   "description": "fiery attraction server",
   "license": "MIT",
   "author": "emmettdj",
-  "type": "commonjs",
+  "type": "module",
   "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js"
+    "start": "node server.ts"
   },
   "dependencies": {
     "http": "^0.0.1-security",

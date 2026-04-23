@@ -3,8 +3,12 @@
   <head>
     
     <title>Fiery Attraction</title>
+    
+    <!-- Dependencies -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/addons/p5.sound.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/socket.io@4.8.3/client-dist/socket.io.min.js"></script>
+    
     <link rel="stylesheet" type="text/css" href="style.css">
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
@@ -102,6 +106,7 @@
     <script src="Src/Other/stars.js"></script>
     <script src="Src/Other/guides.js"></script>
     <script src="Src/Other/radar.js"></script>
+    <script src="Src/Other/state-tracker.js"></script>
 
     <!-- Scene Sources -->
     <script src="Src/Scenes/scene.js"></script>
@@ -110,6 +115,8 @@
     <script src="Src/Scenes/FA/title-scene.js"></script>
     <script src="Src/Scenes/FA/intro-scene.js"></script>
     <script src="Src/Scenes/FA/game-scene.js"></script>
+    <script src="Src/Scenes/FA/host-game-scene.js"></script>
+    <script src="Src/Scenes/FA/client-game-scene.js"></script>
     <script src="Src/Scenes/FA/game-over-scene.js"></script>
 
     <script src="Src/hud.js"></script>
@@ -221,9 +228,9 @@
               Port
               <input id="server-port" type="text" value="6402">
             </inputline>
-            <button>Join</button>
           </div>
-          <h1>Not Sure How To Start a Server?</h1>
+          <button onclick="multiplayer.join()">Join</button>
+          <h1>Not Sure How to Start a Server?</h1>
           Download the Server Folder at <a target="_blank" href="https://github.com/Emmennater/FieryAttraction">https://github.com/Emmennater/FieryAttraction</a>
           <br>Follow the instructions in the readme.
         </vbox>

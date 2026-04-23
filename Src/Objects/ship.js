@@ -88,7 +88,7 @@ class Ship extends GravityObject {
 
     // Collision mesh
     const spriteWidth = this.sprite.width;
-    const spriteHeight= this.sprite.height;
+    const spriteHeight = this.sprite.height;
     this.makeCollisionMesh([368, 0], [273, 395], [0, 600], [0, 695], [144, 828], [595, 828], [737, 695], [737, 600], [465, 395]);
     this.collisionMesh.setOrigin(spriteWidth/2, spriteHeight/2);
     this.collisionMesh.setScale(this.s * 1.4 / spriteWidth);

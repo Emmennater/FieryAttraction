@@ -7,9 +7,6 @@ class GameScene extends Scene {
   }
   
   init() {
-    if (mobile.isMobile)
-      scenes.pauseButton.style.visibility = "visible";
-
     // Settings
     hud.reset();
     this.eventManager.reset();
@@ -29,12 +26,20 @@ class GameScene extends Scene {
   
     clearAllEffects();
     clearAsteroids();
-    initAsteroids();
-
-    const ENEMY_COUNT = scenes.introSkipped ? 4 : 2;
-    initEnemies(ENEMY_COUNT);
+    
+    // Host or Singleplayer
+    if (!multiplayer.isClient()) {
+      const ENEMY_COUNT = scenes.introSkipped ? 4 : 2;
+      initAsteroids();
+      initEnemies(ENEMY_COUNT);
+    }
 
     if (mobile.isMobile) {
+      // Show pause button
+      if (multiplayer.isInactive()) {
+        scenes.pauseButton.style.visibility = "visible";
+      }
+
       // Show effect buttons
       hud.effectsBar.showButtons();
     }
@@ -42,11 +47,11 @@ class GameScene extends Scene {
 
   run(dt, ctx) {
     // Pausing
-    if (pressed.P || pressed.ESCAPE) {
+    if ((pressed.P || pressed.ESCAPE) && multiplayer.isInactive()) {
       scenes.togglePause();
     }
-    if (scenes.paused)
-      dt = 0;
+
+    if (scenes.paused) dt = 0;
 
     ship.controls(dt);
     mobile.update(dt);

@@ -4,6 +4,8 @@ class EventManager {
     this.thresholds = [];
 
     this.addEvent(300, () => {
+      if (multiplayer.isClient()) return;
+
       const MAX_ENEMIES = 15;
 
       if (enemies.length >= MAX_ENEMIES) {
@@ -16,6 +18,7 @@ class EventManager {
     });
 
     this.addEvent(500, () => {
+      if (multiplayer.isClient()) return;
       this.startRandomEvent();
     });
 

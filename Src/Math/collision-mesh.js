@@ -189,7 +189,7 @@ class CollisionMesh {
     return false;
   }
 
-  draw(ctx, fcol = color(0, 0), scol = color(255), transformed = true) {
+  draw(ctx, fcol = color(0, 0), scol = color(255, 0, 0), transformed = true) {
     const polygons = this.transformUpdated && transformed ? this.transformedTris : this.tris;
     const scalar = transformed ? this.scl : 1;
     const sWeight = 1 / panzoom.zoom;

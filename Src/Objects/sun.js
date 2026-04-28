@@ -1,6 +1,6 @@
 
 class Sun {
-  constructor(x = 0, y = 0, r = 400) {
+  constructor(x = 0, y = 0, r = 300) {
     this.x = x;
     this.y = y;
     this.rot = 0;

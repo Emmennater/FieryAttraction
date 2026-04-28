@@ -120,7 +120,7 @@ class MainPlayer extends Player {
     this.setPosition(pos.x, pos.y);
     this.vx = cos(angle) * 40;
     this.vy = sin(angle) * 40;
-    this.a = atan2(this.vy, this.vx);
+    this.a = angle;
     this.fuel = 10;
     this.ammo = 100;
     this.health = 60;

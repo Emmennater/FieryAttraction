@@ -391,3 +391,4 @@ function prioritizeEffect(effect) {
     }
   }
 }
+

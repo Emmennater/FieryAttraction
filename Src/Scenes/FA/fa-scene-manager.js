@@ -13,7 +13,7 @@ class FASceneManager extends SceneManager {
     // Scenes
     this.titleScene = new TitleScene();
     this.introScene = new IntroScene();
-    this.gameScene = new GameScene2();
+    this.gameScene = new GameScene();
     this.gameOverScene = new GameOverScene();
 
     // Elements

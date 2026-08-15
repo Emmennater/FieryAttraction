@@ -15,6 +15,13 @@ const CLASS_PROPERTIES = {
     activeEffects: [],
     rewardedEffects: [],
   },
+  collidableObject: {
+    collision: {
+      get points() { throw "Collision points not implemented" },
+      get origin() { throw "Collision origin not implemented" },
+      get scale() { throw "Collision scale not implemented" },
+    }
+  },
   effect: {
     type: "none",
     group: "none",
@@ -22,7 +29,7 @@ const CLASS_PROPERTIES = {
     totalAmount: 0,
   },
   asteroid: {
-    inherits: ["physicalObject"],
+    inherits: ["physicalObject", "collidableObject"],
     type: "normal",
     angularVelocity: 0,
     radius: 20,
@@ -45,7 +52,7 @@ const CLASS_PROPERTIES = {
     }
   },
   ship: {
-    inherits: ["physicalObject", "effectableObject"],
+    inherits: ["physicalObject", "effectableObject", "collidableObject"],
     controls: { boost: false, fire: false, steer: 0 },
     timers: { solarDamage: 0, firing: 0 },
     colliding: false,

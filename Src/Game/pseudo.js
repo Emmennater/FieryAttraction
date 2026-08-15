@@ -16,150 +16,12 @@ Get/set attribute function:
 
 Object wrappers should not be used to represent game objects:
 - Keep simulation, rendering, and audio separate.
+Object wrappers can be used if they only represent state.
 
 Self-detecting effect/event incompatibility:
 - When an effect/event modifies a similar property.
 
 */
-
-function deepCopy(object) {
-  if (Array.isArray(object)) return object.map(deepCopy);
-  if (typeof object === "object") return merge({}, object);
-  return object;
-}
-
-function merge(current, updates) {
-  if (Array.isArray(current) && Array.isArray(updates)) {
-    return deepCopy([...current, ...updates]);
-  }
-
-  if (Array.isArray(updates)) {
-    return deepCopy(updates);
-  }
-
-  const result = Object.create(
-    Object.getPrototypeOf(current),
-    Object.getOwnPropertyDescriptors(current)
-  );
-
-  for (const key of Object.keys(updates)) {
-    const updateValue = updates[key];
-    const currentValue = result[key];
-
-    if (Array.isArray(updateValue)) {
-      result[key] = merge(currentValue, updateValue);
-    } else if (
-      !Object.prototype.hasOwnProperty.call(result, key) ||
-      updateValue === null ||
-      typeof updateValue !== "object" ||
-      currentValue === null ||
-      typeof currentValue !== "object"
-    ) {
-      const descriptor = Object.getOwnPropertyDescriptor(updates, key);
-
-      Object.defineProperty(result, key, descriptor);
-    } else {
-      result[key] = merge(currentValue, updateValue);
-    }
-  }
-
-  return result;
-}
-
-class Entity {
-  static get properties() {
-    return {
-      x: 0,
-      y: 0,
-      vx: 0,
-      vy: 0,
-      mass: 0,
-      destroyed: false,
-    };
-  }
-
-  static create() {
-    // In a static method, "this" refers to the class, not the instance.
-    const Parent = Object.getPrototypeOf(this);
-    
-    let properties = this === Entity ?
-      deepCopy(this.properties) :
-      merge(Parent.properties, this.properties);
-
-    return {
-      get(...keys) {
-        const value = keys.reduce((a, b) => a[b], properties);
-        if (typeof value === "object" && value !== null)
-          throw "Cannot get object";
-        return value;
-      },
-      set(value, ...keys) {
-        const key = keys.pop();
-        const obj = keys.reduce((a, b) => a[b], properties);
-        if (typeof obj[key] === "object" && obj[key] !== null)
-          throw "Cannot set object";
-        if (typeof value === "object" && value !== null)
-          throw "Value cannot be object";
-        value[key] = value;
-      },
-      has(...keys) {
-        const key = keys.pop();
-        const obj = keys.reduce((a, b) => a[b], properties);
-        return key in obj;
-      },
-      keys() {
-        const keys = [];
-
-        (function addKeys(obj, keyList) {
-          for (const key of Object.keys(obj)) {
-            if (typeof obj[key] === "object" && obj[key] !== null) {
-              addKeys(obj[key], [...keyList, key]);
-            } else {
-              keys.push([...keyList, key]);
-            }
-          }
-        })(properties, []);
-
-        return keys;
-      }
-    };
-  }
-}
-
-class PlayerEntity extends Entity {
-  static get properties() {
-    return {
-      controls: {
-        boost: false,
-        fire: false,
-        steer: 0,
-      }
-    };
-  }
-}
-
-function newState() {
-  return {
-    objects: {
-      players: [],
-      asteroids: [],
-      bullets: [],
-      enemies: [],
-    }
-  };
-}
-
-function processEvents(state, events) {
-
-}
-
-function tick(state) {
-  let events = [];
-
-
-}
-
-
 
 class EventCreator {
   static #newEvent(type, data) {
@@ -168,5 +30,76 @@ class EventCreator {
   
   static objectCreated(id, name, params) {
     return this.#newEvent("object_created", { id, name, params });
+  }
+}
+
+class State {};
+
+State.prototype.Position = class Position {
+  constructor(x, y) {
+    this.x = x ?? 0;
+    this.y = y ?? 0;
+  }
+}
+
+State.prototype.Velocity = class Velocity {
+  constructor(x, y) {
+    this.x = x ?? 0;
+    this.y = y ?? 0;
+  }
+}
+
+State.prototype.CollisionMesh = class CollisionMesh {
+  constructor(points, origin, scale) {
+    this.points = points ?? [];
+    this.origin = origin ?? new State.Position();
+    this.scale = scale ?? 1;
+  }
+}
+
+State.prototype.Sun = class Sun {
+  constructor() {
+    this.position = new State.Position();
+    this.radius = 300;
+    this.density = 1.4;
+  }
+
+  get mass() { return Math.PI * this.radius ** 2 * this.density; }
+}
+
+State.prototype.Asteroid = class Asteroid {
+  constructor(position, velocity, radius) {
+    this.position = position ?? new State.Position();
+    this.velocity = velocity ?? new State.Velocity();
+    this.radius = radius ?? 20;
+    this.collisionMesh = new State.CollisionMesh();
+  }
+}
+
+State.prototype.Ship = class Ship {
+  constructor(position, velocity) {
+    this.position = position ?? new State.Position();
+    this.velocity = velocity ?? new State.Velocity();
+    this.collisionMesh = new State.CollisionMesh();
+  }
+}
+
+State.prototype.Player = class Player {
+  constructor(ship, score) {
+    this.ship = ship ?? new State.Ship();
+    this.score = score ?? 0;
+  }
+}
+
+State.prototype.Enemy = class Enemy {
+  constructor(ship) {
+    this.ship = ship ?? new State.Ship();
+  }
+}
+
+State.prototype.Bullet = class Bullet {
+  constructor(position, velocity) {
+    this.position = position ?? new State.Position();
+    this.velocity = velocity ?? new State.Velocity();
   }
 }

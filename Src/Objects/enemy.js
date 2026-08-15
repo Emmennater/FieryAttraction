@@ -40,7 +40,7 @@ class Enemy extends Ship {
     this.bCol = { r:255, g:80, b:60 };
     this.bStray = 1.0; // 0.2 0.6
     this.lastBullet = null;
-    this.maxTargetAngleError = 0.4;
+    this.maxTargetAngleError = 0.6;
   }
 
   getProtocol(dt) {
@@ -80,7 +80,7 @@ class Enemy extends Ship {
 
     // Boost
     const inRange = distToTarget > this.playerRange;
-    const getCloseToTarget = inRange && targetAngleDiff < PI * 0.4 && enemySpeed < 100;
+    const getCloseToTarget = inRange && targetAngleDiff < PI * 0.2; // && enemySpeed < 100;
     const ramPlayer = targetAngleDiff < 0.2 && (enemySpeed > RAM_MIN_SPEED || distToTarget > 200) && this.health > 20;
 
     if (getCloseToTarget || ramPlayer) {
@@ -296,8 +296,9 @@ class SpeedEnemy extends Enemy {
     this.bulletType = SpeedBullet;
     this.sprite = speedEnemySprite;
     this.range = 220;
-    this.playerRange = 100;
+    this.playerRange = 50;
     this.speed = 40;
+    this.turnSpeed = 4;
     this.maxSpeed = 200;
     this.setHealth(20, 20);
     this.worth = 25;
@@ -331,11 +332,12 @@ class UltraSpeedEnemy extends SpeedEnemy {
     this.sprite = ultraspeedEnemySprite;
     this.range = 400;
     this.playerRange = 0;
-    this.speed = 120;
-    this.maxSpeed = 400;
+    this.speed = 80;
+    this.maxSpeed = 200;
+    this.turnSpeed = 8;
     this.setHealth(40, 40);
     this.worth = 40;
-    this.maneuverability = 5;
+    this.maneuverability = 10;
 
     // Bullet attributes
     this.bDelay = 1;
@@ -530,7 +532,7 @@ class HurricaneEnemy extends Enemy {
 function initEnemies(count) {
   if (noSpawns) return;
   // const a = atan2(ship.y, ship.x);
-  // const enemy = createEnemy("hurricane", ship.x + cos(a) * 150, ship.y + sin(a) * 150, 0, 0);
+  // const enemy = createEnemy("ultraspeed", ship.x + cos(a) * 150, ship.y + sin(a) * 150, 0, 0);
   // enemies.push(enemy);
   // enemy.applyEffect(ForceField, { duration: 20, level: 1 });
   // enemy.health = 1;

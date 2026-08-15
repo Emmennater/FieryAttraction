@@ -22,9 +22,11 @@ class Enemy extends Ship {
     this.range = 200;
     this.playerRange = 100;
     this.maxSpeed = 100;
+    this.turnSpeed = 3;
     this.slainByPlayer = false;
     this.worth = 20;
     this.combatProtocol = "neutral";
+    this.timeToSwitchProtocol = 0;
     this.lookingAtTarget = false;
     this.enemyLockonTimer = 0;
     this.lockonTime = 5;
@@ -49,8 +51,20 @@ class Enemy extends Ship {
     const closestStar = system.getClosestStar(this.x, this.y);
     const star = closestStar.star;
     const d = closestStar.dist;
+    
+    // Calculate projected velocity toward star
+    const starDx = star.x - this.x;
+    const starDy = star.y - this.y;
+    const starNx = starDx / d;
+    const starNy = starDy / d;
+    
+    // Use dot product to find velocity in direction of star
+    const starSpeed = this.vx * starNx + this.vy * starNy;
 
-    const closeToStar = d < star.r + 120;
+    // Time for correction
+    const timeToCorrect = 3;
+    const travelDist = Math.max(starSpeed * timeToCorrect, 0);
+    const closeToStar = d < star.r + 20 + travelDist;
 
     if (closeToStar) return "escape star";
 
@@ -83,14 +97,8 @@ class Enemy extends Ship {
     const getCloseToTarget = inRange && targetAngleDiff < PI * 0.2; // && enemySpeed < 100;
     const ramPlayer = targetAngleDiff < 0.2 && (enemySpeed > RAM_MIN_SPEED || distToTarget > 200) && this.health > 20;
 
-    if (getCloseToTarget || ramPlayer) {
-      this.lookAtTarget(dt, target);
-      this.boost(dt);
-      return "boost";
-    }
+    if (getCloseToTarget || ramPlayer) return "boost";
 
-    // Fire
-    this.aimAtTarget(dt, target);
     return "fire";
   }
 
@@ -165,10 +173,26 @@ class Enemy extends Ship {
   }
 
   attackPlayer(dt) {
-    this.combatProtocol = this.updateCombatProtocol(dt, ship);
+    const target = ship;
+    const combatProtocol = this.updateCombatProtocol(dt, target);
+    const canSwitch = (this.timeToSwitchProtocol -= dt) <= 0;
+
+    if (combatProtocol !== this.combatProtocol) {
+      this.combatProtocol = combatProtocol;
+      this.timeToSwitchProtocol = 0.5;
+    }
+
+    if (this.combatProtocol === "boost") {
+      this.lookAtTarget(dt, target);
+      this.boost(dt);
+    }
+
+    if (this.combatProtocol === "fire") {
+      this.aimAtTarget(dt, target);
+    }
 
     // Adding bullet stray
-    const DIST_TO_TARGET = dist(this.x, this.y, ship.x, ship.y);
+    const DIST_TO_TARGET = dist(this.x, this.y, target.x, target.y);
     const STRAY_MULT = sqrt(DIST_TO_TARGET) / 20 * this.bStray;
 
     if (this.lookingAtTarget && this.bTime <= 0) {

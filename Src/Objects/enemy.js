@@ -13,7 +13,6 @@ class Enemy extends Ship {
     this.y = y;
     this.vx = vx;
     this.vy = vy;
-    this.steerAngle = 0;
     this.setHealth(15, 15);
     this.speed = 10;
     this.sprite = enemySprite;
@@ -22,14 +21,16 @@ class Enemy extends Ship {
     this.range = 200;
     this.playerRange = 100;
     this.maxSpeed = 100;
-    this.turnSpeed = 3;
+    this.turnSpeed = 5;
     this.slainByPlayer = false;
     this.worth = 20;
+    this.protocol = "neutral";
     this.combatProtocol = "neutral";
-    this.timeToSwitchProtocol = 0;
+    this.protocolTimer = 0;
+    this.combatProtocolTimer = 0;
     this.lookingAtTarget = false;
     this.enemyLockonTimer = 0;
-    this.lockonTime = 5;
+    this.lockonTime = 6;
     this.grantedEffects = [];
 
     // Bullet attributes
@@ -52,6 +53,8 @@ class Enemy extends Ship {
     const star = closestStar.star;
     const d = closestStar.dist;
     
+    if (d == 0) return "escape star";
+
     // Calculate projected velocity toward star
     const starDx = star.x - this.x;
     const starDy = star.y - this.y;
@@ -62,9 +65,10 @@ class Enemy extends Ship {
     const starSpeed = this.vx * starNx + this.vy * starNy;
 
     // Time for correction
-    const timeToCorrect = 3;
+    const minDist = this.protocol == "escape star" ? 50 : 20;
+    const timeToCorrect = 1;
     const travelDist = Math.max(starSpeed * timeToCorrect, 0);
-    const closeToStar = d < star.r + 20 + travelDist;
+    const closeToStar = d < star.r + minDist + travelDist;
 
     if (closeToStar) return "escape star";
 
@@ -134,6 +138,24 @@ class Enemy extends Ship {
     }
   }
 
+  goNeutral(dt) {
+    const closestStar = system.getClosestStar(this.x, this.y);
+    const star = closestStar.star;
+    const d = closestStar.dist;
+
+    if (d == 0) return;
+
+    // If the ship is moving towards the sun faster than 50u/s, avoid stars
+    const starDx = star.x - this.x;
+    const starDy = star.y - this.y;
+    const starNx = starDx / d;
+    const starNy = starDy / d;
+    const starSpeed = this.vx * starNx + this.vy * starNy;
+
+    if (starSpeed > 50) this.avoidStars(dt);
+    else this.steerTargetAngle(dt, 0);
+  }
+
   applyEffect(Effect, dat = {}, ...rest) {
     const effect = super.applyEffect(Effect, dat, ...rest);
     effect.activate();
@@ -175,11 +197,11 @@ class Enemy extends Ship {
   attackPlayer(dt) {
     const target = ship;
     const combatProtocol = this.updateCombatProtocol(dt, target);
-    const canSwitch = (this.timeToSwitchProtocol -= dt) <= 0;
+    const canSwitch = (this.combatProtocolTimer -= dt) <= 0;
 
-    if (combatProtocol !== this.combatProtocol) {
+    if (combatProtocol !== this.combatProtocol && canSwitch) {
       this.combatProtocol = combatProtocol;
-      this.timeToSwitchProtocol = 0.5;
+      this.combatProtocolTimer = 0.5;
     }
 
     if (this.combatProtocol === "boost") {
@@ -252,11 +274,12 @@ class Enemy extends Ship {
 
   move(dt) {
     const protocol = this.getProtocol(dt);
+    this.protocol = protocol;
 
     switch (protocol) {
       case "escape star": this.avoidStars(dt); break;
       case "attack": this.attackPlayer(dt); break;
-      case "neutral": this.steerTargetAngle(dt, 0); break;
+      case "neutral": this.goNeutral(dt); break;
     }
 
     super.move(dt);
@@ -272,6 +295,7 @@ class BlackEnemy extends Enemy {
     this.sprite = blackEnemySprite;
     this.setHealth(25, 25);
     this.worth = 30;
+    this.turnSpeed = 3;
 
     // Boost attributes
     this.oldExaustCol = {
@@ -322,7 +346,7 @@ class SpeedEnemy extends Enemy {
     this.range = 220;
     this.playerRange = 50;
     this.speed = 40;
-    this.turnSpeed = 4;
+    this.turnSpeed = 15;
     this.maxSpeed = 200;
     this.setHealth(20, 20);
     this.worth = 25;
@@ -355,10 +379,10 @@ class UltraSpeedEnemy extends SpeedEnemy {
     this.bulletType = UltraspeedBullet;
     this.sprite = ultraspeedEnemySprite;
     this.range = 400;
-    this.playerRange = 0;
+    this.playerRange = 100;
     this.speed = 80;
     this.maxSpeed = 200;
-    this.turnSpeed = 8;
+    this.turnSpeed = 30;
     this.setHealth(40, 40);
     this.worth = 40;
     this.maneuverability = 10;
@@ -394,6 +418,7 @@ class HomingEnemy extends Enemy {
     this.sprite = homingEnemySprite;
     this.setHealth(20, 20);
     this.worth = 25;
+    this.turnSpeed = 3;
 
     // Bullet attributes
     this.bImpactForce = 1;
@@ -555,7 +580,7 @@ class HurricaneEnemy extends Enemy {
 
 function initEnemies(count) {
   if (noSpawns) return;
-  // const a = atan2(ship.y, ship.x);
+  // let a = atan2(ship.y, ship.x);
   // const enemy = createEnemy("ultraspeed", ship.x + cos(a) * 150, ship.y + sin(a) * 150, 0, 0);
   // enemies.push(enemy);
   // enemy.applyEffect(ForceField, { duration: 20, level: 1 });

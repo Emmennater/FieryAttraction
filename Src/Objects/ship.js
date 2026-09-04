@@ -120,8 +120,14 @@ class Ship extends GravityObject {
     const shipAngle = this.a + this.control.steeringAngle;
     let currentAngle = Math.atan2(this.vy, this.vx);
     let currentSpeed = Math.hypot(this.vx, this.vy);
-    const nvx = this.vx / currentSpeed;
-    const nvy = this.vy / currentSpeed;
+    let nvx = this.vx / currentSpeed;
+    let nvy = this.vy / currentSpeed;
+
+    // Divide by zero check
+    if (currentSpeed == 0) {
+      nvx = 0;
+      nvy = 0;
+    }
 
     // If the ship is moving slow in the direction of the player, increase speed
     // (increased maneuverability)

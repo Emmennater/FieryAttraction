@@ -108,7 +108,7 @@ class MainPlayer extends Player {
 
   reset(difficultSpawn = false) {
     let { pos, angle } = system.getRandomSpawn(200, 200, -1, 0);
-    
+
     if (difficultSpawn) {
       this.control.steerVel = 4;
       angle += PI * 0.2;

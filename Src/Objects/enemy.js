@@ -1,9 +1,9 @@
 
 enemies = [];
 
-const enemySpawnThresholds = { normal: 0, homing: 100, speed: 100, ultraspeed: 300, mega: 250, black: 300, hurricane: 300 };
-const enemyStrengthThresholds = { normal: 500, homing: 800, speed: 800, mega: 1000, black: 1000, hurricane: 1200, ultraspeed: 1200 };
-const ENEMY_TYPE_CAPS = { black: 3, mega: 5 };
+const enemySpawnThresholds = { normal: 0, homing: 100, speed: 100, ultraspeed: 1000, mega: 400, black: 300, hurricane: 500 };
+const enemyStrengthThresholds = { normal: 500, homing: 800, speed: 800, mega: 1000, black: 1000, hurricane: 2000, ultraspeed: 2000 };
+const ENEMY_TYPE_CAPS = { black: 3, mega: 5, ultraspeed: 5, hurricane: 5, homing: 5, speed: 5 };
 
 class Enemy extends Ship {
   constructor(x, y, vx, vy, s = 12) {
@@ -581,9 +581,9 @@ class HurricaneEnemy extends Enemy {
 
 function initEnemies(count) {
   if (noSpawns) return;
-  let a = atan2(ship.y, ship.x);
-  const enemy = createEnemy("ultraspeed", ship.x + cos(a) * 150, ship.y + sin(a) * 150, 0, 0);
-  enemies.push(enemy);
+  // let a = atan2(ship.y, ship.x);
+  // const enemy = createEnemy("ultraspeed", ship.x + cos(a) * 150, ship.y + sin(a) * 150, 0, 0);
+  // enemies.push(enemy);
   // enemy.applyEffect(ForceField, { duration: 20, level: 1 });
   // enemy.health = 1;
   // ship.applyEffect(HomingRounds, { duration: 100, level: 1 });

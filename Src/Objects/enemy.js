@@ -711,8 +711,8 @@ function drawEnemies(ctx) {
   }
 }
 
-function getEnemiesOfType(Type) {
-  return enemies.filter((enemy) => enemy.constructor === Type);
+function getEnemiesOfType(type) {
+  return enemies.filter((enemy) => enemy.type === type);
 }
 
 function randomEnemyType() {

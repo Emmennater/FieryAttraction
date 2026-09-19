@@ -262,5 +262,6 @@ class MainPlayer extends Player {
     this.resetStats();
     super.move(dt);
     this.takeDamageFromStars(dt);
+    console.log(Math.hypot(this.vx, this.vy));
   }
 }

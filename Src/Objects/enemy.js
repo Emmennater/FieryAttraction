@@ -95,10 +95,11 @@ class Enemy extends Ship {
     const angleToTarget = atan2(target.y - this.y, target.x - this.x);
     const angleCloseToTarget = smallestAngleDifference(this.control.steeringAngle + this.a, angleToTarget);
     const targetAngleDiff = Math.abs(angleCloseToTarget);
+    const targetSpeed = Math.hypot(target.vx, target.vy);
 
     // Boost
     const inRange = distToTarget > this.playerRange;
-    const getCloseToTarget = inRange && targetAngleDiff < PI * 0.2; // && enemySpeed < 100;
+    const getCloseToTarget = inRange && targetAngleDiff < PI * 0.2 && targetSpeed < 100;
     const ramPlayer = targetAngleDiff < 0.2 && (enemySpeed > RAM_MIN_SPEED || distToTarget > 200) && this.health > 20;
 
     if (getCloseToTarget || ramPlayer) return "boost";
@@ -346,7 +347,7 @@ class SpeedEnemy extends Enemy {
     this.range = 220;
     this.playerRange = 50;
     this.speed = 40;
-    this.turnSpeed = 15;
+    this.turnSpeed = 10;
     this.maxSpeed = 200;
     this.setHealth(20, 20);
     this.worth = 25;
@@ -379,13 +380,13 @@ class UltraSpeedEnemy extends SpeedEnemy {
     this.bulletType = UltraspeedBullet;
     this.sprite = ultraspeedEnemySprite;
     this.range = 400;
-    this.playerRange = 100;
+    this.playerRange = 200;
     this.speed = 80;
     this.maxSpeed = 200;
-    this.turnSpeed = 30;
+    this.turnSpeed = 20;
     this.setHealth(40, 40);
     this.worth = 40;
-    this.maneuverability = 10;
+    this.maneuverability = 20;
 
     // Bullet attributes
     this.bDelay = 1;
@@ -580,9 +581,9 @@ class HurricaneEnemy extends Enemy {
 
 function initEnemies(count) {
   if (noSpawns) return;
-  // let a = atan2(ship.y, ship.x);
-  // const enemy = createEnemy("ultraspeed", ship.x + cos(a) * 150, ship.y + sin(a) * 150, 0, 0);
-  // enemies.push(enemy);
+  let a = atan2(ship.y, ship.x);
+  const enemy = createEnemy("ultraspeed", ship.x + cos(a) * 150, ship.y + sin(a) * 150, 0, 0);
+  enemies.push(enemy);
   // enemy.applyEffect(ForceField, { duration: 20, level: 1 });
   // enemy.health = 1;
   // ship.applyEffect(HomingRounds, { duration: 100, level: 1 });

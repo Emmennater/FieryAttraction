@@ -32,6 +32,7 @@ function preload() {
   solarFlairSprite = loadImage("Assets/solar-flair3.png");
   solarRingSprite = loadImage("Assets/solar-ring.png");
   spacebg = loadImage("Assets/stars.jpg"); // https://pxhere.com/en/photo/1078799
+  titleText = null;
   
   // Festive
   festive = getItem("fiery-attraction-festive-state") ?? false;
@@ -136,6 +137,11 @@ function loadTheme(name) {
       homingEnemySprite = loadImage("Assets/Festive/Halloween/homing-enemy-jet.png");
       speedEnemySprite = loadImage("Assets/Festive/Halloween/speed-enemy-jet.png");
       megaEnemySprite = loadImage("Assets/Festive/Halloween/mega-enemy-jet.png");
+      ultraspeedEnemySprite = loadImage("Assets/Festive/Halloween/ultraspeed-enemy-jet.png");
+      hurricanneEnemySprite = loadImage("Assets/Festive/Halloween/hurricane-enemy-jet.png");
+      blackEnemySprite = loadImage("Assets/Festive/Halloween/black-enemy-jet.png");
+      rocketSprite = loadImage("Assets/Festive/Halloween/rocket.png");
+      titleText = loadImage("Assets/Festive/Halloween/title.png");
       starSprite = null;
       bgCol = color(0);
       break;

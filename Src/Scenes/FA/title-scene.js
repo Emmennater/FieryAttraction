@@ -92,10 +92,17 @@ class TitleScene extends Scene {
       text(DHS_TXT, topScoreX, topScoreY + MIN_SCL * 0.04 + 4);
 
       // Title
-      textFont(futureFont);
-      textSize(MIN_SCL * 0.08);
-      textAlign(CENTER, CENTER);
-      text("FIERY ATTRACTION", width / 2, height * 0.25);
+      if (titleText == null) {
+        textFont(futureFont);
+        textSize(MIN_SCL * 0.08);
+        textAlign(CENTER, CENTER);
+        text("FIERY ATTRACTION", width / 2, height * 0.25);
+      } else {
+        const aspect = titleText.height / titleText.width;
+        const titleW = MIN_SCL * 1.1;
+        const titleH = titleW * aspect;
+        image(titleText, width / 2 - titleW / 2, height * 0.25 - titleH / 2, titleW, titleH);
+      }
       
       // Space to start
       const txtSize = MIN_SCL * 0.05

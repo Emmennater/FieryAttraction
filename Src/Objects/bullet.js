@@ -146,6 +146,7 @@ class HomingBullet extends Bullet {
     super(dat);
     this.col = { r: 183, g: 45, b: 247 };
     this.homingVelocity = Math.sqrt(dat.vx ** 2 + dat.vy ** 2) * (1.25 + this.level * 0.25);
+    this.homingAsteroidBlacklist = [ Jackolantern ];
     this.homingEnemyBlacklist = [ BlackEnemy, HurricaneEnemy, UltraSpeedEnemy ];
     this.homingBulletBlacklist = [ HomingBullet, MegaBullet ];
     this.canHomeOnTarget = true;
@@ -207,6 +208,15 @@ class HomingBullet extends Bullet {
     for (let i = this.level - 1; i < this.homingBulletBlacklist.length; i++) {
       let Class = this.homingBulletBlacklist[i];
       if (this.target.bulletType == Class) {
+        this.canHomeOnTarget = false;
+        break;
+      }
+    }
+
+    // Homing asteroid blacklist
+    for (let i = this.level - 1; i < this.homingAsteroidBlacklist.length; i++) {
+      let Class = this.homingAsteroidBlacklist[i];
+      if (this.target.constructor == Class) {
         this.canHomeOnTarget = false;
         break;
       }

@@ -34,6 +34,9 @@ function preload() {
   spacebg = loadImage("Assets/stars.jpg"); // https://pxhere.com/en/photo/1078799
   titleText = null;
   
+  // Festive sprites
+  jackolanternSprite = loadImage("Assets/Festive/Halloween/jackolantern.png");
+
   // Festive
   festive = getItem("fiery-attraction-festive-state") ?? false;
   if (festive) {

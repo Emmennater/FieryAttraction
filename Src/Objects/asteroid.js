@@ -36,6 +36,14 @@ class Asteroid extends GravityObject {
     this.makeCollisionMesh([114, 10], [64, 22], [40, 54], [43, 145], [97, 191], [131, 181], [164, 123], [167, 61]);
     this.collisionMesh.setOrigin(100, 100);
     this.collisionMesh.setScale(this.r / 200);
+
+    // Split
+    let split = 0;
+    if (r > 70) split = 2;
+    else if (r > 30) split = 1;
+    const health = Math.max(r - 5, 5);
+    this.setHealth(health, health);
+    this.split = split;
   }
 
   move(dt) {
@@ -144,6 +152,10 @@ class Asteroid extends GravityObject {
       asteroid.split = this.split - 1;
       asteroid.isSplit = true;
       asteroids.push(asteroid);
+
+      if (asteroid.type == "jackolantern") {
+        hud.displayMessage("Jackolantern dropped", { col: color(255, 120, 0) });
+      }
     }
   }
 
@@ -375,6 +387,36 @@ class RegenAsteroid extends Asteroid {
   }
 }
 
+class Jackolantern extends Asteroid {
+  constructor(x, y, r, vx, vy) {
+    super(x, y, r, vx, vy);
+    this.type = "jackolantern";
+    this.sprite = jackolanternSprite;
+    this.setHealth(this.maxHealth * 3, this.maxHealth * 3);
+  }
+
+  getScore() {
+    const level = this.getLevel();
+    return 1000 * level;
+  }
+
+  giveReward(object) {
+    super.giveReward(object);
+    const level = this.getLevel() + 1;
+    const effects = [
+      [ExplosiveRounds, 1],
+      [MegaRounds, 1],
+      [HurricaneRounds, 1],
+    ];
+    const Effect = randomFromProbs(effects);
+
+    object.applyEffect(Effect, {
+      duration: this.scaleReward(15) * 2,
+      level
+    }, this);
+  }
+}
+
 function destroyAllAsteroids() {
   for (let asteroid of asteroids)
     asteroid.takeDamage(100);
@@ -398,6 +440,10 @@ function spawnAsteroid(type, spawnRadius = 600, delay = 0) {
     let vy = Math.sin(angle) * asteroidSpeed;
     let asteroid = createAsteroid(type, x, y, vx, vy);
     asteroids.push(asteroid);
+
+    if (asteroid.type == "jackolantern") {
+      hud.displayMessage("Jackolantern dropped", { col: color(255, 120, 0) });
+    }
   }
 
   if (delay == 0) {
@@ -506,17 +552,12 @@ function createAsteroid(type, x, y, vx, vy, r = null) {
     case "regen":
       asteroid = new RegenAsteroid(x, y, r, vx, vy);
       break;
+    case "jackolantern":
+      asteroid = new Jackolantern(x, y, r, vx, vy);
+      break;
     default:
       asteroid = new Asteroid(x, y, r, vx, vy);
   }
-
-  let split = 0;
-  if (r > 70) split = 2;
-  else if (r > 30) split = 1;
-  
-  const health = Math.max(r - 5, 5);
-  asteroid.setHealth(health, health);
-  asteroid.split = split;
   
   return asteroid;
 }
@@ -534,6 +575,9 @@ function randomAsteroidType(baseType = "normal") {
     explosive: 2,
     "anti health": 1
   };
+
+  // Add jackolatern if halloween
+  if (getTheme() == "halloween") typeChances["jackolantern"] = 1;
 
   // Swap normal for base
   const normalChance = typeChances[baseType];

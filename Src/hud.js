@@ -115,6 +115,7 @@ class HUD {
     this.cameraShake.speed = 0;
     this.whiteFlash = 0;
     this.effectsBar.reset();
+    this.messageBar.reset();
 
     for (const meter of this.meters) {
       meter.reset();
@@ -432,14 +433,28 @@ class ScoreText {
       push();
       translate(x + offsetX + 10, y + 15);
       scale(s);
+      textAlign(LEFT, TOP);
       text(earnedText, 0, -15);
       pop();
+
+      if (this.scoreEarned >= 1000) {
+        push();
+        translate(width/2, height*0.2);
+        scale(s * 2);
+        textAlign(CENTER, CENTER);
+        text(earnedText, 0, 0);
+        pop();
+      }
     }
   }
 }
 
 class MessageBar {
   constructor() {
+    this.messages = [];
+  }
+
+  reset() {
     this.messages = [];
   }
 

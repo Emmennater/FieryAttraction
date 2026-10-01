@@ -154,7 +154,7 @@ class Asteroid extends GravityObject {
       asteroids.push(asteroid);
 
       if (asteroid.type == "jackolantern") {
-        hud.displayMessage("Jackolantern dropped", { col: color(255, 120, 0) });
+        hud.displayMessage("Jack-o'-lantern dropped", { col: color(255, 120, 0) });
       }
     }
   }
@@ -442,7 +442,7 @@ function spawnAsteroid(type, spawnRadius = 600, delay = 0) {
     asteroids.push(asteroid);
 
     if (asteroid.type == "jackolantern") {
-      hud.displayMessage("Jackolantern dropped", { col: color(255, 120, 0) });
+      hud.displayMessage("Jack-o'-lantern dropped", { col: color(255, 120, 0) });
     }
   }
 

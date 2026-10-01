@@ -36,6 +36,8 @@ function preload() {
   
   // Festive sprites
   jackolanternSprite = loadImage("Assets/Festive/Halloween/jackolantern.png");
+  cobweb = loadImage("Assets/Festive/Halloween/cobweb.png");
+  cobweb2 = loadImage("Assets/Festive/Halloween/cobweb2.png");
 
   // Festive
   festive = getItem("fiery-attraction-festive-state") ?? false;

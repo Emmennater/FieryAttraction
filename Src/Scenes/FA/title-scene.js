@@ -63,6 +63,14 @@ class TitleScene extends Scene {
     imageMode(CORNER);
     image(ctx, 0, 0, width, height);
     
+    if (festive && getTheme() === "halloween") {
+      const aspect = cobweb.height / cobweb.width;
+      const scl = Math.min(width, height) * 0.4;
+      const scl2 = scl * 0.8;
+      image(cobweb, width - scl * aspect, 0, scl * aspect, scl);
+      image(cobweb2, -scl2 * 0.2, height - scl2 * aspect, scl2 * aspect, scl2);
+    }
+
     // Testing
     // mobile.update(dt);
     // mobile.draw();

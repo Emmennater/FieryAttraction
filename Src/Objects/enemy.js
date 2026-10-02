@@ -1,6 +1,7 @@
 
 enemies = [];
 
+const ENEMY_QUEUE = [];
 const enemySpawnThresholds = { normal: 0, homing: 100, speed: 100, ultraspeed: 1000, mega: 400, black: 300, hurricane: 500 };
 const enemyStrengthThresholds = { normal: 500, homing: 800, speed: 800, mega: 1000, black: 1000, hurricane: 2000, ultraspeed: 2000 };
 const ENEMY_TYPE_CAPS = { black: 3, mega: 5, ultraspeed: 5, hurricane: 5, homing: 5, speed: 5 };
@@ -615,57 +616,69 @@ function createEnemy(type, x = 0, y = 0, vx = 0, vy = 0) {
   return enemy;
 }
 
-function spawnEnemy(type = "normal", respawned = false) {
-  const { pos, angle } = system.getRandomSpawn(100, 200, 600);
-  const { x, y } = pos;
+function spawnEnemy(type = "normal", respawned = false, delay = 0) {
+  const spawnEnemy = () => {
+    const { pos, angle } = system.getRandomSpawn(100, 200, 600);
+    const { x, y } = pos;
 
-  if (type == "hurricane" && !respawned) {
-    hud.displayMessage("Something is coming from space...");
-  }
+    if (type == "hurricane" && !respawned) {
+      hud.displayMessage("Something is coming from space...");
+    }
 
-  let speed = randInt(20, 40);
-  let vx = Math.cos(angle) * speed;
-  let vy = Math.sin(angle) * speed;
-  let enemy = createEnemy(type, x, y, vx, vy);
+    let speed = randInt(20, 40);
+    let vx = Math.cos(angle) * speed;
+    let vy = Math.sin(angle) * speed;
+    let enemy = createEnemy(type, x, y, vx, vy);
 
-  // Strength
-  const threshold = enemyStrengthThresholds[enemy.type];
-  if (!threshold) throw new Error(`Unknown enemy type: ${enemy.type}`);
-  const strengthPercent = 1 + Math.floor(hud.score / threshold) * 0.2;
-  enemy.strengthen(strengthPercent);
+    // Strength
+    const threshold = enemyStrengthThresholds[enemy.type];
+    if (!threshold) throw new Error(`Unknown enemy type: ${enemy.type}`);
+    const strengthPercent = 1 + Math.floor(hud.score / threshold) * 0.2;
+    enemy.strengthen(strengthPercent);
 
-  // Random effect
-  let effects = [
-    [HomingRounds, SpeedRounds, MegaRounds, ExplosiveRounds],
-    [SuperSpeed],
-    [MultiShot],
-    [Regeneration],
-    [ForceField]
-  ];
+    // Random effect
+    let effects = [
+      [HomingRounds, SpeedRounds, MegaRounds, ExplosiveRounds],
+      [SuperSpeed],
+      [MultiShot],
+      [Regeneration],
+      [ForceField]
+    ];
 
-  const effectChance = lateGameWeight(10000, 0.03, 0.25);
-  const bonusEffectChance = lateGameWeight(10000, 0.2, 0.5);
-  
-  if (Math.random() < effectChance) {
-    do {
-      let rowIdx = 0;
-      let allEffects = effects.flat();
-      let effectIdx = Math.floor(Math.random() * allEffects.length);
+    const effectChance = lateGameWeight(10000, 0.03, 0.25);
+    const bonusEffectChance = lateGameWeight(10000, 0.2, 0.5);
+    
+    if (Math.random() < effectChance) {
+      do {
+        let rowIdx = 0;
+        let allEffects = effects.flat();
+        let effectIdx = Math.floor(Math.random() * allEffects.length);
 
-      for (let i = 0; i < effects.length; i++) {
-        if (effects[i].includes(allEffects[effectIdx])) {
-          rowIdx = i;
-          break;
+        for (let i = 0; i < effects.length; i++) {
+          if (effects[i].includes(allEffects[effectIdx])) {
+            rowIdx = i;
+            break;
+          }
         }
-      }
 
-      let RandomEffect = allEffects[effectIdx];
-      effects.splice(rowIdx, 1);
-      giveEnemyEffect(enemy, RandomEffect);
-    } while (Math.random() < bonusEffectChance && effects.length > 0);
+        let RandomEffect = allEffects[effectIdx];
+        effects.splice(rowIdx, 1);
+        giveEnemyEffect(enemy, RandomEffect);
+      } while (Math.random() < bonusEffectChance && effects.length > 0);
+    }
+
+    enemies.push(enemy);
+  };
+
+  if (delay == 0) {
+    spawnEnemy();
+  } else {
+    const timer = setTimeout(() => {
+      ENEMY_QUEUE.splice(ENEMY_QUEUE.indexOf(timer), 1);
+      spawnEnemy();
+    }, delay * 1000);
+    ENEMY_QUEUE.push(timer);
   }
-
-  enemies.push(enemy);
 }
 
 function giveEnemyEffect(enemy, Effect) {
@@ -689,7 +702,7 @@ function destroyEnemy(enemy, i = enemies.indexOf(enemy)) {
   // Respawn (same type if not killed by player)
   const respawned = !enemy.slainByPlayer;
   let type = !enemy.slainByPlayer ? enemy.type : randomEnemyType();
-  spawnEnemy(type, respawned);
+  spawnEnemy(type, respawned, randInt(20, 40));
 }
 
 function moveEnemies(dt) {
@@ -826,4 +839,18 @@ function blacklistEnemyTypes(enemyList, Classes) {
   });
 
   return newList;
+}
+
+function clearEnemies() {
+  for (let timer of ENEMY_QUEUE) {
+    clearTimeout(timer);
+  }
+
+  ENEMY_QUEUE.length = 0;
+
+  for (let enemy of enemies) {
+    enemy.removeAllEffects();
+  }
+
+  enemies.length = 0;
 }

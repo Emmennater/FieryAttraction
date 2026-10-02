@@ -26,6 +26,7 @@ class GameScene extends Scene {
   
     clearAllEffects();
     clearAsteroids();
+    clearEnemies();
     
     // Host or Singleplayer
     if (!multiplayer.isClient()) {

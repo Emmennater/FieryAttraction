@@ -13,7 +13,7 @@ class EventManager {
         upgradeRandomEnemy();
         return;
       } else {
-        spawnEnemy();
+        spawnEnemy("normal", false, randInt(20, 40));
       }
     });
 

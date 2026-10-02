@@ -393,6 +393,8 @@ class Jackolantern extends Asteroid {
     this.type = "jackolantern";
     this.sprite = jackolanternSprite;
     this.setHealth(this.maxHealth * 3, this.maxHealth * 3);
+    this.density = 60;
+    this.m = Math.round(PI * this.r ** 2) * this.density;
   }
 
   getScore() {
@@ -450,10 +452,10 @@ function spawnAsteroid(type, spawnRadius = 600, delay = 0) {
     spawnAsteroid();
   } else {
     const timer = setTimeout(() => {
-      ASTEROID_QUEUE.splice(ASTEROID_QUEUE.indexOf(timer), 1);
+      ENEMY_QUEUE.splice(ENEMY_QUEUE.indexOf(timer), 1);
       spawnAsteroid();
     }, delay * 1000);
-    ASTEROID_QUEUE.push(timer);
+    ENEMY_QUEUE.push(timer);
   }
 }
 
@@ -611,11 +613,11 @@ function trueRandomAsteroid() {
 
 function clearAsteroids() {
   // Clear asteroid queue
-  for (let timer of ASTEROID_QUEUE) {
+  for (let timer of ENEMY_QUEUE) {
     clearTimeout(timer);
   }
 
-  ASTEROID_QUEUE.length = 0;
+  ENEMY_QUEUE.length = 0;
 
   for (let asteroid of asteroids) {
     asteroid.removeAllEffects();

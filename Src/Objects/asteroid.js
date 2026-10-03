@@ -452,10 +452,10 @@ function spawnAsteroid(type, spawnRadius = 600, delay = 0) {
     spawnAsteroid();
   } else {
     const timer = setTimeout(() => {
-      ENEMY_QUEUE.splice(ENEMY_QUEUE.indexOf(timer), 1);
+      ASTEROID_QUEUE.splice(ASTEROID_QUEUE.indexOf(timer), 1);
       spawnAsteroid();
     }, delay * 1000);
-    ENEMY_QUEUE.push(timer);
+    ASTEROID_QUEUE.push(timer);
   }
 }
 
@@ -613,11 +613,11 @@ function trueRandomAsteroid() {
 
 function clearAsteroids() {
   // Clear asteroid queue
-  for (let timer of ENEMY_QUEUE) {
+  for (let timer of ASTEROID_QUEUE) {
     clearTimeout(timer);
   }
 
-  ENEMY_QUEUE.length = 0;
+  ASTEROID_QUEUE.length = 0;
 
   for (let asteroid of asteroids) {
     asteroid.removeAllEffects();

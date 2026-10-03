@@ -8,7 +8,7 @@ class EventManager {
 
       const MAX_ENEMIES = 15;
 
-      if (enemies.length >= MAX_ENEMIES) {
+      if (getEnemyCount() >= MAX_ENEMIES) {
         // Replace enemies with stronger ones
         upgradeRandomEnemy();
         return;

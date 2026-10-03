@@ -617,7 +617,7 @@ function createEnemy(type, x = 0, y = 0, vx = 0, vy = 0) {
 }
 
 function spawnEnemy(type = "normal", respawned = false, delay = 0) {
-  const spawnEnemy = () => {
+  const spawnEnemy = (type) => {
     const { pos, angle } = system.getRandomSpawn(100, 200, 600);
     const { x, y } = pos;
 
@@ -671,13 +671,15 @@ function spawnEnemy(type = "normal", respawned = false, delay = 0) {
   };
 
   if (delay == 0) {
-    spawnEnemy();
+    spawnEnemy(type);
   } else {
     const timer = setTimeout(() => {
-      ENEMY_QUEUE.splice(ENEMY_QUEUE.indexOf(timer), 1);
-      spawnEnemy();
+      const idx = ENEMY_QUEUE.findIndex(obj => obj.timer == timer);
+      const obj = ENEMY_QUEUE[idx];
+      ENEMY_QUEUE.splice(idx, 1);
+      spawnEnemy(obj.type);
     }, delay * 1000);
-    ENEMY_QUEUE.push(timer);
+    ENEMY_QUEUE.push({ timer, type });
   }
 }
 
@@ -776,51 +778,32 @@ function randomEnemyType() {
   return type; // Return the randomly selected type
 }
 
-function getRandomEnemyIndex() {
-  return Math.floor(Math.random() * enemies.length);
-}
-
 function upgradeEnemyAt(enemyIndex) {
-  const enemy = enemies[enemyIndex];
-  const enemyType = enemy.type;
   const upgradePath = ["normal", "speed", "homing", "black", "mega", "hurricane", "ultraspeed"];
-  const newIndex = upgradePath.indexOf(enemyType) + 1;
+  const enemyType = ENEMY_QUEUE[enemyIndex].type;
+  let typeIndex = upgradePath.indexOf(enemyType);
 
-  if (newIndex >= upgradePath.length) return false;
-
-  const nextType = upgradePath[newIndex];
-
-  // Check if the next type is at the cap
-  if (getEnemiesOfType(nextType).length >= ENEMY_TYPE_CAPS[nextType]) {
-    return false;
+  while (++typeIndex < upgradePath.length) {
+    const nextType = upgradePath[typeIndex];
+    
+    // Check if the next type is at the cap
+    if (getEnemiesOfType(nextType).length < ENEMY_TYPE_CAPS[nextType]) {
+      ENEMY_QUEUE[enemyIndex].type = nextType;
+      return true;
+    }
   }
 
-  const newEnemy = createEnemy(nextType);
-
-  // Copy over the old enemy's properties
-  newEnemy.x = enemy.x;
-  newEnemy.y = enemy.y;
-  newEnemy.vx = enemy.vx;
-  newEnemy.vy = enemy.vy;
-  newEnemy.health = newEnemy.maxHealth - (enemy.maxHealth - enemy.health);
-  newEnemy.control.steeringAngle = enemy.control.steeringAngle;
-  newEnemy.bTime = enemy.bTime;
-  newEnemy.lastBullet = enemy.lastBullet;
-  newEnemy.slainByPlayer = enemy.slainByPlayer;
-  newEnemy.destroyed = enemy.destroyed;
-
-  // Replace old enemy with new one
-  enemies[enemyIndex] = newEnemy;
-
-  return true;
+  return false;
 }
 
 function upgradeRandomEnemy() {
-  let index = getRandomEnemyIndex();
+  if (ENEMY_QUEUE.length == 0) return false;
+
+  let index = randInt(0, ENEMY_QUEUE.length - 1);
   const initIndex = index;
 
   while (!upgradeEnemyAt(index)) {
-    index = (index + 1) % enemies.length;
+    index = (index + 1) % ENEMY_QUEUE.length;
     if (index == initIndex) return false;
   }
 
@@ -853,4 +836,8 @@ function clearEnemies() {
   }
 
   enemies.length = 0;
+}
+
+function getEnemyCount() {
+  return enemies.length + ENEMY_QUEUE.length;
 }

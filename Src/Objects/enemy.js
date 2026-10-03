@@ -520,12 +520,21 @@ class HurricaneEnemy extends Enemy {
     if (!this.destroyed) {
       if (this.timeSinceTeleport > this.tpTime && !this.teleported) this.teleport(this.getRandomTeleport());
     }
+
+    if (this.bulletType === HurricaneBullet) {
+      this.bStray = 20;
+      this.maxTargetAngleError = PI;
+    } else {
+      this.bStray = 0.1;
+      this.maxTargetAngleError = PI * 0.3;
+    }
   }
 
   getRandomOffset() {
-    let x = randSign() * randInt(50, 100) + ship.x;
-    let y = randSign() * randInt(50, 100) + ship.y;
-
+    const a = Math.random() * TWO_PI;
+    const d = randInt(100, 200);
+    const x = Math.cos(a) * d + ship.x;
+    const y = Math.sin(a) * d + ship.y;
     return { x, y };
   }
 
@@ -555,6 +564,9 @@ class HurricaneEnemy extends Enemy {
     this.x = loc.x;
     this.y = loc.y;
     this.teleported = true;
+
+    // Face player
+    this.control.steeringAngle = atan2(ship.y - this.y, ship.x - this.x) - this.a;
   }
 
   grantEffect(object) {
@@ -584,9 +596,9 @@ class HurricaneEnemy extends Enemy {
 function initEnemies(count) {
   if (noSpawns) return;
   // let a = atan2(ship.y, ship.x);
-  // const enemy = createEnemy("ultraspeed", ship.x + cos(a) * 150, ship.y + sin(a) * 150, 0, 0);
+  // const enemy = createEnemy("hurricane", ship.x + cos(a) * 150, ship.y + sin(a) * 150, 0, 0);
   // enemies.push(enemy);
-  // enemy.applyEffect(ForceField, { duration: 20, level: 1 });
+  // enemy.applyEffect(SpeedRounds, { duration: 1000, level: 1 });
   // enemy.health = 1;
   // ship.applyEffect(HomingRounds, { duration: 100, level: 1 });
   // ship.effects[0].done = true;
@@ -731,6 +743,15 @@ function getEnemiesOfType(type) {
   return enemies.filter((enemy) => enemy.type === type);
 }
 
+function getQueuedEnemiesOfType(type) {
+  return ENEMY_QUEUE.filter((obj) => obj.type === type);
+}
+
+function enemyTypeAtCap(type) {
+  const total = getEnemiesOfType(type).length + getQueuedEnemiesOfType(type).length;
+  return total >= ENEMY_TYPE_CAPS[type];
+}
+
 function randomEnemyType() {
   const difficulty = Math.floor(hud.score / 100);
 
@@ -753,8 +774,7 @@ function randomEnemyType() {
 
   // Don't spawn enemies that reached the cap
   for (let key in typeChances) {
-    const nEnemies = getEnemiesOfType(key).length;
-    if (nEnemies > ENEMY_TYPE_CAPS[key]) {
+    if (enemyTypeAtCap(key)) {
       delete typeChances[key];
     }
   }
@@ -785,9 +805,12 @@ function upgradeEnemyAt(enemyIndex) {
 
   while (++typeIndex < UPGRADE_PATH.length) {
     const nextType = UPGRADE_PATH[typeIndex];
+
+    // If there is no next type, stop
+    if (!nextType) break;
     
     // Check if the next type is at the cap
-    if (getEnemiesOfType(nextType).length < ENEMY_TYPE_CAPS[nextType]) {
+    if (!enemyTypeAtCap(nextType)) {
       ENEMY_QUEUE[enemyIndex].type = nextType;
       return true;
     }
@@ -848,8 +871,8 @@ function blacklistEnemyTypes(enemyList, Classes) {
 }
 
 function clearEnemies() {
-  for (let timer of ENEMY_QUEUE) {
-    clearTimeout(timer);
+  for (let enemy of ENEMY_QUEUE) {
+    clearTimeout(enemy.timer);
   }
 
   ENEMY_QUEUE.length = 0;

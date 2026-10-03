@@ -5,6 +5,7 @@ const ENEMY_QUEUE = [];
 const enemySpawnThresholds = { normal: 0, homing: 100, speed: 100, ultraspeed: 1000, mega: 400, black: 300, hurricane: 500 };
 const enemyStrengthThresholds = { normal: 500, homing: 800, speed: 800, mega: 1000, black: 1000, hurricane: 2000, ultraspeed: 2000 };
 const ENEMY_TYPE_CAPS = { black: 3, mega: 5, ultraspeed: 5, hurricane: 5, homing: 5, speed: 5 };
+const UPGRADE_PATH = ["normal", "speed", "homing", "black", "mega", "hurricane", "ultraspeed"];
 
 class Enemy extends Ship {
   constructor(x, y, vx, vy, s = 12) {
@@ -779,12 +780,11 @@ function randomEnemyType() {
 }
 
 function upgradeEnemyAt(enemyIndex) {
-  const upgradePath = ["normal", "speed", "homing", "black", "mega", "hurricane", "ultraspeed"];
   const enemyType = ENEMY_QUEUE[enemyIndex].type;
-  let typeIndex = upgradePath.indexOf(enemyType);
+  let typeIndex = UPGRADE_PATH.indexOf(enemyType);
 
-  while (++typeIndex < upgradePath.length) {
-    const nextType = upgradePath[typeIndex];
+  while (++typeIndex < UPGRADE_PATH.length) {
+    const nextType = UPGRADE_PATH[typeIndex];
     
     // Check if the next type is at the cap
     if (getEnemiesOfType(nextType).length < ENEMY_TYPE_CAPS[nextType]) {
@@ -799,11 +799,34 @@ function upgradeEnemyAt(enemyIndex) {
 function upgradeRandomEnemy() {
   if (ENEMY_QUEUE.length == 0) return false;
 
-  let index = randInt(0, ENEMY_QUEUE.length - 1);
+  // Find the count of each enemy type
+  const enemyCounts = {};
+  for (let enemy of ENEMY_QUEUE) {
+    if (enemyCounts[enemy.type]) {
+      enemyCounts[enemy.type] += 1;
+    } else {
+      enemyCounts[enemy.type] = 1;
+    }
+  }
+
+  // Collect all the enemies that have more than one occurrence
+  const batch = [];
+  for (let i = 0; i < ENEMY_QUEUE.length; i++) {
+    if (enemyCounts[ENEMY_QUEUE[i].type] > 1) {
+      batch.push(i);
+    }
+  }
+
+  // Stop if there are no enemies to upgrade
+  if (batch.length == 0) return false;
+
+  // Randomly select an enemy from the batch
+  let index = randInt(0, batch.length - 1);
   const initIndex = index;
 
-  while (!upgradeEnemyAt(index)) {
-    index = (index + 1) % ENEMY_QUEUE.length;
+  // Upgrade the selected enemy
+  while (!upgradeEnemyAt(batch[index])) {
+    index = (index + 1) % batch.length;
     if (index == initIndex) return false;
   }
 

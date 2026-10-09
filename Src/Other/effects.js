@@ -170,7 +170,7 @@ class HurricaneRounds extends CustomRounds {
     super(target, dat);
     this.name = "hurricane rounds";
     this.bulletType = HurricaneBullet;
-    this.color = color(50);
+    this.color = color(76, 67, 92);
   }
 }
 

@@ -444,7 +444,9 @@ function spawnAsteroid(type, spawnRadius = 600, delay = 0) {
     asteroids.push(asteroid);
 
     if (asteroid.type == "jackolantern") {
-      hud.displayMessage("Jack-o'-lantern dropped", { col: color(255, 120, 0) });
+      let message = "Jack-o'-lantern dropped";
+      if (asteroid.getLevel() == 3) message = "The Great Pumpkin dropped";
+      hud.displayMessage(message, { col: color(255, 120, 0) });
     }
   }
 
@@ -463,7 +465,7 @@ function initAsteroids() {
   if (noSpawns) return;
   
   // Test
-  // const asteroid = createAsteroid("normal", ship.x + ship.vx * 10, ship.y + ship.vy * 10, -ship.vx * 2, -ship.vy * 2, 80);
+  // const asteroid = createAsteroid("jackolantern", ship.x + ship.vx * 10, ship.y + ship.vy * 10, -ship.vx * 2, -ship.vy * 2, 70);
   // const asteroid = createAsteroid("normal", ship.x + 100, ship.y, ship.vx, ship.vy, 80);
   // asteroids.push(asteroid);
 

@@ -38,12 +38,9 @@ class Asteroid extends GravityObject {
     this.collisionMesh.setScale(this.r / 200);
 
     // Split
-    let split = 0;
-    if (r > 70) split = 2;
-    else if (r > 30) split = 1;
     const health = Math.max(r - 5, 5);
     this.setHealth(health, health);
-    this.split = split;
+    this.split = this.getLevel() - 1;
   }
 
   move(dt) {
@@ -175,7 +172,9 @@ class Asteroid extends GravityObject {
   }
 
   getLevel() {
-    return constrain(Math.floor(this.scaleReward(1) ** 0.7), 1, 3);
+    if (this.r > 70) return 3;
+    if (this.r > 30) return 2;
+    return 1;
   }
 
   draw(ctx) {
@@ -445,7 +444,13 @@ function spawnAsteroid(type, spawnRadius = 600, delay = 0) {
 
     if (asteroid.type == "jackolantern") {
       let message = "Jack-o'-lantern dropped";
-      if (asteroid.getLevel() == 3) message = "The Great Pumpkin dropped";
+      let col = color(255, 120, 0);
+      
+      if (asteroid.getLevel() == 3) {
+        message = "The Great Pumpkin dropped";
+        col = color(180, 0, 255);
+      }
+
       hud.displayMessage(message, { col: color(255, 120, 0) });
     }
   }
@@ -466,7 +471,7 @@ function initAsteroids() {
   
   // Test
   // const asteroid = createAsteroid("jackolantern", ship.x + ship.vx * 10, ship.y + ship.vy * 10, -ship.vx * 2, -ship.vy * 2, 70);
-  // const asteroid = createAsteroid("normal", ship.x + 100, ship.y, ship.vx, ship.vy, 80);
+  // const asteroid = createAsteroid("normal", ship.x + 100, ship.y, ship.vx, ship.vy, 71);
   // asteroids.push(asteroid);
 
   const SPAWN_RADIUS = 200;
@@ -525,8 +530,9 @@ function createAsteroid(type, x, y, vx, vy, r = null) {
   let asteroid = null;
   
   if (!r) {
+    const prob = type == "jackolantern" ? 0.1 : 0.05;
     r = randInt(10, 20);
-    if (Math.random() < 0.05) {
+    if (Math.random() < prob) {
       r += 20;
       if (Math.random() < 0.1) {
         r += 40;

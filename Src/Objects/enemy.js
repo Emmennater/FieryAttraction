@@ -658,8 +658,8 @@ function spawnEnemy(type = "normal", respawned = false, delay = 0) {
       [ForceField]
     ];
 
-    const effectChance = lateGameWeight(10000, 0.03, 0.25);
-    const bonusEffectChance = lateGameWeight(10000, 0.2, 0.5);
+    const effectChance = lateGameWeight(10000, 0.03, 0.2);
+    const bonusEffectChance = lateGameWeight(10000, 0.2, 0.4);
     
     if (Math.random() < effectChance) {
       do {
